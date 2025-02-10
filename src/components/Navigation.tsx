@@ -69,7 +69,7 @@ const SignupButton = styled.button`
 const Navigation = () => {
   return (
     <HeaderBar>
-      <LogoLink to="/posts">
+      <LogoLink to="">
         <LogoImage src={Logo} />
       </LogoLink>
       <HeaderMenu>
