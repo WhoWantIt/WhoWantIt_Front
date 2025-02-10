@@ -11,29 +11,37 @@ const ITEMS_PER_PAGE = 12;
 const PostsByInstitution = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [filteredPosts, setFilteredPosts] = useState([]);
+  const [hasSearched, setHasSearched] = useState(false);
   const navigate = useNavigate();
   const { institution } = useParams<{ institution?: string }>();
 
   useEffect(() => {
-    if (institution) {
+    if (institution && institution !== ":institution") {
       setSearchTerm(institution);
+      handleSearchRequest(institution);
     } else {
       setSearchTerm("");
+      setFilteredPosts([]);
+      setHasSearched(false);
     }
     setCurrentPage(1);
   }, [institution]);
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    navigate(`/posts/${searchTerm || undefined}`);
-    setCurrentPage(1);
+  const handleSearchRequest = (term: string) => {
+    const filtered = posts.filter((post) =>
+      post.institution.toLowerCase().includes(term.toLowerCase()),
+    );
+    setFilteredPosts(filtered);
+    setHasSearched(true);
   };
 
-  const filteredPosts = posts.filter(
-    (post) =>
-      !searchTerm ||
-      post.institution.toLowerCase().includes(searchTerm.toLowerCase()),
-  );
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    navigate(`/posts/${searchTerm || ":institution"}`);
+    handleSearchRequest(searchTerm);
+    setCurrentPage(1);
+  };
 
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const endIndex = startIndex + ITEMS_PER_PAGE;
@@ -55,7 +63,7 @@ const PostsByInstitution = () => {
         </TabItem>
         <SelectedTabItem
           as={Link}
-          to={`/posts/${searchTerm || undefined}`}
+          to={`/posts/${searchTerm || ":institution"}`}
           activeClassName="active"
         >
           #기관별 모아보기
@@ -74,32 +82,39 @@ const PostsByInstitution = () => {
         <SearchButton type="submit">검색</SearchButton>
       </SearchArea>
 
-      <PostGrid>
-        {currentPosts.map((post, index) => (
-          <PostCard key={index} isVerified={post.isVerified}>
-            <PostTitle>{post.title}</PostTitle>
-            <PostInstitution>{post.institution}</PostInstitution>
-            <PostStatus>
-              {post.isVerified ? "Verified" : "Not Verified"}
-            </PostStatus>
-          </PostCard>
-        ))}
-      </PostGrid>
-      {filteredPosts.length > 0 && (
-        <Pagination>
-          {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-            (pageNumber) => (
-              <PageNumber
-                key={pageNumber}
-                active={pageNumber === currentPage}
-                onClick={() => handlePageClick(pageNumber)}
-              >
-                {pageNumber}
-              </PageNumber>
-            ),
-          )}
-        </Pagination>
+      {hasSearched && filteredPosts.length === 0 ? (
+        <NoPostsMessage>검색 결과가 없습니다.</NoPostsMessage>
+      ) : (
+        filteredPosts.length > 0 && (
+          <>
+            <PostGrid>
+              {currentPosts.map((post, index) => (
+                <PostCard key={index} isVerified={post.isVerified}>
+                  <PostTitle>{post.title}</PostTitle>
+                  <PostInstitution>{post.institution}</PostInstitution>
+                  <PostStatus>
+                    {post.isVerified ? "Verified" : "Not Verified"}
+                  </PostStatus>
+                </PostCard>
+              ))}
+            </PostGrid>
+            <Pagination>
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                (pageNumber) => (
+                  <PageNumber
+                    key={pageNumber}
+                    active={pageNumber === currentPage}
+                    onClick={() => handlePageClick(pageNumber)}
+                  >
+                    {pageNumber}
+                  </PageNumber>
+                ),
+              )}
+            </Pagination>
+          </>
+        )
       )}
+
       <Footer />
     </>
   );
@@ -224,4 +239,14 @@ const PageNumber = styled.div<{ active?: boolean }>`
 const Image = styled.img`
   width: 100%;
   height: auto;
+`;
+
+const NoPostsMessage = styled.div`
+  text-align: center;
+  font-size: 24px;
+  font-family: Pretendard, sans-serif;
+  font-weight: semibold;
+  color: #3e5879;
+  margin-top: 50px;
+  margin-bottom: 50px;
 `;
