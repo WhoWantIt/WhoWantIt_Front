@@ -56,12 +56,6 @@ const MapSection = styled.div`
   width: 100%;
   margin-bottom: 20px;
 `;
-
-const MapImage = styled.img`
-  width: 50%;
-  height: 100px;
-`;
-
 const Details = styled.div`
   font-size: 0.9rem;
   color: #333;
@@ -109,9 +103,8 @@ const DetailWrapper = styled.div`
 
 const PostPage = () => {
   useEffect(() => {
-    let map = null;
     const initMap = () => {
-      const map = new naver.maps.Map("map", {
+      new naver.maps.Map("map", {
         center: new naver.maps.LatLng(37.511337, 127.012084),
         zoom: 13,
       });
@@ -132,7 +125,7 @@ const PostPage = () => {
       </ContentWrapper>
       <MapWrapper>
         <MapSection>
-          <MapImage id="map" />
+          <div id="map" style={{ width: "100%", height: "300px" }}></div>
         </MapSection>
         <DetailWrapper>
           <Details>

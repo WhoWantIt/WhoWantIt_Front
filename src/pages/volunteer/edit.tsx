@@ -36,7 +36,7 @@ const DocumentList = styled.ul`
 `;
 interface DocumentItemProps {
   active: boolean;
-};
+}
 
 const DocumentItem = styled.li<DocumentItemProps>`
   padding: 10px;
@@ -123,7 +123,7 @@ const PostButton = styled.button`
 
 // 메인 컴포넌트
 const EditorPage: React.FC = () => {
-  const [documents, setDocuments] = useState<string[]>(["파일1", "파일2", "파일3"]);
+  const [documents] = useState<string[]>(["파일1", "파일2", "파일3"]);
   const [activeDoc, setActiveDoc] = useState<string | null>(null);
   const [title, setTitle] = useState<string>("");
   const [content, setContent] = useState<string>("");
@@ -142,12 +142,11 @@ const EditorPage: React.FC = () => {
     "재해 · 재난",
     "공익인권",
     "멘토링",
-    "기타"
+    "기타",
   ];
-  
   const toggleTag = (tag: string) => {
     setSelectedTags((prev) =>
-      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
+      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag],
     );
   };
 
@@ -169,14 +168,15 @@ const EditorPage: React.FC = () => {
           ))}
         </DocumentList>
       </Sidebar>
-      
       {/* 중앙 편집기 */}
       <EditorContainer>
         <TitleInput
           type="text"
           placeholder="제목"
           value={title}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTitle(e.target.value)}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+            setTitle(e.target.value)
+          }
         />
         <QuillEditor value={content} onChange={setContent} />
       </EditorContainer>
@@ -214,7 +214,9 @@ const EditorPage: React.FC = () => {
             type="number"
             placeholder="모집할 인원 수를 정해주세요! (최대 100명)"
             value={participants}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setParticipants(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              setParticipants(e.target.value)
+            }
           />
         </FieldContainer>
       </SidebarRight>
