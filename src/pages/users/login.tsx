@@ -1,7 +1,49 @@
 import styled from "styled-components";
 import Navigation from "../../components/Navigation";
+import { useState } from "react";
 
 const LoginForm = () => {
+  const api = import.meta.env.VITE_API_URL;
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const handleEmail = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setEmail(value);
+  };
+  const handlePassword = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setPassword(value);
+  };
+  const handleLogin = async () => {
+    try {
+      const client = await fetch(`${api}users/sign-in`, {
+        method: "POST",
+        headers: {
+          "Content-type": "application/json",
+        },
+        body: JSON.stringify({
+          email: email,
+          password: password,
+        }),
+      });
+      if (!client.ok) {
+        throw new Error(`Server responded with status ${client.status}`);
+      }
+      const data = await client.json();
+      if (data.isSuccess) {
+        localStorage.setItem("accessToken", data.result.accessToken);
+        alert("로그인 성공 !");
+      } else {
+        console.error("로그인 실패:", data.message);
+        alert("로그인에 실패했습니다. 다시 시도해주세요.");
+      }
+    } catch (error) {
+      console.error("Request failed:", error);
+      alert("서버와의 연결에 문제가 발생했습니다.");
+    }
+  };
   return (
     <>
       <Navigation />
@@ -9,9 +51,19 @@ const LoginForm = () => {
         <Main>
           <Form>
             <Title>로그인</Title>
-            <Input type="email" placeholder="이메일을 입력하세요" />
-            <Input type="password" placeholder="비밀번호를 입력하세요" />
-            <SubmitButton>로그인</SubmitButton>
+            <Input
+              type="email"
+              value={email}
+              onChange={handleEmail}
+              placeholder="이메일을 입력하세요"
+            />
+            <Input
+              type="password"
+              value={password}
+              onChange={handlePassword}
+              placeholder="비밀번호를 입력하세요"
+            />
+            <SubmitButton onClick={handleLogin}>로그인</SubmitButton>
           </Form>
         </Main>
       </Container>
@@ -24,19 +76,6 @@ const Container = styled.div`
   flex-direction: column;
   align-items: center;
   font-family: Arial, sans-serif;
-`;
-
-const Button = styled.button`
-  padding: 0.5rem 1rem;
-  font-size: 1rem;
-  border: 1px solid #ccc;
-  background-color: white;
-  cursor: pointer;
-  border-radius: 4px;
-
-  &:hover {
-    background-color: #f0f0f0;
-  }
 `;
 
 const Main = styled.main`

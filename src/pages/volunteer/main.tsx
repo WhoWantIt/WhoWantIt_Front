@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import styled from "styled-components";
+import Navigation from "../../components/Navigation";
 
 const cityData: string[] = [
   "서울",
@@ -103,6 +104,7 @@ const HomePage: React.FC = () => {
   const [, setSelectedSubCity] = useState<string | null>(null);
 
   return (
+    <Navigation />
     <Container>
       <Sidebar>
         <SectionWrapper>
