@@ -1,54 +1,69 @@
 import React, { useState } from "react";
 import styled from "styled-components";
-import ReactQuill from "react-quill";
-import "react-quill/dist/quill.snow.css";
+import { Editor } from "@toast-ui/react-editor";
+import "@toast-ui/editor/dist/toastui-editor.css";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 // 스타일 컴포넌트 정의
 const Container = styled.div`
   display: flex;
-  height: 100vh;
+  width: 100%;
+  height: auto;
 `;
 const Sidebar = styled.div`
   width: 250px;
   background-color: #2c3e50;
   color: white;
-  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100vh;
+`;
+const ButtonWrapper = styled.div`
   display: flex;
   flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  margin-top: 30px;
 `;
 const Button = styled.button`
-  background-color: #34495e;
-  color: white;
+  background-color: #ffffff;
+  color: black;
+  font-size: bold;
   border: none;
-  padding: 10px;
-  margin-bottom: 10px;
+  padding0: 1px;
+  maom: 10prgin-bottx;
   cursor: pointer;
   border-radius: 5px;
   &:hover {
     background-color: #1abc9c;
   }
+  width: 109px;
+  height: 38px;
 `;
 const DocumentList = styled.ul`
   list-style: none;
   padding: 0;
-  margin-top: 10px;
+  margin-top: 100px;
+  width: 250px;
 `;
 interface DocumentItemProps {
   active: boolean;
 }
 
-const DocumentItem = styled.li<DocumentItemProps>`
-  padding: 10px;
+const DocumentItem = styled.li.withConfig({
+  shouldForwardProp: (prop) => prop !== "active",
+})<DocumentItemProps>`
   background-color: ${({ active }) => (active ? "#1abc9c" : "#34495e")};
-  margin-bottom: 5px;
   cursor: pointer;
-  border-radius: 5px;
   &:hover {
     background-color: #1abc9c;
   }
+  border-bottom: 2px solid white;
+  border-top: 2px solid white;
+  height: 55px;
 `;
-
 const EditorContainer = styled.div`
   flex-grow: 1;
   padding: 20px;
@@ -63,10 +78,6 @@ const TitleInput = styled.input`
   width: 100%;
   border: 1px solid #ccc;
   border-radius: 5px;
-`;
-
-const QuillEditor = styled(ReactQuill)`
-  height: 100%;
 `;
 
 const SidebarRight = styled.div`
@@ -122,15 +133,19 @@ const PostButton = styled.button`
 `;
 
 // 메인 컴포넌트
-const EditorPage: React.FC = () => {
-  const [documents] = useState<string[]>(["파일1", "파일2", "파일3"]);
+const EditPage = () => {
+  const [documents] = useState<string[]>([
+    "짜장면 먹는날",
+    "마크정식 먹는날",
+    "곱도리탕 먹는닐",
+  ]);
   const [activeDoc, setActiveDoc] = useState<string | null>(null);
   const [title, setTitle] = useState<string>("");
-  const [content, setContent] = useState<string>("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [startDate, setStartDate] = useState<Date>(new Date());
+  const [startDate, setStartDate] = useState<Date | null>(null);
   const [participants, setParticipants] = useState<string>("");
 
+  //const onChangeGetHTML = () =>{};
   const tags: string[] = [
     "생활편의지원",
     "주거환경",
@@ -139,7 +154,7 @@ const EditorPage: React.FC = () => {
     "보건의료",
     "문화행사",
     "환경보호",
-    "재해 · 재난",
+    "재해·재난",
     "공익인권",
     "멘토링",
     "기타",
@@ -154,8 +169,10 @@ const EditorPage: React.FC = () => {
     <Container>
       {/* 왼쪽 사이드바 */}
       <Sidebar>
-        <Button onClick={() => alert("삭제 기능")}>삭제</Button>
-        <Button onClick={() => alert("저장 기능")}>저장</Button>
+        <ButtonWrapper>
+          <Button onClick={() => alert("삭제 기능")}>삭제</Button>
+          <Button onClick={() => alert("저장 기능")}>저장</Button>
+        </ButtonWrapper>
         <DocumentList>
           {documents.map((doc, index) => (
             <DocumentItem
@@ -178,7 +195,19 @@ const EditorPage: React.FC = () => {
             setTitle(e.target.value)
           }
         />
-        <QuillEditor value={content} onChange={setContent} />
+        <Editor
+          toolbarItems={[
+            // 툴바 옵션 설정
+            ["heading", "bold", "italic", "strike"],
+            ["hr", "quote"],
+            ["ul", "ol", "task", "indent", "outdent"],
+            ["table", "image", "link"],
+            ["code", "codeblock"],
+          ]}
+          height="500px" // 에디터 창 높이
+          initialEditType="markdown" // 기본 에디터 타입 (or wysiwyg)
+          previewStyle="vertical" // 미리보기 스타일 (or tab) (verttical은 양쪽이 나뉨)
+        ></Editor>
       </EditorContainer>
 
       {/* 오른쪽 사이드바 */}
@@ -203,7 +232,7 @@ const EditorPage: React.FC = () => {
           <FieldTitle>날짜 설정</FieldTitle>
           <DatePicker
             selected={startDate}
-            onClick={(date: Date) => setStartDate(date)}
+            onChange={(date: Date | null) => setStartDate(date)}
             dateFormat="yyyy/MM/dd"
           />
         </FieldContainer>
@@ -224,4 +253,4 @@ const EditorPage: React.FC = () => {
   );
 };
 
-export default EditorPage;
+export default EditPage;
