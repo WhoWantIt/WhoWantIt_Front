@@ -22,7 +22,7 @@ const AllPosts = () => {
   const totalPages = Math.ceil(posts.length / ITEMS_PER_PAGE);
 
   return (
-    <>
+    <Wrapper>
       <Navigation />
       <Image src={image} />
 
@@ -64,11 +64,17 @@ const AllPosts = () => {
         )}
       </Pagination>
       <Footer />
-    </>
+    </Wrapper>
   );
 };
 
 export default AllPosts;
+
+const Wrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+  font-family: Pretendard, sans-serif;
+`;
 
 const TabMenu = styled.div`
   display: flex;
@@ -84,8 +90,7 @@ const TabItem = styled(Link)`
   text-align: center;
   padding-bottom: 10px;
   color: #e6d9d2;
-  font-size: 30px;
-  font-family: Pretendard, sans-serif;
+  font-size: clamp(16px, 2vw, 30px);
   border-bottom: 1px solid #e6d9d2;
 `;
 
@@ -96,8 +101,7 @@ const SelectedTabItem = styled(Link)`
   text-align: center;
   padding-bottom: 10px;
   color: #3e5879;
-  font-size: 30px;
-  font-family: Pretendard, sans-serif;
+  font-size: clamp(16px, 2vw, 30px);
   font-weight: bold;
   border-bottom: 3px solid #3e5879;
 `;
@@ -108,12 +112,22 @@ const PostGrid = styled.div`
   grid-gap: 20px;
   padding: 0px 150px;
   box-sizing: border-box;
+
+  @media (max-width: 1024px) {
+    grid-template-columns: repeat(3, 1fr);
+    padding: 0 100px;
+  }
+
+  @media (max-width: 768px) {
+    grid-template-columns: repeat(2, 1fr);
+    padding: 0 50px;
+  }
 `;
 
 const PostCard = styled.div<{ isVerified: boolean }>`
-  width: 200px;
-  height: 120px;
-  padding: 20px;
+  width: clamp(140px, 18vw, 200px);
+  height: clamp(80px, 12vw, 120px);
+  padding: clamp(10px, 2vw, 20px);
   border-radius: 10px;
   background-color: ${(props) => (props.isVerified ? "#3e5879" : "#c0c7d6")};
   color: ${(props) => (props.isVerified ? "#ffffff" : "#000000")};
@@ -124,17 +138,17 @@ const PostCard = styled.div<{ isVerified: boolean }>`
 `;
 
 const PostTitle = styled.div`
-  font-size: 20px;
+  font-size: clamp(14px, 1.5vw, 20px);
   font-weight: bold;
 `;
 
 const PostInstitution = styled.div`
-  font-size: 16px;
+  font-size: clamp(12px, 1.2vw, 16px);
   margin-top: 5px;
 `;
 
 const PostStatus = styled.div`
-  font-size: 16px;
+  font-size: clamp(12px, 1.2vw, 16px);
   text-align: right;
   margin-top: auto;
   align-self: flex-end;
@@ -145,7 +159,7 @@ const Pagination = styled.div`
   justify-content: right;
   margin-top: 70px;
   margin-bottom: 30px;
-  margin-right: 170px;
+  margin-right: clamp(50px, 10vw, 170px);
 `;
 
 const PageNumber = styled.div<{ active?: boolean }>`
@@ -153,8 +167,7 @@ const PageNumber = styled.div<{ active?: boolean }>`
   border: none;
   margin: 0 5px;
   cursor: pointer;
-  font-family: Pretendard, sans-serif;
-  font-size: 20px;
+  font-size: clamp(12px, 1.2vw, 20px);
   color: ${(props) => (props.active ? "#3e5879" : "#e6d9d2")};
 `;
 

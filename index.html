@@ -1,4 +1,4 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -8,6 +8,19 @@
   </head>
   <body>
     <div id="root"></div>
+
+    <script type="module">
+      const Client_id = import.meta.env.VITE_NAVER_MAP_CLIENT_ID;
+      if (Client_id) {
+        const script = document.createElement("script");
+        script.src = `https://oapi.map.naver.com/openapi/v3/maps.js?ncpClientId=${Client_id}`;
+        script.async = true;
+        document.head.appendChild(script);
+      } else {
+        console.error("네이버 지도 API 키가 설정되지 않았습니다.");
+      }
+    </script>
+
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

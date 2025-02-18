@@ -1,7 +1,9 @@
 import styled from "styled-components";
 import Logo from "../assets/home/logo_full.svg";
 import { Link } from "react-router-dom";
-
+import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { useEffect } from "react";
 const HeaderBar = styled.div`
   display: flex;
   justify-content: flex-start;
@@ -30,7 +32,7 @@ const HeaderMenu = styled.ul`
   margin: 0;
 `;
 
-const MenuItem = styled.li`
+const MenuItem = styled(Link)`
   margin-right: 20px;
   font-size: 15px;
   color: #3e5879;
@@ -65,21 +67,69 @@ const SignupButton = styled.button`
   margin-right: 30px;
   width: 120px;
 `;
+const UserEmail = styled.span`
+  font-size: 15px;
+  color: #3e5879;
+  margin-right: 20px;
+  margin-top: 9px;
+`;
 
+const LogoutButton = styled.button`
+  background-color: #3e5879;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  padding: 8px 16px;
+  margin-bottom: 3px;
+  width: 100px;
+`;
 const Navigation = () => {
+  const navigate = useNavigate();
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+
+  useEffect(() => {
+    const email = localStorage.getItem("email");
+    setUserEmail(email);
+  }, []);
+
+  const handleLogin = () => {
+    navigate("/users/login");
+  };
+  const handleSignIn = () => {
+    navigate("/sign-up");
+  };
+  const handleMypage = () => {
+    navigate("/");
+  };
+  const handleLogout = () => {
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("email");
+    setUserEmail(null);
+    window.location.reload(); // 새로고침하여 네비게이션 업데이트
+  };
   return (
     <HeaderBar>
       <LogoLink to="/">
         <LogoImage src={Logo} />
       </LogoLink>
       <HeaderMenu>
-        <MenuItem>게시글</MenuItem>
-        <MenuItem>자원봉사</MenuItem>
-        <MenuItem>프로필</MenuItem>
+        <MenuItem to={"/posts"}>게시글</MenuItem>
+        <MenuItem to={"/volunteer"}>자원봉사</MenuItem>
+        <MenuItem to={"/"}>클라우드 펀딩</MenuItem>
       </HeaderMenu>
       <HeaderButtons>
-        <LoginButton>로그인</LoginButton>
-        <SignupButton>회원가입</SignupButton>
+        {userEmail ? (
+          <>
+            <UserEmail onClick={handleMypage}>{userEmail}님</UserEmail>
+            <LogoutButton onClick={handleLogout}>로그아웃</LogoutButton>
+          </>
+        ) : (
+          <>
+            <LoginButton onClick={handleLogin}>로그인</LoginButton>
+            <SignupButton onClick={handleSignIn}>회원가입</SignupButton>
+          </>
+        )}
       </HeaderButtons>
     </HeaderBar>
   );
