@@ -8,7 +8,6 @@ import api from "../../utils/api";
 
 const ITEMS_PER_PAGE = 12;
 
-// Post 데이터 타입 정의
 interface PostType {
   postId: number;
   beneficiaryId: number;
@@ -17,6 +16,8 @@ interface PostType {
   content: string;
   attachedImages: string[];
   attachedExcelFile: string;
+  approvalStatus: string;
+  isVerified: boolean;
   createdAt: string;
 }
 
@@ -31,11 +32,15 @@ const AllPosts = () => {
       .catch((err) => console.error("Error fetching posts:", err));
   }, []);
 
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const currentPosts = posts.slice(startIndex, endIndex);
+
+  const handlePageClick = (pageNumber: number) => {
+    setCurrentPage(pageNumber);
+  };
+
   const totalPages = Math.ceil(posts.length / ITEMS_PER_PAGE);
-  const currentPosts = posts.slice(
-    (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE,
-  );
 
   return (
     <Wrapper>
@@ -49,25 +54,29 @@ const AllPosts = () => {
       </TabMenu>
 
       <PostGrid>
-        {currentPosts.map((post) => (
-          <PostCard key={post.postId}>
+        {currentPosts.map((post, index) => (
+          <PostCard key={index} isVerified={post.isVerified}>
             <PostTitle>{post.title}</PostTitle>
             <PostInstitution>{post.nickname}</PostInstitution>
-            <PostStatus>{new Date(post.createdAt).toLocaleDateString()}</PostStatus>
+            <PostStatus>
+              {post.isVerified ? "Verified" : "Not Verified"}
+            </PostStatus>
           </PostCard>
         ))}
       </PostGrid>
 
       <Pagination>
-        {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNumber) => (
-          <PageNumber
-            key={pageNumber}
-            active={pageNumber === currentPage}
-            onClick={() => setCurrentPage(pageNumber)}
-          >
-            {pageNumber}
-          </PageNumber>
-        ))}
+        {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+          (pageNumber) => (
+            <PageNumber
+              key={pageNumber}
+              active={pageNumber === currentPage}
+              onClick={() => handlePageClick(pageNumber)}
+            >
+              {pageNumber}
+            </PageNumber>
+          ),
+        )}
       </Pagination>
 
       <Footer />
@@ -77,7 +86,6 @@ const AllPosts = () => {
 
 export default AllPosts;
 
-// Styled Components
 const Wrapper = styled.div`
   display: flex;
   flex-direction: column;
@@ -126,13 +134,13 @@ const PostGrid = styled.div`
   }
 `;
 
-const PostCard = styled.div`
+const PostCard = styled.div<{ isVerified: boolean }>`
   width: clamp(140px, 18vw, 200px);
   height: clamp(80px, 12vw, 120px);
   padding: clamp(10px, 2vw, 20px);
   border-radius: 10px;
-  background-color: #c0c7d6;
-  color: #000000;
+  background-color: ${(props) => (props.isVerified ? "#3e5879" : "#c0c7d6")};
+  color: ${(props) => (props.isVerified ? "#ffffff" : "#000000")};
   text-align: left;
   display: flex;
   flex-direction: column;
