@@ -34,7 +34,31 @@ const LoginForm = () => {
       const data = await client.json();
       if (data.isSuccess) {
         localStorage.setItem("accessToken", data.result.accessToken);
+        localStorage.setItem("email", email);
         alert("로그인 성공 !");
+        const userResponse = await fetch(`${api}users/me`, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${data.result.accessToken}`,
+          },
+        });
+        if (!userResponse.ok) {
+          throw new Error(
+            `User info request failed with status ${userResponse.status}`,
+          );
+        }
+        const userInfo = await userResponse.json();
+        localStorage.setItem("id", userInfo.result.id);
+        localStorage.setItem("name", userInfo.result.name);
+        localStorage.setItem("role", userInfo.result.role);
+        localStorage.setItem("role", userInfo.result.role);
+        localStorage.setItem("nickname", userInfo.result.nickname);
+        localStorage.setItem("passward", userInfo.result.passward);
+        localStorage.setItem("email", userInfo.result.email);
+        localStorage.setItem("phoneNumber", userInfo.result.phoneNumber);
+        localStorage.setItem("address", userInfo.result.address);
+        localStorage.setItem("Image", userInfo.result.image);
+        window.location.href = "/posts";
       } else {
         console.error("로그인 실패:", data.message);
         alert("로그인에 실패했습니다. 다시 시도해주세요.");
@@ -49,22 +73,22 @@ const LoginForm = () => {
       <Navigation />
       <Container>
         <Main>
-          <Form>
-            <Title>로그인</Title>
-            <Input
-              type="email"
-              value={email}
-              onChange={handleEmail}
-              placeholder="이메일을 입력하세요"
-            />
-            <Input
-              type="password"
-              value={password}
-              onChange={handlePassword}
-              placeholder="비밀번호를 입력하세요"
-            />
-            <SubmitButton onClick={handleLogin}>로그인</SubmitButton>
-          </Form>
+          <Title>로그인</Title>
+          <Subtitle>이메일</Subtitle>
+          <Input
+            type="email"
+            value={email}
+            onChange={handleEmail}
+            placeholder="이메일을 입력하세요"
+          />
+          <Subtitle>비밀번호</Subtitle>
+          <Input
+            type="password"
+            value={password}
+            onChange={handlePassword}
+            placeholder="비밀번호를 입력하세요"
+          />
+          <SubmitButton onClick={handleLogin}>로그인</SubmitButton>
         </Main>
       </Container>
     </>
@@ -73,64 +97,62 @@ const LoginForm = () => {
 
 const Container = styled.div`
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  font-family: Arial, sans-serif;
-`;
-
-const Main = styled.main`
-  display: flex;
   justify-content: center;
   align-items: center;
-  flex-grow: 1;
-  width: 100%;
-  padding: 2rem;
-  box-sizing: border-box;
+  height: 100vh;
 `;
 
-const Form = styled.form`
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  max-width: 400px;
-  background-color: #f9f9f9;
-  padding: 2rem;
-  border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+const Main = styled.div`
+  background: #fcfcfc;
+  padding: 30px;
+  border-radius: 10px;
+  border: 1px solid #9a9ebe;
+  box-stripe: 0 4px 6px rgb(23, 24, 32);
+  width: 500px;
+  height: 400px;
+  text-align: center;
+  color: #fff;
+  margin-top: -40px;
 `;
 
 const Title = styled.h2`
-  font-size: 1.5rem;
-  margin-bottom: 1.5rem;
-  text-align: center;
+  margin-bottom: 50px;
+  color: #3e5879;
+  font-family: "Pretandard", sans-serif;
+  font-weight: bold;
 `;
-
+//추후 focus
 const Input = styled.input`
-  padding: 0.75rem;
-  margin-bottom: 1rem;
-  font-size: 1rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  box-sizing: border-box;
-
-  &:focus {
-    outline: none;
-    border-color: #3b82f6;
-  }
+  width: 90%;
+  padding: 10px;
+  border: 1px solid #9a9ebe;
+  border-radius: 5px;
+  margin-bottom: 20px;
 `;
 
 const SubmitButton = styled.button`
-  padding: 0.75rem;
-  font-size: 1rem;
-  background-color: #3b82f6;
+  justify-content: center;
+  align-items: center;
+  margin-top: 80px;
+  width: 130px;
+  padding: 10px;
+  background: #3e5879;
   color: white;
   border: none;
-  border-radius: 4px;
+  border-radius: 5px;
   cursor: pointer;
-
   &:hover {
-    background-color: #2563eb;
+    background: #3e5879;
   }
+  font-family: "Pretandard", sans-serif;
+`;
+const Subtitle = styled.div`
+  color: #3e5879;
+  display: flex;
+  margin-left: 15px;
+  margin-bottom: 5px;
+  font-family: "Pretandard", sans-serif;
+  font-weight: bold;
 `;
 
 export default LoginForm;

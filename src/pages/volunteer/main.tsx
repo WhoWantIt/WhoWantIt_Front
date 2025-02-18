@@ -1,7 +1,9 @@
 import React, { useState } from "react";
 import styled from "styled-components";
 import Navigation from "../../components/Navigation";
-
+import Footer from "../../components/Footer";
+import image from "../../assets/just_image.svg";
+import { useNavigate } from "react-router-dom";
 const cityData: string[] = [
   "서울",
   "경기",
@@ -23,6 +25,25 @@ const fieldData: string[] = [
   "공익 인권",
   "멘토링",
 ];
+/**
+ * const SubCityData: string[] = [
+  "강남",
+  "동대문",
+  "상봉",
+  "송파파크하비오",
+  "코엑스",
+  "강동",
+  "마곡",
+  "상암월드컵경기장",
+  "신촌",
+  "홍대",
+  "군자",
+  "목당",
+  "성수",
+  "이수",
+  "화곡",
+];
+ */
 
 interface Program {
   id: number;
@@ -102,49 +123,55 @@ const HomePage: React.FC = () => {
   const [selectedTab, setSelectedTab] = useState<"city" | "field">("city");
   const [selectedCity, setSelectedCity] = useState<string>("서울");
   const [, setSelectedSubCity] = useState<string | null>(null);
-
   return (
-    <Navigation />
-    <Container>
-      <Sidebar>
-        <SectionWrapper>
-          <Button
-            active={selectedTab === "city"}
-            onClick={() => setSelectedTab("city")}
-          >
-            #도시 설정
-          </Button>
-          <Button
-            active={selectedTab === "field"}
-            onClick={() => setSelectedTab("field")}
-          >
-            #분야 설정
-          </Button>
-        </SectionWrapper>
+    <>
+      <Container>
+        <Navigation />
+        <Image src={image} />
+        <Wrapper>
+          <Sidebar>
+            <SectionWrapper>
+              <Button
+                active={selectedTab === "city"}
+                onClick={() => setSelectedTab("city")}
+              >
+                #도시 설정
+              </Button>
+              <Button
+                active={selectedTab === "field"}
+                onClick={() => setSelectedTab("field")}
+              >
+                #분야 설정
+              </Button>
+            </SectionWrapper>
 
-        <List>
-          {(selectedTab === "city" ? cityData : fieldData).map((item) => (
-            <ListItem
-              key={item}
-              active={selectedTab === "city" ? selectedCity === item : false}
-              onClick={() => {
-                if (selectedTab === "city") {
-                  setSelectedCity(item);
-                  setSelectedSubCity(null);
-                }
-              }}
-            >
-              {item}
-            </ListItem>
-          ))}
-        </List>
-      </Sidebar>
-
-      <Content>
-        <ProgramList programs={programData} />
-        <Pagination />
-      </Content>
-    </Container>
+            <List>
+              {(selectedTab === "city" ? cityData : fieldData).map((item) => (
+                <ListItem
+                  key={item}
+                  active={
+                    selectedTab === "city" ? selectedCity === item : false
+                  }
+                  onClick={() => {
+                    if (selectedTab === "city") {
+                      setSelectedCity(item);
+                      setSelectedSubCity(null);
+                    }
+                  }}
+                >
+                  {item}
+                </ListItem>
+              ))}
+            </List>
+          </Sidebar>
+          <Content>
+            <ProgramList programs={programData} />
+            <Pagination />
+          </Content>
+        </Wrapper>
+        <Footer />
+      </Container>
+    </>
   );
 };
 
@@ -169,8 +196,12 @@ interface ProgramCardProps {
 }
 
 const ProgramCard: React.FC<ProgramCardProps> = ({ program }) => {
+  const navigate = useNavigate();
+  const handleDetail = () => {
+    navigate("/volunteer/post");
+  };
   return (
-    <Card>
+    <Card onClick={handleDetail}>
       <h4>{program.title}</h4>
       <p>{program.location}</p>
       <Info>
@@ -201,20 +232,24 @@ const Pagination: React.FC = () => {
 /* 스타일 정의 */
 const Container = styled.div`
   display: flex;
-  padding: 60px;
-  background-color: #f8f7f7;
-  height: auto;
-  margin-top: -30px;
+  flex-direction: column;
+  font-family: Pretendard, sans-serif;
+  width: 100%;
 `;
-
+const Wrapper = styled.div`
+  display: flex;
+  width: 100%
+  height: auto;
+  flex-wrap: wrap;
+  padding: 20px;
+`;
 const Sidebar = styled.div`
   width: 250px;
   padding: 20px;
 `;
-
 const SectionWrapper = styled.div`
   display: flex;
-  flex-direction: row;
+  justify-content: center;
   align-items: center;
 `;
 
@@ -264,12 +299,31 @@ const Content = styled.div`
   flex: 1;
   padding: 20px;
   margin-top: 90px;
+  @media (max-width: 1024px) {
+    margin-left: 50px;
+  }
+  @media (max-width: 768px) {
+    margin-left: 0;
+    margin-top: 50px;
+    padding: 10px;
+  }
 `;
 
 const ProgramGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
+  grid-gap: 20px;
+  padding: 0px 60px;
+  box-sizing: border-box;
+  @media (max-width: 1024px) {
+    grid-template-columns: repeat(3, 1fr);
+    padding: 0 100px;
+  }
+
+  @media (max-width: 768px) {
+    grid-template-columns: repeat(2, 1fr);
+    padding: 0 50px;
+  }
 `;
 
 const Card = styled.div`
@@ -278,15 +332,15 @@ const Card = styled.div`
   background: #c0c7d6;
   padding: 15px;
   border-radius: 10px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   h4 {
-    font-size: 16px;
+    font-size: 22px;
+    margin-top: 20px;
     margin-bottom: 5px;
     font-weight: bold;
   }
   p {
-    font-size: 14px;
-    color: #555;
+    font-size: 18px;
+    color: black;
   }
 `;
 
@@ -294,8 +348,8 @@ const Info = styled.div`
   display: flex;
   justify-content: space-between;
   margin-top: 70px;
-  font-size: 12px;
-  color: #333;
+  font-size: 18px;
+  color: black;
 `;
 
 interface DaysLeftProps {
@@ -310,17 +364,21 @@ const DaysLeft = styled.span<DaysLeftProps>`
 const PaginationContainer = styled.div`
   display: flex;
   justify-content: flex-end;
-  margin-top: 40px;
-  width: 100%;
+  margin-top: 70px;
+  margin-bottom: 30px;
 `;
 
 const PageNumber = styled.span`
-  margin: 0 5px;
+  margin: 5px 5px;
   cursor: pointer;
-  color: #666;
+  color: #555;
   &:hover {
     color: #000;
   }
+`;
+const Image = styled.img`
+  width: 100%;
+  height: auto;
 `;
 
 export default HomePage;

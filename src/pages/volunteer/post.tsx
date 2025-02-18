@@ -1,5 +1,6 @@
 import styled from "styled-components";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import BookMarkSVG from "../../assets/volunteer/bookmark.svg";
 const Container = styled.div`
   display: flex;
   flex-direction: row;
@@ -50,18 +51,13 @@ const MapWrapper = styled.div`
   flex-direction: column;
   align-items: flex-start;
   width: 450px;
+  margin-left: 80px;
 `;
 
 const MapSection = styled.div`
-  width: 100%;
+  width: 130%;
+  height: 400px;
   margin-bottom: 20px;
-`;
-const Details = styled.div`
-  font-size: 0.9rem;
-  color: #333;
-  background-color: #ffffff;
-  padding: 15px;
-  border-radius: 10px;
 `;
 
 const ButtonContainer = styled.div`
@@ -96,12 +92,33 @@ const ApplyButton = styled.button`
     background-color: #1a252f;
   }
 `;
-
-const DetailWrapper = styled.div`
-  width: 100%;
+const DetailsWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
 `;
-
+const Details = styled.div`
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: -30px;
+  gap: 10px; /* 간격 추가 */
+`;
+const Title = styled.h6`
+  color: #c2c6cc;
+  font-family: "Pretandard", sans-serif;
+  font-weight: bold;
+  font-size: 16px;
+  margin: 4px 0;
+`;
+const Subtitle = styled.h6`
+  color: black;
+  font-family: "Pretandard", sans-serif;
+  font-size: 16px;
+`;
 const PostPage = () => {
+  const [applicants, setApplicants] = useState(0);
+  const maxApplicants = 10; // 차후 변경사항
   useEffect(() => {
     const initMap = () => {
       new naver.maps.Map("map", {
@@ -111,6 +128,13 @@ const PostPage = () => {
     };
     initMap();
   }, []);
+  const handleApply = () => {
+    if (applicants < maxApplicants) {
+      setApplicants((prev) => prev + 1);
+    } else {
+      alert("모집이 마감되었습니다.");
+    }
+  };
   return (
     <Container>
       <ContentWrapper>
@@ -119,30 +143,36 @@ const PostPage = () => {
           안녕하세요, 저희 보육원에는 원생이 9명 정도 있습니다.
         </DescriptWrapper>
         <ButtonContainer>
-          <BookmarkButton>☆</BookmarkButton>
-          <ApplyButton>지원하기</ApplyButton>
+          <BookmarkButton>
+            <img src={BookMarkSVG} />
+          </BookmarkButton>
+          <ApplyButton onClick={handleApply}>지원하기</ApplyButton>
         </ButtonContainer>
       </ContentWrapper>
       <MapWrapper>
         <MapSection>
-          <div id="map" style={{ width: "100%", height: "300px" }}></div>
+          <div id="map" style={{ width: "130%", height: "400px" }}></div>
         </MapSection>
-        <DetailWrapper>
+        <DetailsWrapper>
           <Details>
-            <p>
-              <strong>근무지명:</strong> 자연 보육원
-            </p>
-            <p>
-              <strong>지역정보:</strong> 서울 용산구 삼각지역
-            </p>
-            <p>
-              <strong>봉사날짜:</strong> 2025년 2월 16일 오전 10시
-            </p>
-            <p>
-              <strong>모집인원:</strong> 03 / 10
-            </p>
+            <Title>근무지명</Title>
+            <Subtitle>자연 보육원</Subtitle>
           </Details>
-        </DetailWrapper>
+          <Details>
+            <Title>지역정보</Title>
+            <Subtitle>서울 용산구 삼각지역</Subtitle>
+          </Details>
+          <Details>
+            <Title>봉사날짜</Title>
+            <Subtitle>2025년 2월 16일 오전 10시시</Subtitle>
+          </Details>
+          <Details>
+            <Title>모집인원</Title>
+            <Subtitle>
+              {applicants} / {maxApplicants}
+            </Subtitle>
+          </Details>
+        </DetailsWrapper>
       </MapWrapper>
     </Container>
   );
