@@ -1,25 +1,41 @@
 import styled from "styled-components";
-import posts from "../../data/posts";
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { NavLink } from "react-router-dom";
 import Navigation from "../../components/Navigation";
 import Footer from "../../components/Footer";
 import image from "../../assets/just_image.svg";
+import api from "../../utils/api";
 
 const ITEMS_PER_PAGE = 12;
 
+// Post 데이터 타입 정의
+interface PostType {
+  postId: number;
+  beneficiaryId: number;
+  nickname: string;
+  title: string;
+  content: string;
+  attachedImages: string[];
+  attachedExcelFile: string;
+  createdAt: string;
+}
+
 const AllPosts = () => {
   const [currentPage, setCurrentPage] = useState(1);
+  const [posts, setPosts] = useState<PostType[]>([]);
 
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const endIndex = startIndex + ITEMS_PER_PAGE;
-  const currentPosts = posts.slice(startIndex, endIndex);
-
-  const handlePageClick = (pageNumber: number) => {
-    setCurrentPage(pageNumber);
-  };
+  useEffect(() => {
+    api
+      .get("/posts")
+      .then((res) => setPosts(res.data.result.content))
+      .catch((err) => console.error("Error fetching posts:", err));
+  }, []);
 
   const totalPages = Math.ceil(posts.length / ITEMS_PER_PAGE);
+  const currentPosts = posts.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE,
+  );
 
   return (
     <Wrapper>
@@ -27,42 +43,33 @@ const AllPosts = () => {
       <Image src={image} />
 
       <TabMenu>
-        <SelectedTabItem as={Link} to="/posts" activeClassName="active">
-          #전체
-        </SelectedTabItem>
-        <TabItem as={Link} to="/posts/:institution" activeClassName="active">
-          #기관별 모아보기
-        </TabItem>
-        <TabItem as={Link} to="/posts/:year/:month" activeClassName="active">
-          #월별 모아보기
-        </TabItem>
+        <TabItem to="/posts">#전체</TabItem>
+        <TabItem to="/posts/:institution">#기관별 모아보기</TabItem>
+        <TabItem to="/posts/:year/:month">#월별 모아보기</TabItem>
       </TabMenu>
 
       <PostGrid>
-        {currentPosts.map((post, index) => (
-          <PostCard key={index} isVerified={post.isVerified}>
+        {currentPosts.map((post) => (
+          <PostCard key={post.postId}>
             <PostTitle>{post.title}</PostTitle>
-            <PostInstitution>{post.institution}</PostInstitution>
-            <PostStatus>
-              {post.isVerified ? "Verified" : "Not Verified"}
-            </PostStatus>
+            <PostInstitution>{post.nickname}</PostInstitution>
+            <PostStatus>{new Date(post.createdAt).toLocaleDateString()}</PostStatus>
           </PostCard>
         ))}
       </PostGrid>
 
       <Pagination>
-        {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-          (pageNumber) => (
-            <PageNumber
-              key={pageNumber}
-              active={pageNumber === currentPage}
-              onClick={() => handlePageClick(pageNumber)}
-            >
-              {pageNumber}
-            </PageNumber>
-          ),
-        )}
+        {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNumber) => (
+          <PageNumber
+            key={pageNumber}
+            active={pageNumber === currentPage}
+            onClick={() => setCurrentPage(pageNumber)}
+          >
+            {pageNumber}
+          </PageNumber>
+        ))}
       </Pagination>
+
       <Footer />
     </Wrapper>
   );
@@ -70,6 +77,7 @@ const AllPosts = () => {
 
 export default AllPosts;
 
+// Styled Components
 const Wrapper = styled.div`
   display: flex;
   flex-direction: column;
@@ -83,7 +91,7 @@ const TabMenu = styled.div`
   margin-bottom: 70px;
 `;
 
-const TabItem = styled(Link)`
+const TabItem = styled(NavLink)`
   width: 300px;
   cursor: pointer;
   text-decoration: none;
@@ -92,18 +100,12 @@ const TabItem = styled(Link)`
   color: #e6d9d2;
   font-size: clamp(16px, 2vw, 30px);
   border-bottom: 1px solid #e6d9d2;
-`;
 
-const SelectedTabItem = styled(Link)`
-  width: 300px;
-  cursor: pointer;
-  text-decoration: none;
-  text-align: center;
-  padding-bottom: 10px;
-  color: #3e5879;
-  font-size: clamp(16px, 2vw, 30px);
-  font-weight: bold;
-  border-bottom: 3px solid #3e5879;
+  &.active {
+    color: #3e5879;
+    font-weight: bold;
+    border-bottom: 3px solid #3e5879;
+  }
 `;
 
 const PostGrid = styled.div`
@@ -124,13 +126,13 @@ const PostGrid = styled.div`
   }
 `;
 
-const PostCard = styled.div<{ isVerified: boolean }>`
+const PostCard = styled.div`
   width: clamp(140px, 18vw, 200px);
   height: clamp(80px, 12vw, 120px);
   padding: clamp(10px, 2vw, 20px);
   border-radius: 10px;
-  background-color: ${(props) => (props.isVerified ? "#3e5879" : "#c0c7d6")};
-  color: ${(props) => (props.isVerified ? "#ffffff" : "#000000")};
+  background-color: #c0c7d6;
+  color: #000000;
   text-align: left;
   display: flex;
   flex-direction: column;
@@ -164,7 +166,6 @@ const Pagination = styled.div`
 
 const PageNumber = styled.div<{ active?: boolean }>`
   padding: 5px 5px;
-  border: none;
   margin: 0 5px;
   cursor: pointer;
   font-size: clamp(12px, 1.2vw, 20px);
