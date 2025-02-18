@@ -9,63 +9,45 @@ import posts from "../../data/posts";
 const ITEMS_PER_PAGE = 12;
 
 const PostsByMonth = () => {
-  const [selectedYear, setSelectedYear] = useState<number | null>(null);
-  const [selectedMonth, setSelectedMonth] = useState<number | null>(null);
+  const [year, setYear] = useState("");
+  const [month, setMonth] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [filteredPosts, setFilteredPosts] = useState([]);
+  const [hasSearched, setHasSearched] = useState(false);
   const navigate = useNavigate();
-  const { year, month } = useParams<{ year?: string; month?: string }>();
+  const { yearParam, monthParam } = useParams<{
+    yearParam?: string;
+    monthParam?: string;
+  }>();
 
   useEffect(() => {
-    if (year && month) {
-      setSelectedYear(parseInt(year, 10));
-      setSelectedMonth(parseInt(month, 10));
+    if (yearParam) {
+      setYear(yearParam);
+      setMonth(monthParam || "");
+      handleSearchRequest(yearParam, monthParam || "");
     } else {
-      setSelectedYear(null);
-      setSelectedMonth(null);
+      setYear("");
+      setMonth("");
+      setFilteredPosts([]);
+      setHasSearched(false);
     }
     setCurrentPage(1);
-  }, [year, month]);
+  }, [yearParam, monthParam]);
 
-  const handleYearChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const yearValue = parseInt(e.target.value, 10);
-    setSelectedYear(yearValue === -1 ? null : yearValue); // -1은 "전체" 옵션
-    if (selectedMonth) {
-      navigate(`/posts/${yearValue === -1 ? "" : yearValue}/${selectedMonth}`);
-    } else {
-      navigate(`/posts/${yearValue === -1 ? "" : yearValue}`);
-    }
-
-    setCurrentPage(1);
+  const handleSearchRequest = (year: string, month: string) => {
+    const filtered = posts.filter((post) => {
+      return post.year === year && (!month || post.month === month);
+    });
+    setFilteredPosts(filtered);
+    setHasSearched(true);
   };
 
-  const handleMonthChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const monthValue = parseInt(e.target.value, 10);
-    setSelectedMonth(monthValue === -1 ? null : monthValue); // -1은 "전체" 옵션
-
-    if (selectedYear) {
-      navigate(`/posts/${selectedYear}/${monthValue === -1 ? "" : monthValue}`);
-    } else {
-      navigate(`/posts/${monthValue === -1 ? "" : ""}`);
-    }
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    navigate(`/posts/${year}/${month || undefined}`);
+    handleSearchRequest(year, month);
     setCurrentPage(1);
   };
-
-  // Generate list of years and months
-  const startYear = 2020;
-  const endYear = 2025;
-  const availableYears = Array.from({ length: endYear - startYear + 1 }, (_, i) => startYear + i);
-  const availableMonths = Array.from({ length: 12 }, (_, i) => i + 1);
-
-  const filteredPosts = posts.filter((post) => {
-    const postDate = new Date(post.date);
-    const postYear = postDate.getFullYear();
-    const postMonth = postDate.getMonth() + 1;
-
-    const yearMatch = selectedYear === null || postYear === selectedYear;
-    const monthMatch = selectedMonth === null || postMonth === selectedMonth;
-
-    return yearMatch && monthMatch;
-  });
 
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const endIndex = startIndex + ITEMS_PER_PAGE;
@@ -90,59 +72,66 @@ const PostsByMonth = () => {
         </TabItem>
         <SelectedTabItem
           as={Link}
-          to={`/posts/${year || ""}/${month || ""}`}
+          to={`/posts/${year}/${month || undefined}`}
           activeClassName="active"
         >
           #월별 모아보기
         </SelectedTabItem>
       </TabMenu>
 
-      <FilterArea>
-        <Select value={selectedYear === null ? -1 : selectedYear} onChange={handleYearChange}>
-          <option value={-1}>전체 년도</option>
-          {availableYears.map((year) => (
-            <option key={year} value={year}>
-              {year}
+      <SearchArea onSubmit={handleSearch}>
+        <YearSelect value={year} onChange={(e) => setYear(e.target.value)}>
+          <option value="">년도를 선택하세요</option>
+          {[2020, 2021, 2022, 2023, 2024, 2025].map((y) => (
+            <option key={y} value={y}>
+              {y}년
             </option>
           ))}
-        </Select>
-        <Select value={selectedMonth === null ? -1 : selectedMonth} onChange={handleMonthChange}>
-          <option value={-1}>전체 월</option>
-          {availableMonths.map((month) => (
-            <option key={month} value={month}>
-              {month}월
+        </YearSelect>
+        <MonthSelect value={month} onChange={(e) => setMonth(e.target.value)}>
+          <option value="">월을 선택하세요</option>
+          {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
+            <option key={m} value={m}>
+              {m}월
             </option>
           ))}
-        </Select>
-      </FilterArea>
+        </MonthSelect>
+        <SearchButton type="submit">검색</SearchButton>
+      </SearchArea>
 
-      <PostGrid>
-        {currentPosts.map((post, index) => (
-          <PostCard key={index} isVerified={post.isVerified}>
-            <PostTitle>{post.title}</PostTitle>
-            <PostInstitution>{post.institution}</PostInstitution>
-            <PostStatus>
-              {post.isVerified ? "Verified" : "Not Verified"}
-            </PostStatus>
-          </PostCard>
-        ))}
-      </PostGrid>
-
-      {filteredPosts.length > 0 && (
-        <Pagination>
-          {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-            (pageNumber) => (
-              <PageNumber
-                key={pageNumber}
-                active={pageNumber === currentPage}
-                onClick={() => handlePageClick(pageNumber)}
-              >
-                {pageNumber}
-              </PageNumber>
-            ),
-          )}
-        </Pagination>
+      {hasSearched && filteredPosts.length === 0 ? (
+        <NoPostsMessage>검색 결과가 없습니다.</NoPostsMessage>
+      ) : (
+        filteredPosts.length > 0 && (
+          <>
+            <PostGrid>
+              {currentPosts.map((post, index) => (
+                <PostCard key={index} isVerified={post.isVerified}>
+                  <PostTitle>{post.title}</PostTitle>
+                  <PostInstitution>{post.institution}</PostInstitution>
+                  <PostStatus>
+                    {post.isVerified ? "Verified" : "Not Verified"}
+                  </PostStatus>
+                </PostCard>
+              ))}
+            </PostGrid>
+            <Pagination>
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                (pageNumber) => (
+                  <PageNumber
+                    key={pageNumber}
+                    active={pageNumber === currentPage}
+                    onClick={() => handlePageClick(pageNumber)}
+                  >
+                    {pageNumber}
+                  </PageNumber>
+                )
+              )}
+            </Pagination>
+          </>
+        )
       )}
+
       <Footer />
     </>
   );
@@ -182,19 +171,37 @@ const SelectedTabItem = styled(Link)`
   border-bottom: 3px solid #3e5879;
 `;
 
-const FilterArea = styled.div`
+const SearchArea = styled.form`
   display: flex;
   justify-content: center;
+  height: 45px;
   margin-bottom: 40px;
 `;
 
-const Select = styled.select`
+const YearSelect = styled.select`
   padding: 10px;
   border: 1px solid #3e5879;
   border-radius: 5px;
   margin-right: 10px;
   font-size: 16px;
-  width: 200px;
+`;
+
+const MonthSelect = styled.select`
+  padding: 10px;
+  border: 1px solid #3e5879;
+  border-radius: 5px;
+  margin-right: 10px;
+  font-size: 16px;
+`;
+
+const SearchButton = styled.button`
+  background-color: #3e5879;
+  color: #ffffff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  padding: 10px 20px;
+  font-size: 16px;
 `;
 
 const PostGrid = styled.div`
@@ -256,4 +263,14 @@ const PageNumber = styled.div<{ active?: boolean }>`
 const Image = styled.img`
   width: 100%;
   height: auto;
+`;
+
+const NoPostsMessage = styled.div`
+  text-align: center;
+  font-size: 24px;
+  font-family: Pretendard, sans-serif;
+  font-weight: semibold;
+  color: #3e5879;
+  margin-top: 50px;
+  margin-bottom: 50px;
 `;
