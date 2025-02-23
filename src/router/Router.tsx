@@ -1,4 +1,4 @@
-import { Route, Routes } from "react-router-dom";
+import { Route, Routes} from "react-router-dom";
 import AllPosts from "../pages/posts/all";
 import Homepage from "../pages/home/homepage";
 import PostsByInstitution from "../pages/posts/institution";
@@ -8,6 +8,7 @@ import EditPage from "../pages/volunteer/edit";
 import PostPage from "../pages/volunteer/post";
 import HomePage from "../pages/volunteer/main";
 import LoginForm from "../pages/users/login";
+import CrowdFunding from "../pages/crowdfunding/all";
 
 const RoutesConfig = () => {
   return (
@@ -22,6 +23,7 @@ const RoutesConfig = () => {
       <Route path="/volunteer/post" element={<PostPage />} />
       <Route path="/volunteer" element={<HomePage />} />
       <Route path="/users/login" element={<LoginForm />} />
+      <Route path="/crowdfunding/all" element={<CrowdFunding/>} />
     </Routes>
   );
 };
