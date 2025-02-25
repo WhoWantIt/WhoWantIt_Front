@@ -1,17 +1,31 @@
 import styled from "styled-components";
 import { useState, useEffect } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import Navigation from "../../components/Navigation";
 import Footer from "../../components/Footer";
 import image from "../../assets/just_image.svg";
-import posts from "../../data/posts";
+import { NavLink } from "react-router-dom";
+import api from "../../utils/api";
 
 const ITEMS_PER_PAGE = 12;
+
+interface PostType {
+  postId: number;
+  beneficiaryId: number;
+  nickname: string;
+  title: string;
+  content: string;
+  attachedImages: string[];
+  attachedExcelFile: string;
+  approvalStatus: string;
+  isVerified: boolean;
+  createdAt: string;
+}
 
 const PostsByInstitution = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [filteredPosts, setFilteredPosts] = useState([]);
+  const [filteredPosts, setFilteredPosts] = useState<PostType[]>([]);
   const [hasSearched, setHasSearched] = useState(false);
   const navigate = useNavigate();
   const { institution } = useParams<{ institution?: string }>();
@@ -19,7 +33,7 @@ const PostsByInstitution = () => {
   useEffect(() => {
     if (institution && institution !== ":institution") {
       setSearchTerm(institution);
-      handleSearchRequest(institution);
+      handleSearchRequest(institution, 0);
     } else {
       setSearchTerm("");
       setFilteredPosts([]);
@@ -28,18 +42,22 @@ const PostsByInstitution = () => {
     setCurrentPage(1);
   }, [institution]);
 
-  const handleSearchRequest = (term: string) => {
-    const filtered = posts.filter((post) =>
-      post.institution.toLowerCase().includes(term.toLowerCase()),
-    );
-    setFilteredPosts(filtered);
-    setHasSearched(true);
+  const handleSearchRequest = (term: string, page: number) => {
+    api
+      .get(
+        `/posts/beneficiaries?nickname=${term}&page=${page}&size=${ITEMS_PER_PAGE}`,
+      )
+      .then((res) => {
+        setFilteredPosts(res.data.result.content);
+        setHasSearched(true);
+      })
+      .catch((err) => console.error("Error fetching posts:", err));
   };
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     navigate(`/posts/${searchTerm || ":institution"}`);
-    handleSearchRequest(searchTerm);
+    handleSearchRequest(searchTerm, 0);
     setCurrentPage(1);
   };
 
@@ -50,6 +68,7 @@ const PostsByInstitution = () => {
 
   const handlePageClick = (pageNumber: number) => {
     setCurrentPage(pageNumber);
+    handleSearchRequest(searchTerm, pageNumber - 1);
   };
 
   return (
@@ -58,19 +77,11 @@ const PostsByInstitution = () => {
       <Image src={image} />
 
       <TabMenu>
-        <TabItem as={Link} to="/posts" activeClassName="active">
-          #전체
-        </TabItem>
-        <SelectedTabItem
-          as={Link}
-          to={`/posts/${searchTerm || ":institution"}`}
-          activeClassName="active"
-        >
+        <TabItem to="/posts">#전체</TabItem>
+        <SelectedTabItem to={`/posts/${searchTerm || ":institution"}`}>
           #기관별 모아보기
         </SelectedTabItem>
-        <TabItem as={Link} to="/posts/:year/:month" activeClassName="active">
-          #월별 모아보기
-        </TabItem>
+        <TabItem to="/posts/:year/:month">#월별 모아보기</TabItem>
       </TabMenu>
 
       <SearchArea onSubmit={handleSearch}>
@@ -85,13 +96,14 @@ const PostsByInstitution = () => {
       {hasSearched && filteredPosts.length === 0 ? (
         <NoPostsMessage>검색 결과가 없습니다.</NoPostsMessage>
       ) : (
+        hasSearched &&
         filteredPosts.length > 0 && (
           <>
             <PostGrid>
               {currentPosts.map((post, index) => (
                 <PostCard key={index} isVerified={post.isVerified}>
                   <PostTitle>{post.title}</PostTitle>
-                  <PostInstitution>{post.institution}</PostInstitution>
+                  <PostInstitution>{post.nickname}</PostInstitution>
                   <PostStatus>
                     {post.isVerified ? "Verified" : "Not Verified"}
                   </PostStatus>
@@ -129,7 +141,7 @@ const TabMenu = styled.div`
   margin-bottom: 70px;
 `;
 
-const TabItem = styled(Link)`
+const TabItem = styled(NavLink)`
   width: 300px;
   cursor: pointer;
   text-decoration: none;
@@ -141,7 +153,7 @@ const TabItem = styled(Link)`
   border-bottom: 1px solid #e6d9d2;
 `;
 
-const SelectedTabItem = styled(Link)`
+const SelectedTabItem = styled(NavLink)`
   width: 300px;
   cursor: pointer;
   text-decoration: none;
@@ -186,6 +198,16 @@ const PostGrid = styled.div`
   grid-gap: 20px;
   padding: 0px 150px;
   box-sizing: border-box;
+
+  @media (max-width: 1024px) {
+    grid-template-columns: repeat(3, 1fr);
+    padding: 0 100px;
+  }
+
+  @media (max-width: 768px) {
+    grid-template-columns: repeat(2, 1fr);
+    padding: 0 50px;
+  }
 `;
 
 const PostCard = styled.div<{ isVerified: boolean }>`
