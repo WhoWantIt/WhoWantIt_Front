@@ -48,8 +48,8 @@ const AllPosts = () => {
       <Image src={image} />
 
       <TabMenu>
-        <TabItem to="/posts">#전체</TabItem>
-        <TabItem to="/posts/:institution">#기관별 모아보기</TabItem>
+        <SelectedTabItem to="/posts">#전체</SelectedTabItem>
+        <TabItem to={"/posts/:institution"}>#기관별 모아보기</TabItem>
         <TabItem to="/posts/:year/:month">#월별 모아보기</TabItem>
       </TabMenu>
 
@@ -106,14 +106,22 @@ const TabItem = styled(NavLink)`
   text-align: center;
   padding-bottom: 10px;
   color: #e6d9d2;
-  font-size: clamp(16px, 2vw, 30px);
+  font-size: 30px;
+  font-family: Pretendard, sans-serif;
   border-bottom: 1px solid #e6d9d2;
+`;
 
-  &.active {
-    color: #3e5879;
-    font-weight: bold;
-    border-bottom: 3px solid #3e5879;
-  }
+const SelectedTabItem = styled(NavLink)`
+  width: 300px;
+  cursor: pointer;
+  text-decoration: none;
+  text-align: center;
+  padding-bottom: 10px;
+  color: #3e5879;
+  font-size: 30px;
+  font-family: Pretendard, sans-serif;
+  font-weight: bold;
+  border-bottom: 3px solid #3e5879;
 `;
 
 const PostGrid = styled.div`
