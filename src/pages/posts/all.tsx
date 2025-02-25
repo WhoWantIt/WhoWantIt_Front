@@ -1,15 +1,36 @@
 import styled from "styled-components";
-import posts from "../../data/posts";
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { NavLink } from "react-router-dom";
 import Navigation from "../../components/Navigation";
 import Footer from "../../components/Footer";
 import image from "../../assets/just_image.svg";
+import api from "../../utils/api";
 
 const ITEMS_PER_PAGE = 12;
 
+interface PostType {
+  postId: number;
+  beneficiaryId: number;
+  nickname: string;
+  title: string;
+  content: string;
+  attachedImages: string[];
+  attachedExcelFile: string;
+  approvalStatus: string;
+  isVerified: boolean;
+  createdAt: string;
+}
+
 const AllPosts = () => {
   const [currentPage, setCurrentPage] = useState(1);
+  const [posts, setPosts] = useState<PostType[]>([]);
+
+  useEffect(() => {
+    api
+      .get("/posts")
+      .then((res) => setPosts(res.data.result.content))
+      .catch((err) => console.error("Error fetching posts:", err));
+  }, []);
 
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const endIndex = startIndex + ITEMS_PER_PAGE;
@@ -27,22 +48,16 @@ const AllPosts = () => {
       <Image src={image} />
 
       <TabMenu>
-        <SelectedTabItem as={Link} to="/posts" activeClassName="active">
-          #전체
-        </SelectedTabItem>
-        <TabItem as={Link} to="/posts/:institution" activeClassName="active">
-          #기관별 모아보기
-        </TabItem>
-        <TabItem as={Link} to="/posts/:year/:month" activeClassName="active">
-          #월별 모아보기
-        </TabItem>
+        <SelectedTabItem to="/posts">#전체</SelectedTabItem>
+        <TabItem to={"/posts/:institution"}>#기관별 모아보기</TabItem>
+        <TabItem to="/posts/:year/:month">#월별 모아보기</TabItem>
       </TabMenu>
 
       <PostGrid>
         {currentPosts.map((post, index) => (
           <PostCard key={index} isVerified={post.isVerified}>
             <PostTitle>{post.title}</PostTitle>
-            <PostInstitution>{post.institution}</PostInstitution>
+            <PostInstitution>{post.nickname}</PostInstitution>
             <PostStatus>
               {post.isVerified ? "Verified" : "Not Verified"}
             </PostStatus>
@@ -63,6 +78,7 @@ const AllPosts = () => {
           ),
         )}
       </Pagination>
+
       <Footer />
     </Wrapper>
   );
@@ -83,25 +99,27 @@ const TabMenu = styled.div`
   margin-bottom: 70px;
 `;
 
-const TabItem = styled(Link)`
+const TabItem = styled(NavLink)`
   width: 300px;
   cursor: pointer;
   text-decoration: none;
   text-align: center;
   padding-bottom: 10px;
   color: #e6d9d2;
-  font-size: clamp(16px, 2vw, 30px);
+  font-size: 30px;
+  font-family: Pretendard, sans-serif;
   border-bottom: 1px solid #e6d9d2;
 `;
 
-const SelectedTabItem = styled(Link)`
+const SelectedTabItem = styled(NavLink)`
   width: 300px;
   cursor: pointer;
   text-decoration: none;
   text-align: center;
   padding-bottom: 10px;
   color: #3e5879;
-  font-size: clamp(16px, 2vw, 30px);
+  font-size: 30px;
+  font-family: Pretendard, sans-serif;
   font-weight: bold;
   border-bottom: 3px solid #3e5879;
 `;
@@ -164,7 +182,6 @@ const Pagination = styled.div`
 
 const PageNumber = styled.div<{ active?: boolean }>`
   padding: 5px 5px;
-  border: none;
   margin: 0 5px;
   cursor: pointer;
   font-size: clamp(12px, 1.2vw, 20px);
