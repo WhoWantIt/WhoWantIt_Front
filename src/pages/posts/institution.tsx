@@ -96,7 +96,6 @@ const PostsByInstitution = () => {
       {hasSearched && filteredPosts.length === 0 ? (
         <NoPostsMessage>검색 결과가 없습니다.</NoPostsMessage>
       ) : (
-        hasSearched &&
         filteredPosts.length > 0 && (
           <>
             <PostGrid>
