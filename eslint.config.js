@@ -24,7 +24,12 @@ export default [
     },
     rules: {
       eqeqeq: "error",
-      "prettier/prettier": "error",
+      "prettier/prettier":
+      [ "error",
+        {
+          "endOfLine": "auto"
+        },
+      ],
       ...reactHooks.configs.recommended.rules,
       "react-refresh/only-export-components": ["warn", { allowConstantExport: true }],
     },
