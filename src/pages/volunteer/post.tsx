@@ -1,6 +1,151 @@
 import styled from "styled-components";
 import { useEffect, useState } from "react";
 import BookMarkSVG from "../../assets/volunteer/bookmark.svg";
+import BookMarkColorSVG from "../../assets/volunteer/bookmark_color.svg";
+const PostPage = () => {
+  const api = import.meta.env.VITE_API_URL;
+  const accessToken = localStorage.getItem("accessToken");
+  const volunteerId = localStorage.getItem("volunteerId");
+  // 지원에 대한 상태 관리
+  const [isApplied, setIsApplied] = useState<boolean>(false);
+  // 스크랩에 대한 상태 관리
+  const [isScraped, setIsScraped] = useState<boolean>(false);
+  const [applicants, setApplicants] = useState(0);
+  const maxApplicants = 10; // 차후 변경사항
+  useEffect(() => {
+    const initMap = () => {
+      new naver.maps.Map("map", {
+        center: new naver.maps.LatLng(37.511337, 127.012084),
+        zoom: 13,
+      });
+    };
+    initMap();
+  }, []);
+
+  const handleApply = async () => {
+    try {
+      const client = await fetch(`${api}volunteers/${volunteerId}`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+      const data = client.json();
+      console.log("지원하기에 대한 res:", data);
+      if (applicants < maxApplicants) {
+        setApplicants((prev) => prev + 1);
+        setIsApplied(true);
+      } else {
+        alert("모집이 마감되었습니다.");
+      }
+    } catch (error) {
+      console.error("REQUEST FAILED:", error);
+      alert("서버와의 연결에 문제가 발생했습니다.");
+    }
+  };
+  const handleDelete = async () => {
+    try {
+      const client = await fetch(`${api}volunteers/${volunteerId}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+      const data = client.json();
+      console.log("지원 취소하기에 대한 res:", data);
+      // 지원한 숫자 줄어들게 하기
+      setApplicants((prev) => prev - 1);
+      setIsApplied(false);
+    } catch (error) {
+      console.error("REQUEST FAILED:", error);
+      alert("서버와의 연결에 문제가 발생했습니다.");
+    }
+  };
+  const handleScrap = async () => {
+    try {
+      const client = await fetch(`${api}volunteers/scraps.${volunteerId}`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+      const data = client.json();
+      setIsScraped(true);
+      console.log("스크랩하기에 대한 res:", data);
+    } catch (error) {
+      console.error("REQUEST FAILED: ", error);
+      alert("서버와의 연결에 문제가 발생했습니다.");
+    }
+  };
+
+  const handleDeleteScrap = async () => {
+    try {
+      const client = await fetch(`${api}volunteers/scraps/${volunteerId}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+      const data = client.json();
+      setIsScraped(false);
+      console.log("스크랩 취소에 대한 res:", data);
+    } catch (error) {
+      console.error("REQUEST FAILED: ", error);
+      alert("서버와의 연결에 문제가 발생했습니다.");
+    }
+  };
+  return (
+    <Container>
+      <ContentWrapper>
+        <TitleWrapper>IT관련 교육을 해주실 자원봉사자를 찾습니다!</TitleWrapper>
+        <DescriptWrapper>
+          안녕하세요, 저희 보육원에는 원생이 9명 정도 있습니다.
+        </DescriptWrapper>
+        <ButtonContainer>
+          <BookmarkButton
+            onClick={!isScraped ? handleScrap : handleDeleteScrap}
+          >
+            {!isScraped ? (
+              <img src={BookMarkSVG} />
+            ) : (
+              <img src={BookMarkColorSVG} />
+            )}
+          </BookmarkButton>
+          <ApplyButton onClick={!isApplied ? handleApply : handleDelete}>
+            {!isApplied ? "지원하기" : "취소하기"}
+          </ApplyButton>
+        </ButtonContainer>
+      </ContentWrapper>
+      <MapWrapper>
+        <MapSection>
+          <div id="map" style={{ width: "130%", height: "400px" }}></div>
+        </MapSection>
+        <DetailsWrapper>
+          <Details>
+            <Title>근무지명</Title>
+            <Subtitle>자연 보육원</Subtitle>
+          </Details>
+          <Details>
+            <Title>지역정보</Title>
+            <Subtitle>서울 용산구 삼각지역</Subtitle>
+          </Details>
+          <Details>
+            <Title>봉사날짜</Title>
+            <Subtitle>2025년 2월 16일 오전 10시</Subtitle>
+          </Details>
+          <Details>
+            <Title>모집인원</Title>
+            <Subtitle>
+              {applicants} / {maxApplicants}
+            </Subtitle>
+          </Details>
+        </DetailsWrapper>
+      </MapWrapper>
+    </Container>
+  );
+};
+
+export default PostPage;
 const Container = styled.div`
   display: flex;
   flex-direction: row;
@@ -8,6 +153,7 @@ const Container = styled.div`
   padding: 40px;
   background-color: #f8f7f7;
   height: 100vh;
+  font-family: Pretendard, sans-serif;
 `;
 
 const ContentWrapper = styled.div`
@@ -89,7 +235,7 @@ const ApplyButton = styled.button`
   font-size: 25px;
   cursor: pointer;
   &:hover {
-    background-color: #1a252f;
+    background-color: rgb(140, 159, 180);
   }
 `;
 const DetailsWrapper = styled.div`
@@ -116,66 +262,3 @@ const Subtitle = styled.h6`
   font-family: "Pretandard", sans-serif;
   font-size: 16px;
 `;
-const PostPage = () => {
-  const [applicants, setApplicants] = useState(0);
-  const maxApplicants = 10; // 차후 변경사항
-  useEffect(() => {
-    const initMap = () => {
-      new naver.maps.Map("map", {
-        center: new naver.maps.LatLng(37.511337, 127.012084),
-        zoom: 13,
-      });
-    };
-    initMap();
-  }, []);
-  const handleApply = () => {
-    if (applicants < maxApplicants) {
-      setApplicants((prev) => prev + 1);
-    } else {
-      alert("모집이 마감되었습니다.");
-    }
-  };
-  return (
-    <Container>
-      <ContentWrapper>
-        <TitleWrapper>IT관련 교육을 해주실 자원봉사자를 찾습니다!</TitleWrapper>
-        <DescriptWrapper>
-          안녕하세요, 저희 보육원에는 원생이 9명 정도 있습니다.
-        </DescriptWrapper>
-        <ButtonContainer>
-          <BookmarkButton>
-            <img src={BookMarkSVG} />
-          </BookmarkButton>
-          <ApplyButton onClick={handleApply}>지원하기</ApplyButton>
-        </ButtonContainer>
-      </ContentWrapper>
-      <MapWrapper>
-        <MapSection>
-          <div id="map" style={{ width: "130%", height: "400px" }}></div>
-        </MapSection>
-        <DetailsWrapper>
-          <Details>
-            <Title>근무지명</Title>
-            <Subtitle>자연 보육원</Subtitle>
-          </Details>
-          <Details>
-            <Title>지역정보</Title>
-            <Subtitle>서울 용산구 삼각지역</Subtitle>
-          </Details>
-          <Details>
-            <Title>봉사날짜</Title>
-            <Subtitle>2025년 2월 16일 오전 10시시</Subtitle>
-          </Details>
-          <Details>
-            <Title>모집인원</Title>
-            <Subtitle>
-              {applicants} / {maxApplicants}
-            </Subtitle>
-          </Details>
-        </DetailsWrapper>
-      </MapWrapper>
-    </Container>
-  );
-};
-
-export default PostPage;
