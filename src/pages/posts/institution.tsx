@@ -96,7 +96,6 @@ const PostsByInstitution = () => {
       {hasSearched && filteredPosts.length === 0 ? (
         <NoPostsMessage>검색 결과가 없습니다.</NoPostsMessage>
       ) : (
-        hasSearched &&
         filteredPosts.length > 0 && (
           <>
             <PostGrid>
@@ -148,8 +147,7 @@ const TabItem = styled(NavLink)`
   text-align: center;
   padding-bottom: 10px;
   color: #e6d9d2;
-  font-size: 30px;
-  font-family: Pretendard, sans-serif;
+  font-size: clamp(16px, 2vw, 30px);
   border-bottom: 1px solid #e6d9d2;
 `;
 
@@ -160,7 +158,7 @@ const SelectedTabItem = styled(NavLink)`
   text-align: center;
   padding-bottom: 10px;
   color: #3e5879;
-  font-size: 30px;
+  font-size: clamp(16px, 2vw, 30px);
   font-family: Pretendard, sans-serif;
   font-weight: bold;
   border-bottom: 3px solid #3e5879;
@@ -169,7 +167,7 @@ const SelectedTabItem = styled(NavLink)`
 const SearchArea = styled.form`
   display: flex;
   justify-content: center;
-  height: 45px;
+  height: clamp(30px, 3vw, 45px);
   margin-bottom: 40px;
 `;
 
@@ -178,8 +176,8 @@ const SearchInput = styled.input`
   border: 1px solid #3e5879;
   border-radius: 5px;
   margin-right: 10px;
-  width: 400px;
-  font-size: 16px;
+  width: clamp(250px, 30vw, 400px);
+  font-size: clamp(12px, 1.2vw, 16px);
 `;
 
 const SearchButton = styled.button`
@@ -189,7 +187,7 @@ const SearchButton = styled.button`
   border-radius: 5px;
   cursor: pointer;
   padding: 10px 20px;
-  font-size: 16px;
+  font-size: clamp(12px, 1.2vw, 16px);
 `;
 
 const PostGrid = styled.div`
@@ -211,9 +209,9 @@ const PostGrid = styled.div`
 `;
 
 const PostCard = styled.div<{ isVerified: boolean }>`
-  width: 200px;
-  height: 120px;
-  padding: 20px;
+  width: clamp(140px, 18vw, 200px);
+  height: clamp(80px, 12vw, 120px);
+  padding: clamp(10px, 2vw, 20px);
   border-radius: 10px;
   background-color: ${(props) => (props.isVerified ? "#3e5879" : "#c0c7d6")};
   color: ${(props) => (props.isVerified ? "#ffffff" : "#000000")};
@@ -224,17 +222,17 @@ const PostCard = styled.div<{ isVerified: boolean }>`
 `;
 
 const PostTitle = styled.div`
-  font-size: 20px;
+  font-size: clamp(14px, 1.5vw, 20px);
   font-weight: bold;
 `;
 
 const PostInstitution = styled.div`
-  font-size: 16px;
+  font-size: clamp(12px, 1.2vw, 16px);
   margin-top: 5px;
 `;
 
 const PostStatus = styled.div`
-  font-size: 16px;
+  font-size: clamp(12px, 1.2vw, 16px);
   text-align: right;
   margin-top: auto;
   align-self: flex-end;
@@ -245,16 +243,14 @@ const Pagination = styled.div`
   justify-content: right;
   margin-top: 70px;
   margin-bottom: 30px;
-  margin-right: 170px;
+  margin-right: clamp(50px, 10vw, 170px);
 `;
 
 const PageNumber = styled.div<{ active?: boolean }>`
   padding: 5px 5px;
-  border: none;
   margin: 0 5px;
   cursor: pointer;
-  font-family: Pretendard, sans-serif;
-  font-size: 20px;
+  font-size: clamp(12px, 1.2vw, 20px);
   color: ${(props) => (props.active ? "#3e5879" : "#e6d9d2")};
 `;
 

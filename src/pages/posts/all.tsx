@@ -106,8 +106,7 @@ const TabItem = styled(NavLink)`
   text-align: center;
   padding-bottom: 10px;
   color: #e6d9d2;
-  font-size: 30px;
-  font-family: Pretendard, sans-serif;
+  font-size: clamp(16px, 2vw, 30px);
   border-bottom: 1px solid #e6d9d2;
 `;
 
@@ -118,7 +117,7 @@ const SelectedTabItem = styled(NavLink)`
   text-align: center;
   padding-bottom: 10px;
   color: #3e5879;
-  font-size: 30px;
+  font-size: clamp(16px, 2vw, 30px);
   font-family: Pretendard, sans-serif;
   font-weight: bold;
   border-bottom: 3px solid #3e5879;
