@@ -1,19 +1,22 @@
 import styled from "styled-components";
 import Navigation from "../../components/Navigation";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const LoginForm = () => {
   const api = import.meta.env.VITE_API_URL;
-
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
   const handleEmail = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
+    console.log("Email 입력:", value);
     setEmail(value);
   };
   const handlePassword = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
+    console.log("Password 입력:", value);
     setPassword(value);
   };
   const handleLogin = async () => {
@@ -58,7 +61,7 @@ const LoginForm = () => {
         localStorage.setItem("phoneNumber", userInfo.result.phoneNumber);
         localStorage.setItem("address", userInfo.result.address);
         localStorage.setItem("Image", userInfo.result.image);
-        window.location.href = "/posts";
+        navigate("/posts");
       } else {
         console.error("로그인 실패:", data.message);
         alert("로그인에 실패했습니다. 다시 시도해주세요.");
