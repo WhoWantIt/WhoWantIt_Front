@@ -1,4 +1,5 @@
 import axios from "axios";
+import { isTokenExpired } from "./jwt"; // jwt.ts에서 가져옴
 
 const API_BASE_URL = "http://13.209.33.88:8080";
 const ACCESS_TOKEN_KEY = "accessToken";
@@ -14,7 +15,7 @@ const api = axios.create({
 api.interceptors.request.use(
   (config) => {
     const accessToken = localStorage.getItem(ACCESS_TOKEN_KEY);
-    if (accessToken) {
+    if (accessToken && !isTokenExpired()) {
       config.headers.Authorization = `Bearer ${accessToken}`;
     }
     return config;
@@ -46,7 +47,7 @@ api.interceptors.response.use(
           console.error("Refresh token expired, redirecting to login...");
           localStorage.removeItem(ACCESS_TOKEN_KEY);
           localStorage.removeItem(REFRESH_TOKEN_KEY);
-          window.location.href = "/login"; // 로그인 페이지로 이동
+          window.location.href = "/login";
         }
       }
     }
