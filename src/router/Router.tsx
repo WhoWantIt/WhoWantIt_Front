@@ -1,4 +1,4 @@
-import { Route, Routes} from "react-router-dom";
+import { Route, Routes } from "react-router-dom";
 import AllPosts from "../pages/posts/all";
 import Homepage from "../pages/home/homepage";
 import PostsByInstitution from "../pages/posts/institution";
@@ -9,6 +9,7 @@ import PostPage from "../pages/volunteer/post";
 import HomePage from "../pages/volunteer/main";
 import LoginForm from "../pages/users/login";
 import CrowdFunding from "../pages/crowdfunding/all";
+import PostEdit from "../pages/posts/edit";
 
 const RoutesConfig = () => {
   return (
@@ -19,11 +20,12 @@ const RoutesConfig = () => {
       <Route path="/posts" element={<AllPosts />} />
       <Route path="/posts/:institution" element={<PostsByInstitution />} />
       <Route path="/posts/:year/:month" element={<PostsByDate />} />
+      <Route path="/posts/edit" element={<PostEdit />} />
       <Route path="/volunteer/edit" element={<EditPage />} />
       <Route path="/volunteer/post" element={<PostPage />} />
       <Route path="/volunteer" element={<HomePage />} />
       <Route path="/users/login" element={<LoginForm />} />
-      <Route path="/crowdfunding/all" element={<CrowdFunding/>} />
+      <Route path="/crowdfunding/all" element={<CrowdFunding />} />
     </Routes>
   );
 };
