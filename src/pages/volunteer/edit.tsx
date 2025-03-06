@@ -1,4 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
+import Navigation from "../../components/Navigation";
+import Footer from "../../components/Footer";
 import styled from "styled-components";
 import { Editor } from "@toast-ui/react-editor";
 import "@toast-ui/editor/dist/toastui-editor.css";
@@ -6,61 +8,109 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 // 메인 컴포넌트
 const EditPage = () => {
-  //const api = import.meta.env.VITE_API_URL;
-  const [documents] = useState<string[]>([
-    "짜장면 먹는날",
-    "마크정식 먹는날",
-    "곱도리탕 먹는닐",
-    "집밥 먹는날",
-    "햄버거 먹는날",
-  ]);
-  const [activeDoc, setActiveDoc] = useState<string | null>(null);
+  const api = import.meta.env.VITE_API_URL;
+  const editorRef = useRef<Editor>(null);
   const [title, setTitle] = useState<string>("");
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [selectedTags, setSelectedTags] = useState<string>("");
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [deadLineDate, setDeadLineDate] = useState<Date | null>(null);
-  const [participants] = useState<string>("");
-
-  //const onChangeGetHTML = () =>{};
-  const tags: string[] = [
-    "생활편의지원",
-    "주거환경",
-    "상담",
-    "교육",
-    "보건의료",
-    "문화행사",
-    "환경보호",
-    "재해·재난",
-    "공익인권",
-    "멘토링",
-    "기타",
+  const [participant, setParticipant] = useState<string>("");
+  //const [body, setBody] = useState<string>("");
+  const tags = [
+    { name: "LIVING_SUPPORT", text: "생활편의지원" },
+    { name: "HOUSING_ENVIRONMENT", text: "주거환경" },
+    { name: "COUNSELING", text: "상담" },
+    { name: "EDUCTION", text: "교육" },
+    { name: "HEALTHCARE", text: "보건의료" },
+    { name: "CULTURAL_EVENTS", text: "문화행사" },
+    { name: "ENVIRONMENTAL_PROTECTION", text: "환경보호" },
+    { name: "DISASTER_RELIEF", text: "재해·재난" },
+    { name: "PUBLIC_INTEREST_RIGHTS", text: "공익인권" },
+    { name: "MENTORING", text: "멘토링" },
+    { name: "OTHERS", text: "기타" },
   ];
-  const toggleTag = (tag: string) => {
-    setSelectedTags((prev) =>
-      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag],
+  /*
+  const formatDate = (date: Date | null) =>
+    date ? date.toISOString().split("T")[0] + "T00:00:00" : "";
+
+  const onChangeGETString = () => {
+    const data = editorRef.current?.getInstance().getHTML();
+    setBody(data);
+  };*/
+
+  const handleIssue = async () => {
+    const accessToken = localStorage.getItem("accessToken");
+    if (!accessToken) {
+      alert("로그인이 필요합니다.");
+      window.location.href = "/login"; // 로그인 페이지로 리디렉션
+      return;
+    }
+    //json 형식
+    const volunteerRequestDto = {
+      nickname: "string",
+      title: "string",
+      field: "EDUCATION",
+      content: "string",
+      startTime: "2016-10-27T00:00:00",
+      deadline: "2016-10-27T00:00:00",
+      maxCapacity: 0,
+    };
+    console.log("volunteerRequestDto:", volunteerRequestDto);
+    const formData = new FormData();
+    formData.append(
+      "volunteerRequestDto",
+      new Blob([JSON.stringify(volunteerRequestDto)], {
+        type: "application/json",
+      }),
     );
+    //file 형식
+    const imageInput = document.getElementById(
+      "imageInput",
+    ) as HTMLInputElement;
+    if (imageInput?.files && imageInput.files.length > 0) {
+      Array.from(imageInput.files).forEach((file, index) => {
+        formData.append(
+          "images",
+          new Blob([file], { type: file.type }),
+          file.name,
+        ); // 배열 형태로 전송
+        console.log(`📂 images[${index}]:`, file.name);
+      });
+    } else {
+      formData.append("images", "");
+    }
+    for (const [key, value] of formData.entries()) {
+      console.log(`📄 FormData - ${key}:`, value);
+    }
+    try {
+      console.log(formData);
+      const client = await fetch(`${api}volunteers`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: formData,
+      });
+      if (!client.ok) {
+        throw new Error(`서버 응답 실패: ${client.status}`);
+      }
+      const data = await client.json();
+      if (data.isSuccess) {
+        alert("자원봉사 게시가 성공적으로 발행되었습니다.");
+      } else {
+        alert(`발행 실패: ${data.message}`);
+      }
+    } catch (error) {
+      console.error("API 요청 중 오류:", error);
+      alert("게시글 발행 중 오류가 발생했습니다.");
+    }
   };
+  //const onChangeGetHTML = () =>{};
   return (
     <>
+      <Navigation />
       <Container>
         {/* 왼쪽 사이드바 */}
-        <Sidebar>
-          <ButtonWrapper>
-            <Button onClick={() => alert("삭제 기능")}>삭제</Button>
-            <Button onClick={() => alert("저장 기능")}>저장</Button>
-          </ButtonWrapper>
-          <DocumentList>
-            {documents.map((doc, index) => (
-              <DocumentItem
-                key={index}
-                active={activeDoc === doc}
-                onClick={() => setActiveDoc(doc)}
-              >
-                {doc}
-              </DocumentItem>
-            ))}
-          </DocumentList>
-        </Sidebar>
         {/* 중앙 편집기 */}
         <EditorContainer>
           <TitleInput
@@ -81,24 +131,26 @@ const EditPage = () => {
               ["code", "codeblock"],
             ]}
             height="500px" // 에디터 창 높이
-            initialEditType="markdown" // 기본 에디터 타입 (or wysiwyg)
+            initialEditType="wysiwyg" // 기본 에디터 타입 (or wysiwyg)
             previewStyle="vertical" // 미리보기 스타일 (or tab) (verttical은 양쪽이 나뉨)
+            initialValue="내용을 입력해주세요."
+            ref={editorRef}
           ></Editor>
         </EditorContainer>
 
         {/* 오른쪽 사이드바 */}
         <SidebarRight>
-          <PostButton>발행</PostButton>
+          <PostButton onClick={handleIssue}>완료</PostButton>
           <FieldContainer>
             <FieldTitle>분야</FieldTitle>
             <TagContainer>
               {tags.map((tag, index) => (
                 <TagButton
                   key={index}
-                  selected={selectedTags.includes(tag)}
-                  onClick={() => toggleTag(tag)}
+                  selected={selectedTags.includes(tag.name)}
+                  onClick={() => setSelectedTags(tag.name)}
                 >
-                  {tag}
+                  {tag.text}
                 </TagButton>
               ))}
             </TagContainer>
@@ -125,11 +177,17 @@ const EditPage = () => {
             <InputField
               type="number"
               placeholder="모집할 인원 수를 정해주세요! (최대 100명)"
-              value={participants}
+              value={participant}
+              onChange={(e) => setParticipant(e.target.value)}
             />
+          </FieldContainer>
+          <FieldContainer>
+            <FieldTitle>이미지 업로드</FieldTitle>
+            <input type="file" id="imageInput" multiple accept="image/*" />
           </FieldContainer>
         </SidebarRight>
       </Container>
+      <Footer />
     </>
   );
 };
@@ -140,62 +198,9 @@ const Container = styled.div`
   display: flex;
   width: 100%;
   height: auto;
+  font-family: Pretendard, sans-serif;
+  border: 2px solid #3e5879;
 `;
-const Sidebar = styled.div`
-  width: 250px;
-  background-color: #3e5879;
-  color: white;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  height: 100vh;
-`;
-const ButtonWrapper = styled.div`
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  margin-top: 30px;
-`;
-const Button = styled.button`
-  background-color: #ffffff;
-  color: black;
-  font-size: bold;
-  border: none;
-  padding: 1px;
-  maom: 10prgin-bottx;
-  cursor: pointer;
-  border-radius: 5px;
-  &:hover {
-    background-color: #3e5879;
-  }
-  width: 100px;
-  height: 38px;
-`;
-const DocumentList = styled.ul`
-  list-style: none;
-  border-bottom: 2px solid #ffffff;
-  padding: 0;
-  margin-top: 100px;
-  width: 250px;
-`;
-interface DocumentItemProps {
-  active: boolean;
-}
-
-const DocumentItem = styled.li.withConfig({
-  shouldForwardProp: (prop) => prop !== "active",
-})<DocumentItemProps>`
-  background-color: ${({ active }) => (active ? "#3e5879" : "#3e5879")};
-  cursor: pointer;
-  &:hover {
-    background-color: #adacc2;
-  }
-  border-top: 2px solid white;
-  height: 55px;
-`;
-
 const EditorContainer = styled.div`
   flex-grow: 1;
   padding: 20px;
@@ -204,11 +209,11 @@ const EditorContainer = styled.div`
 `;
 
 const TitleInput = styled.input`
-  font-size: 40px;
+  font-size: 30px;
   padding: 10px;
   margin-bottom: 10px;
-  width: 97%;
-  height: 80px;
+  width: 99%;
+  height: 70px;
   border: none;
 `;
 
@@ -237,6 +242,7 @@ const FieldContainer = styled.div`
   margin-bottom: 20px;
   font-family: "Pretandard", sans-serif;
   font-weight: bold;
+  margin-right: 10px;
 `;
 
 const FieldTitle = styled.h3`
