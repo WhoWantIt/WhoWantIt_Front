@@ -1,173 +1,232 @@
-import React, { useState } from "react";
+//const api = import.meta.env.VITE_API_URL;
+/*
 import styled from "styled-components";
 import Navigation from "../../components/Navigation";
-import Footer from "../../components/Footer";
 import image from "../../assets/just_image.svg";
-import { useNavigate } from "react-router-dom";
-const cityData: string[] = [
+import Footer from "../../components/Footer";
+import { useState } from "react";
+import { useEffect } from "react";
+
+const ITEMS_PER_PAGE = 10;
+const tags = [
+  { name: "LIVING_SUPPORT", text: "생활편의지원" },
+  { name: "HOUSING_ENVIRONMENT", text: "주거환경" },
+  { name: "COUNSELING", text: "상담" },
+  { name: "EDUCTION", text: "교육" },
+  { name: "HEALTHCARE", text: "보건의료" },
+  { name: "CULTURAL_EVENTS", text: "문화행사" },
+  { name: "ENVIRONMENTAL_PROTECTION", text: "환경보호" },
+  { name: "DISASTER_RELIEF", text: "재해·재난" },
+  { name: "PUBLIC_INTEREST_RIGHTS", text: "공익인권" },
+  { name: "MENTORING", text: "멘토링" },
+  { name: "OTHERS", text: "기타" },
+];
+// 데이터 가져올 파일 따로 만들어놓기
+const cities = [
   "서울",
   "경기",
   "인천",
-  "대전/세종/충남",
-  "부산/울산/경상",
+  "댜천/충청/세종",
+  "부산/대구/경상",
   "강원",
   "제주",
 ];
-const fieldData: string[] = [
-  "생활편의지원",
-  "주거환경",
-  "상담",
-  "교육",
-  "보건의료",
-  "문화행사",
-  "환경보호",
-  "재해 재난",
-  "공익 인권",
-  "멘토링",
-];
-/**
- * const SubCityData: string[] = [
-  "강남",
-  "동대문",
-  "상봉",
-  "송파파크하비오",
-  "코엑스",
-  "강동",
-  "마곡",
-  "상암월드컵경기장",
-  "신촌",
-  "홍대",
-  "군자",
-  "목당",
-  "성수",
-  "이수",
-  "화곡",
-];
- */
 
-interface Program {
-  id: number;
+const SeoulDistrict = [
+  "도봉구",
+  "노원구",
+  "강북구",
+  "성북구",
+  "중랑구",
+  "동대무구",
+  "종로구",
+  "은평구",
+  "서대문구",
+  "중구",
+  "성동구",
+  "광진구",
+  "용산구",
+  "마포구",
+  "강서구",
+  "양천구",
+  "구로구",
+  "영등포구",
+  "동작구",
+  "금천구",
+  "동작구",
+  "관악구",
+  "서초구",
+  "강남구",
+  "송파구",
+  "강동구",
+];
+
+interface CardType {
+  volunteerId: number;
+  beneficiaryId: number;
+  nickname: string;
   title: string;
-  location: string;
-  district: string;
-  daysLeft: number;
+  field: string;
+  content: string;
+  attachedImage: string[];
+  startTime: string;
+  deadline: string;
+  maxCapacity: number;
+  currentCapacity: number;
+  approvalStatus: string;
+  createdAt: string;
+  updateAt: string;
 }
+const api = import.meta.env.VITE_API_URL;
 
-const programData: Program[] = [
-  {
-    id: 1,
-    title: "아이들을 위한 산타 모집",
-    location: "자연보호원",
-    district: "서울 강남구",
-    daysLeft: 32,
-  },
-  {
-    id: 2,
-    title: "아이들을 위한 산타 모집",
-    location: "자연보호원",
-    district: "서울 동작구",
-    daysLeft: 2,
-  },
-  {
-    id: 3,
-    title: "아이들을 위한 산타 모집",
-    location: "자연보호원",
-    district: "서울 종로구",
-    daysLeft: 15,
-  },
-  {
-    id: 4,
-    title: "아이들을 위한 산타 모집",
-    location: "자연보호원",
-    district: "서울 종로구",
-    daysLeft: 15,
-  },
-  {
-    id: 5,
-    title: "아이들을 위한 산타 모집",
-    location: "자연보호원",
-    district: "서울 종로구",
-    daysLeft: 15,
-  },
-  {
-    id: 6,
-    title: "아이들을 위한 산타 모집",
-    location: "자연보호원",
-    district: "서울 종로구",
-    daysLeft: 15,
-  },
-  {
-    id: 7,
-    title: "아이들을 위한 산타 모집",
-    location: "자연보호원",
-    district: "서울 종로구",
-    daysLeft: 15,
-  },
-  {
-    id: 8,
-    title: "아이들을 위한 산타 모집",
-    location: "자연보호원",
-    district: "서울 종로구",
-    daysLeft: 15,
-  },
-  {
-    id: 9,
-    title: "아이들을 위한 산타 모집",
-    location: "자연보호원",
-    district: "서울 종로구",
-    daysLeft: 15,
-  },
-];
-
-const HomePage: React.FC = () => {
+const VolunteerPage = () => {
   const [selectedTab, setSelectedTab] = useState<"city" | "field">("city");
-  const [selectedCity, setSelectedCity] = useState<string>("서울");
-  const [, setSelectedSubCity] = useState<string | null>(null);
+  const [selectedCity, setSelectedCity] = useState<string | null>(null);
+  //const [loading, setLoading] = useState<boolean>(true);
+  const [cards, setCards] = useState<CardType[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const currentPosts = cards.slice(startIndex, endIndex);
+  const handlePageClick = (pageNumber: number) => {
+    setCurrentPage(pageNumber);
+  };
+
+  const totalPages = Math.ceil(cards.length / ITEMS_PER_PAGE);
+  //전체 조회 - useEffect로 전달 ?
+  useEffect(() => {
+    const handleAll = async () => {
+      const accessToken = localStorage.getItem("accessToken");
+      try {
+        const client = await fetch(`${api}volunteers`, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        });
+        const data = client.json();
+        console.log("봉사 리스트 조회 res: ", data);
+      } catch (error) {
+        console.log("REQUEST FAILED:", error);
+        alert("서버와의 연결에 문제가 생겼습니다.");
+      }
+    };
+    handleAll();
+  }, []);
+  // 지역별 봉사 리스트 조회 - useEffect?
+  const handleRegions = async () => {
+    const accessToken = localStorage.getItem("accessToken");
+    try {
+      const client = await fetch(
+        `${api}volunteers/regions?city=${city}&district=${subCity}&page=0&size=10`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
+      const data = client.json();
+      console.log("지역별 봉사 리스트 조회 res:", data);
+    } catch (error) {
+      console.log("REQUEST FAILED:", error);
+      alert("서버와의 연결에 문제가 생겼습니다.");
+    }
+  };
+  // 분야별 봉사 리스트 조회 - useEffect?
+  const handleFields = async () => {
+    const accessToken = localStorage.getItem("accessToken");
+    try {
+      const client = await fetch(`${api}volunteers/fields?field=${field}`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+      const data = client.json();
+      console.log("분야별 봉사 리스트 조회 res:", data);
+    } catch (error) {
+      console.error("REQUEST FAILED:", error);
+      alert("서버와의 연결에 문제가 생겼습니다.");
+    }
+  };
   return (
     <>
       <Container>
         <Navigation />
         <Image src={image} />
         <Wrapper>
-          <Sidebar>
-            <SectionWrapper>
-              <Button
-                active={selectedTab === "city"}
-                onClick={() => setSelectedTab("city")}
-              >
-                #도시 설정
-              </Button>
-              <Button
-                active={selectedTab === "field"}
-                onClick={() => setSelectedTab("field")}
-              >
-                #분야 설정
-              </Button>
-            </SectionWrapper>
+          <ButtonWrapper>
+            <Button
+              active={selectedTab === "city"}
+              onClick={() => setSelectedTab("city")}
+            >
+              #도시 설정
+            </Button>
+            <Button
+              active={selectedTab === "field"}
+              onClick={() => setSelectedTab("field")}
+            >
+              #분야 설정
+            </Button>
+          </ButtonWrapper>
+          <SidebarWrapper>
+            {selectedTab === "city" ? (
+              <>
+                {/* 도시 리스트 **
+                <CityList>
+                  {cities.map((city) => (
+                    <CityItem
+                      key={city}
+                      active={selectedCity === city}
+                      onClick={() => setSelectedCity(city)}
+                    >
+                      {city}
+                    </CityItem>
+                  ))}
+                </CityList>
 
-            <List>
-              {(selectedTab === "city" ? cityData : fieldData).map((item) => (
-                <ListItem
-                  key={item}
-                  active={
-                    selectedTab === "city" ? selectedCity === item : false
-                  }
-                  onClick={() => {
-                    if (selectedTab === "city") {
-                      setSelectedCity(item);
-                      setSelectedSubCity(null);
-                    }
-                  }}
-                >
-                  {item}
-                </ListItem>
-              ))}
-            </List>
-          </Sidebar>
-          <Content>
-            <ProgramList programs={programData} />
-            <Pagination />
-          </Content>
+                {/* 서울 선택 시만 구 리스트 표시 **
+                {selectedCity === "서울" && (
+                  <DistrictList>
+                    {SeoulDistrict.map((district) => (
+                      <DistrictItem key={district}>{district}</DistrictItem>
+                    ))}
+                  </DistrictList>
+                )}
+              </>
+            ) : (
+              /* 분야 리스트 **
+              <FieldList>
+                {tags.map((tag) => (
+                  <FieldItem key={tag.name}>{tag.text}</FieldItem>
+                ))}
+              </FieldList>
+            )}
+          </SidebarWrapper>
+          <CardGrid>
+            {currentCard.map(card, index) => (
+              <Card key={index} >
+                <CardTitle>{card.title}</CardTitle>
+                <CardName>{card.nickname}</CardName>
+                <CardLocation>{card.city} {card.district}</CardLocation>
+                <CardDate>D-{card.deadline}</CardDate>
+              </Card>
+            )}}
+          </CardGrid>
+          <Pagination>
+        {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+          (pageNumber) => (
+            <PageNumber
+              key={pageNumber}
+              active={pageNumber === currentPage}
+              onClick={() => handlePageClick(pageNumber)}
+            >
+              {pageNumber}
+            </PageNumber>
+          ),
+        )}
+      </Pagination>
         </Wrapper>
         <Footer />
       </Container>
@@ -175,88 +234,31 @@ const HomePage: React.FC = () => {
   );
 };
 
-/* 프로그램 리스트 */
-interface ProgramListProps {
-  programs: Program[];
-}
-
-const ProgramList: React.FC<ProgramListProps> = ({ programs }) => {
-  return (
-    <ProgramGrid>
-      {programs.map((program) => (
-        <ProgramCard key={program.id} program={program} />
-      ))}
-    </ProgramGrid>
-  );
-};
-
-/* 프로그램 카드 */
-interface ProgramCardProps {
-  program: Program;
-}
-
-const ProgramCard: React.FC<ProgramCardProps> = ({ program }) => {
-  const navigate = useNavigate();
-  const handleDetail = () => {
-    navigate("/volunteer/post");
-  };
-  return (
-    <Card onClick={handleDetail}>
-      <h4>{program.title}</h4>
-      <p>{program.location}</p>
-      <Info>
-        <span>{program.district}</span>
-        <DaysLeft days={program.daysLeft}>
-          {program.daysLeft <= 3 ? (
-            <strong>D-{program.daysLeft}</strong>
-          ) : (
-            `D-${program.daysLeft}`
-          )}
-        </DaysLeft>
-      </Info>
-    </Card>
-  );
-};
-
-/* 페이지네이션 */
-const Pagination: React.FC = () => {
-  return (
-    <PaginationContainer>
-      {Array.from({ length: 10 }, (_, i) => i + 1).map((num) => (
-        <PageNumber key={num}>{num}</PageNumber>
-      ))}
-    </PaginationContainer>
-  );
-};
-
-/* 스타일 정의 */
+export default VolunteerPage;
 const Container = styled.div`
   display: flex;
   flex-direction: column;
   font-family: Pretendard, sans-serif;
   width: 100%;
 `;
+const Image = styled.img`
+  width: 100%;
+  height: auto;
+`;
 const Wrapper = styled.div`
   display: flex;
-  width: 100%
-  height: auto;
-  flex-wrap: wrap;
-  padding: 20px;
+  flex-direction: column;
+  font-family: Pretandard, sans-serif;
+  width: 100%;
 `;
-const Sidebar = styled.div`
-  width: 250px;
-  padding: 20px;
-`;
-const SectionWrapper = styled.div`
+const ButtonWrapper = styled.div`
   display: flex;
-  justify-content: center;
+  justify-conten: center;
   align-items: center;
 `;
-
 interface ButtonProps {
   active: boolean;
 }
-
 const Button = styled.button<ButtonProps>`
   font-size: 16px;
   font-weight: bold;
@@ -268,117 +270,35 @@ const Button = styled.button<ButtonProps>`
   cursor: pointer;
   position: relative;
 `;
+const SidebarWrapper = styled.div``;
+const CityList = styled.div``;
+const CityItem = styled.div``;
 
-const List = styled.div`
-  width: 332px;
-  height: 660px;
-  list-style: none;
-  padding: 10px;
-  background: #ededee;
-  border-radius: 10px;
-  margin-top: 50px;
-`;
+const DistrictList = styled.div``;
+const DistrictItem = styled.div``;
 
-interface ListItemProps {
-  active: boolean;
-}
+const FieldList = styled.div``;
+const FieldItem = styled.div``;
 
-const ListItem = styled.li<ListItemProps>`
-  margin-top: 15px;
-  padding: 10px;
-  cursor: pointer;
-  font-weight: ${({ active }) => (active ? "bold" : "normal")};
-  color: ${({ active }) => (active ? "#000" : "#777")};
-  &:hover {
-    color: #000;
-  }
-`;
-
-const Content = styled.div`
-  margin-left: 150px;
-  flex: 1;
-  padding: 20px;
-  margin-top: 90px;
-  @media (max-width: 1024px) {
-    margin-left: 50px;
-  }
-  @media (max-width: 768px) {
-    margin-left: 0;
-    margin-top: 50px;
-    padding: 10px;
-  }
-`;
-
-const ProgramGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  grid-gap: 20px;
-  padding: 0px 60px;
-  box-sizing: border-box;
-  @media (max-width: 1024px) {
-    grid-template-columns: repeat(3, 1fr);
-    padding: 0 100px;
-  }
-
-  @media (max-width: 768px) {
-    grid-template-columns: repeat(2, 1fr);
-    padding: 0 50px;
-  }
-`;
-
-const Card = styled.div`
-  width: 300px;
-  height: 180px;
-  background: #c0c7d6;
-  padding: 15px;
-  border-radius: 10px;
-  h4 {
-    font-size: 22px;
-    margin-top: 20px;
-    margin-bottom: 5px;
-    font-weight: bold;
-  }
-  p {
-    font-size: 18px;
-    color: black;
-  }
-`;
-
-const Info = styled.div`
+const CardGrid = styled.div``;
+const Card = styled.div``;
+const CardTitle = styled.div``;
+const CardName = styled.div``;
+const CardDate = styled.div``;
+const CardLocation = styled.div``;
+const Pagination = styled.div`
   display: flex;
-  justify-content: space-between;
-  margin-top: 70px;
-  font-size: 18px;
-  color: black;
-`;
-
-interface DaysLeftProps {
-  days: number;
-}
-
-const DaysLeft = styled.span<DaysLeftProps>`
-  font-weight: bold;
-  color: ${({ days }) => (days <= 3 ? "red" : "black")};
-`;
-
-const PaginationContainer = styled.div`
-  display: flex;
-  justify-content: flex-end;
+  justify-content: right;
   margin-top: 70px;
   margin-bottom: 30px;
+  margin-right: clamp(50px, 10vw, 170px);
 `;
 
-const PageNumber = styled.span`
-  margin: 5px 5px;
+const PageNumber = styled.div<{ active?: boolean }>`
+  padding: 5px 5px;
+  margin: 0 5px;
   cursor: pointer;
-  color: #555;
-  &:hover {
-    color: #000;
-  }
+  font-size: clamp(12px, 1.2vw, 20px);
+  color: ${(props) => (props.active ? "#3e5879" : "#e6d9d2")};
 `;
-const Image = styled.img`
-  width: 100%;
-  height: auto;
-`;
-
-export default HomePage;
+*/

@@ -1,18 +1,32 @@
 import styled from "styled-components";
 import { useState, useEffect } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import Navigation from "../../components/Navigation";
 import Footer from "../../components/Footer";
 import image from "../../assets/just_image.svg";
-import posts from "../../data/posts";
+import api from "../../utils/api";
+import { NavLink } from "react-router-dom";
 
 const ITEMS_PER_PAGE = 12;
+
+interface PostType {
+  postId: number;
+  beneficiaryId: number;
+  nickname: string;
+  title: string;
+  content: string;
+  attachedImages: string[];
+  attachedExcelFile: string;
+  approvalStatus: string;
+  isVerified: boolean;
+  createdAt: string;
+}
 
 const PostsByMonth = () => {
   const [year, setYear] = useState("");
   const [month, setMonth] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [filteredPosts, setFilteredPosts] = useState([]);
+  const [filteredPosts, setFilteredPosts] = useState<PostType[]>([]);
   const [hasSearched, setHasSearched] = useState(false);
   const navigate = useNavigate();
   const { yearParam, monthParam } = useParams<{
@@ -35,11 +49,13 @@ const PostsByMonth = () => {
   }, [yearParam, monthParam]);
 
   const handleSearchRequest = (year: string, month: string) => {
-    const filtered = posts.filter((post) => {
-      return post.year === year && (!month || post.month === month);
-    });
-    setFilteredPosts(filtered);
-    setHasSearched(true);
+    api
+      .get(`/posts/monthly?year=${year}&month=${month}&size=${ITEMS_PER_PAGE}`)
+      .then((res) => {
+        setFilteredPosts(res.data.result.content);
+        setHasSearched(true);
+      })
+      .catch((err) => console.error("Error fetching posts:", err));
   };
 
   const handleSearch = (e: React.FormEvent) => {
@@ -64,17 +80,9 @@ const PostsByMonth = () => {
       <Image src={image} />
 
       <TabMenu>
-        <TabItem as={Link} to="/posts" activeClassName="active">
-          #전체
-        </TabItem>
-        <TabItem as={Link} to="/posts/:institution" activeClassName="active">
-          #기관별 모아보기
-        </TabItem>
-        <SelectedTabItem
-          as={Link}
-          to={`/posts/${year}/${month || undefined}`}
-          activeClassName="active"
-        >
+        <TabItem to="/posts">#전체</TabItem>
+        <TabItem to="/posts/:institution">#기관별 모아보기</TabItem>
+        <SelectedTabItem to={`/posts/${year}/${month || undefined}`}>
           #월별 모아보기
         </SelectedTabItem>
       </TabMenu>
@@ -108,7 +116,7 @@ const PostsByMonth = () => {
               {currentPosts.map((post, index) => (
                 <PostCard key={index} isVerified={post.isVerified}>
                   <PostTitle>{post.title}</PostTitle>
-                  <PostInstitution>{post.institution}</PostInstitution>
+                  <PostInstitution>{post.nickname}</PostInstitution>
                   <PostStatus>
                     {post.isVerified ? "Verified" : "Not Verified"}
                   </PostStatus>
@@ -125,7 +133,7 @@ const PostsByMonth = () => {
                   >
                     {pageNumber}
                   </PageNumber>
-                )
+                ),
               )}
             </Pagination>
           </>
@@ -146,26 +154,25 @@ const TabMenu = styled.div`
   margin-bottom: 70px;
 `;
 
-const TabItem = styled(Link)`
+const TabItem = styled(NavLink)`
   width: 300px;
   cursor: pointer;
   text-decoration: none;
   text-align: center;
   padding-bottom: 10px;
   color: #e6d9d2;
-  font-size: 30px;
-  font-family: Pretendard, sans-serif;
+  font-size: clamp(16px, 2vw, 30px);
   border-bottom: 1px solid #e6d9d2;
 `;
 
-const SelectedTabItem = styled(Link)`
+const SelectedTabItem = styled(NavLink)`
   width: 300px;
   cursor: pointer;
   text-decoration: none;
   text-align: center;
   padding-bottom: 10px;
   color: #3e5879;
-  font-size: 30px;
+  font-size: clamp(16px, 2vw, 30px);
   font-family: Pretendard, sans-serif;
   font-weight: bold;
   border-bottom: 3px solid #3e5879;
@@ -174,7 +181,7 @@ const SelectedTabItem = styled(Link)`
 const SearchArea = styled.form`
   display: flex;
   justify-content: center;
-  height: 45px;
+  height: clamp(30px, 3vw, 45px);
   margin-bottom: 40px;
 `;
 
@@ -201,7 +208,7 @@ const SearchButton = styled.button`
   border-radius: 5px;
   cursor: pointer;
   padding: 10px 20px;
-  font-size: 16px;
+  font-size: clamp(12px, 1.2vw, 16px);
 `;
 
 const PostGrid = styled.div`
@@ -210,12 +217,22 @@ const PostGrid = styled.div`
   grid-gap: 20px;
   padding: 0px 150px;
   box-sizing: border-box;
+
+  @media (max-width: 1024px) {
+    grid-template-columns: repeat(3, 1fr);
+    padding: 0 100px;
+  }
+
+  @media (max-width: 768px) {
+    grid-template-columns: repeat(2, 1fr);
+    padding: 0 50px;
+  }
 `;
 
 const PostCard = styled.div<{ isVerified: boolean }>`
-  width: 200px;
-  height: 120px;
-  padding: 20px;
+  width: clamp(140px, 18vw, 200px);
+  height: clamp(80px, 12vw, 120px);
+  padding: clamp(10px, 2vw, 20px);
   border-radius: 10px;
   background-color: ${(props) => (props.isVerified ? "#3e5879" : "#c0c7d6")};
   color: ${(props) => (props.isVerified ? "#ffffff" : "#000000")};
@@ -226,17 +243,17 @@ const PostCard = styled.div<{ isVerified: boolean }>`
 `;
 
 const PostTitle = styled.div`
-  font-size: 20px;
+  font-size: clamp(14px, 1.5vw, 20px);
   font-weight: bold;
 `;
 
 const PostInstitution = styled.div`
-  font-size: 16px;
+  font-size: clamp(12px, 1.2vw, 16px);
   margin-top: 5px;
 `;
 
 const PostStatus = styled.div`
-  font-size: 16px;
+  font-size: clamp(12px, 1.2vw, 16px);
   text-align: right;
   margin-top: auto;
   align-self: flex-end;
@@ -247,16 +264,14 @@ const Pagination = styled.div`
   justify-content: right;
   margin-top: 70px;
   margin-bottom: 30px;
-  margin-right: 170px;
+  margin-right: clamp(50px, 10vw, 170px);
 `;
 
 const PageNumber = styled.div<{ active?: boolean }>`
   padding: 5px 5px;
-  border: none;
   margin: 0 5px;
   cursor: pointer;
-  font-family: Pretendard, sans-serif;
-  font-size: 20px;
+  font-size: clamp(12px, 1.2vw, 20px);
   color: ${(props) => (props.active ? "#3e5879" : "#e6d9d2")};
 `;
 
