@@ -6,21 +6,10 @@ import Footer from "../../components/Footer";
 import image from "../../assets/just_image.svg";
 import { NavLink } from "react-router-dom";
 import api from "../../utils/api";
+import { PostType } from "../../types/PostType";
+import { getUserRole } from "../../utils/jwt";
 
 const ITEMS_PER_PAGE = 12;
-
-interface PostType {
-  postId: number;
-  beneficiaryId: number;
-  nickname: string;
-  title: string;
-  content: string;
-  attachedImages: string[];
-  attachedExcelFile: string;
-  approvalStatus: string;
-  isVerified: boolean;
-  createdAt: string;
-}
 
 const PostsByInstitution = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -29,6 +18,7 @@ const PostsByInstitution = () => {
   const [hasSearched, setHasSearched] = useState(false);
   const navigate = useNavigate();
   const { institution } = useParams<{ institution?: string }>();
+  const role = getUserRole();
 
   useEffect(() => {
     if (institution && institution !== ":institution") {
@@ -109,19 +99,27 @@ const PostsByInstitution = () => {
                 </PostCard>
               ))}
             </PostGrid>
-            <Pagination>
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                (pageNumber) => (
-                  <PageNumber
-                    key={pageNumber}
-                    active={pageNumber === currentPage}
-                    onClick={() => handlePageClick(pageNumber)}
-                  >
-                    {pageNumber}
-                  </PageNumber>
-                ),
+            <PaginationContainer>
+              {role === "BENEFICIARY" && (
+                <CreatePostButton to="/posts/edit">
+                  게시글 작성
+                </CreatePostButton>
               )}
-            </Pagination>
+
+              <Pagination isButtonVisible={role === "BENEFICIARY"}>
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                  (pageNumber) => (
+                    <PageNumber
+                      key={pageNumber}
+                      active={pageNumber === currentPage}
+                      onClick={() => handlePageClick(pageNumber)}
+                    >
+                      {pageNumber}
+                    </PageNumber>
+                  ),
+                )}
+              </Pagination>
+            </PaginationContainer>
           </>
         )
       )}
@@ -238,12 +236,26 @@ const PostStatus = styled.div`
   align-self: flex-end;
 `;
 
-const Pagination = styled.div`
+const PaginationContainer = styled.div`
   display: flex;
-  justify-content: right;
-  margin-top: 70px;
-  margin-bottom: 30px;
-  margin-right: clamp(50px, 10vw, 170px);
+  justify-content: space-between;
+  align-items: center;
+  margin: 70px clamp(50px, 10vw, 170px) 30px clamp(50px, 10vw, 170px);
+`;
+
+const CreatePostButton = styled(NavLink)`
+  padding: 8px 16px;
+  background-color: #3e5879;
+  color: #ffffff;
+  border-radius: 5px;
+  text-decoration: none;
+  font-size: clamp(12px, 1.2vw, 16px);
+`;
+
+const Pagination = styled.div<{ isButtonVisible?: boolean }>`
+  display: flex;
+  justify-content: ${(props) => (props.isButtonVisible ? "right" : "flex-end")};
+  flex-grow: 1;
 `;
 
 const PageNumber = styled.div<{ active?: boolean }>`
