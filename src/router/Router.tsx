@@ -1,4 +1,4 @@
-import { Route, Routes} from "react-router-dom";
+import { Route, Routes } from "react-router-dom";
 import AllPosts from "../pages/posts/all";
 import Homepage from "../pages/home/homepage";
 import PostsByInstitution from "../pages/posts/institution";
@@ -9,6 +9,13 @@ import PostPage from "../pages/volunteer/post";
 import HomePage from "../pages/volunteer/main";
 import LoginForm from "../pages/users/login";
 import CrowdFunding from "../pages/crowdfunding/all";
+
+import BeneficiaryMain from "../pages/mypage/beneficiary/index";
+import BeneficiaryProfile from "../pages/mypage/beneficiary/profile";
+import AnnouncementList from "../pages/mypage/beneficiary/announce";
+import FundingHistory from "../pages/mypage/beneficiary/funding";
+import PostHistory from "../pages/mypage/beneficiary/post";
+import PersonalEdit from "../pages/mypage/beneficiary/personal-edit";
 
 const RoutesConfig = () => {
   return (
@@ -23,7 +30,17 @@ const RoutesConfig = () => {
       <Route path="/volunteer/post" element={<PostPage />} />
       <Route path="/volunteer" element={<HomePage />} />
       <Route path="/users/login" element={<LoginForm />} />
-      <Route path="/crowdfunding/all" element={<CrowdFunding/>} />
+      <Route path="/crowdfunding/all" element={<CrowdFunding />} />
+
+
+      <Route path="/mypage/beneficiary" element={<BeneficiaryMain />}>
+        <Route path="profile" element={<BeneficiaryProfile />} />
+        <Route path="announce" element={<AnnouncementList />} />
+        <Route path="funding" element={<FundingHistory />} />
+        <Route path="post" element={<PostHistory />} />
+        <Route path="personal-edit" element={<PersonalEdit />} />
+      </Route>
+
     </Routes>
   );
 };
