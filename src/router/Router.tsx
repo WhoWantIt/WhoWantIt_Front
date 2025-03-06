@@ -8,14 +8,14 @@ import EditPage from "../pages/volunteer/edit";
 import PostPage from "../pages/volunteer/post";
 import LoginForm from "../pages/users/login";
 import CrowdFunding from "../pages/crowdfunding/all";
-<<<<<<< HEAD
 import OrganPage from "../pages/mypage/manager/organ";
 import BenePage from "../pages/mypage/manager/bene";
 import FundingPage from "../pages/mypage/manager/funding";
 import PostRequestPage from "../pages/mypage/manager/post-request";
-=======
 import PostEdit from "../pages/posts/edit";
->>>>>>> 44241245a8e0b781baa9f2d3d0f247800959eaca
+import SponserFundingPage from "../pages/mypage/sponser/funding";
+import SponserAnnouncePage from "../pages/mypage/sponser/announce";
+import PersonalEditPage from "../pages/mypage/sponser/personal-edit";
 
 const RoutesConfig = () => {
   return (
@@ -31,13 +31,13 @@ const RoutesConfig = () => {
       <Route path="/volunteer/post" element={<PostPage />} />
       <Route path="/users/login" element={<LoginForm />} />
       <Route path="/crowdfunding/all" element={<CrowdFunding />} />
-<<<<<<< HEAD
       <Route path="/manager/organ" element={<OrganPage />} />
       <Route path="/manager/bene" element={<BenePage />} />
       <Route path="/manager/funding" element={<FundingPage />} />
       <Route path="/manager/post-request" element={<PostRequestPage />} />
-=======
->>>>>>> 44241245a8e0b781baa9f2d3d0f247800959eaca
+      <Route path="/sponser/funding" element={<SponserFundingPage />} />
+      <Route path="/sponser/announce" element={<SponserAnnouncePage />} />
+      <Route path="/sponser/personal-edit" element={<PersonalEditPage />} />
     </Routes>
   );
 };
