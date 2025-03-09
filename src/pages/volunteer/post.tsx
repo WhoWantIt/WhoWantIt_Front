@@ -2,8 +2,27 @@ import styled from "styled-components";
 import { useEffect, useState } from "react";
 import BookMarkSVG from "../../assets/volunteer/bookmark.svg";
 import BookMarkColorSVG from "../../assets/volunteer/bookmark_color.svg";
+import api from "../../utils/api";
+
+interface VolunteerType {
+  volunteerId: number;
+  beneficiaryId: string;
+  nickname: string;
+  title: string;
+  field: string;
+  content: string;
+  attachedImage: string;
+  startTime: string;
+  deadline: string;
+  maxCapacity: number;
+  currentCapacity: number;
+  approvalStautus: string;
+  createAt: string;
+  updateAt: string;
+  address: string;
+}
 const PostPage = () => {
-  const api = import.meta.env.VITE_API_URL;
+  const Api = import.meta.env.VITE_API_URL;
   const accessToken = localStorage.getItem("accessToken");
   const volunteerId = localStorage.getItem("volunteerId");
   // 지원에 대한 상태 관리
@@ -11,7 +30,9 @@ const PostPage = () => {
   // 스크랩에 대한 상태 관리
   const [isScraped, setIsScraped] = useState<boolean>(false);
   const [applicants, setApplicants] = useState(0);
-  const maxApplicants = 10; // 차후 변경사항
+  const [volunteer, setVolunteer] = useState<VolunteerType>();
+  //const maxApplicants = 10; // 차후 변경사항
+
   useEffect(() => {
     const initMap = () => {
       new naver.maps.Map("map", {
@@ -21,10 +42,17 @@ const PostPage = () => {
     };
     initMap();
   }, []);
-
+  useEffect(() => {
+    api
+      .get(`/volunteers/${volunteerId}`)
+      .then((res) => setVolunteer(res.data.result))
+      .catch((err) => {
+        console.error("Error fetching post:", err);
+      });
+  });
   const handleApply = async () => {
     try {
-      const client = await fetch(`${api}volunteers/${volunteerId}`, {
+      const client = await fetch(`${Api}volunteers/${volunteerId}`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${accessToken}`,
@@ -32,11 +60,11 @@ const PostPage = () => {
       });
       const data = client.json();
       console.log("지원하기에 대한 res:", data);
-      if (applicants < maxApplicants) {
+      if (applicants < (volunteer?.maxCapacity ?? 0)) {
         setApplicants((prev) => prev + 1);
         setIsApplied(true);
       } else {
-        alert("모집이 마감되었습니다.");
+        alert("모집 인원이 마감되었습니다.");
       }
     } catch (error) {
       console.error("REQUEST FAILED:", error);
@@ -45,7 +73,7 @@ const PostPage = () => {
   };
   const handleDelete = async () => {
     try {
-      const client = await fetch(`${api}volunteers/${volunteerId}`, {
+      const client = await fetch(`${Api}volunteers/${volunteerId}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${accessToken}`,
@@ -63,7 +91,7 @@ const PostPage = () => {
   };
   const handleScrap = async () => {
     try {
-      const client = await fetch(`${api}volunteers/scraps.${volunteerId}`, {
+      const client = await fetch(`${Api}volunteers/scraps/${volunteerId}`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${accessToken}`,
@@ -97,10 +125,8 @@ const PostPage = () => {
   return (
     <Container>
       <ContentWrapper>
-        <TitleWrapper>IT관련 교육을 해주실 자원봉사자를 찾습니다!</TitleWrapper>
-        <DescriptWrapper>
-          안녕하세요, 저희 보육원에는 원생이 9명 정도 있습니다.
-        </DescriptWrapper>
+        <TitleWrapper>{volunteer?.title}</TitleWrapper>
+        <DescriptWrapper>{volunteer?.content}</DescriptWrapper>
         <ButtonContainer>
           <BookmarkButton
             onClick={!isScraped ? handleScrap : handleDeleteScrap}
@@ -123,20 +149,20 @@ const PostPage = () => {
         <DetailsWrapper>
           <Details>
             <Title>근무지명</Title>
-            <Subtitle>자연 보육원</Subtitle>
+            <Subtitle>{volunteer?.nickname}</Subtitle>
           </Details>
           <Details>
             <Title>지역정보</Title>
-            <Subtitle>서울 용산구 삼각지역</Subtitle>
+            <Subtitle>{volunteer?.address}</Subtitle>
           </Details>
           <Details>
             <Title>봉사날짜</Title>
-            <Subtitle>2025년 2월 16일 오전 10시</Subtitle>
+            <Subtitle>{volunteer?.startTime}</Subtitle>
           </Details>
           <Details>
             <Title>모집인원</Title>
             <Subtitle>
-              {applicants} / {maxApplicants}
+              {applicants} / {volunteer?.maxCapacity}
             </Subtitle>
           </Details>
         </DetailsWrapper>

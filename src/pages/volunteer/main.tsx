@@ -1,12 +1,11 @@
 //const api = import.meta.env.VITE_API_URL;
-/*
 import styled from "styled-components";
 import Navigation from "../../components/Navigation";
 import image from "../../assets/just_image.svg";
 import Footer from "../../components/Footer";
 import { useState } from "react";
 import { useEffect } from "react";
-
+import api from "../../utils/api";
 const ITEMS_PER_PAGE = 10;
 const tags = [
   { name: "LIVING_SUPPORT", text: "생활편의지원" },
@@ -76,80 +75,69 @@ interface CardType {
   approvalStatus: string;
   createdAt: string;
   updateAt: string;
+  address: string;
 }
-const api = import.meta.env.VITE_API_URL;
 
 const VolunteerPage = () => {
   const [selectedTab, setSelectedTab] = useState<"city" | "field">("city");
-  const [selectedCity, setSelectedCity] = useState<string | null>(null);
+  //const [selectedCity, setSelectedCity] = useState<string | null>(null);
   //const [loading, setLoading] = useState<boolean>(true);
   const [cards, setCards] = useState<CardType[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
+  // value change
+  const [city, setCity] = useState<string>("");
+  const [subCity, setSubCity] = useState<string>("");
+  const [field, setField] = useState<string>("");
+
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const endIndex = startIndex + ITEMS_PER_PAGE;
-  const currentPosts = cards.slice(startIndex, endIndex);
+  const currentCards = cards.slice(startIndex, endIndex);
+
   const handlePageClick = (pageNumber: number) => {
     setCurrentPage(pageNumber);
   };
+  useEffect(() => {
+    api
+      .get("/volunteers")
+      .then((res) => setCards(res.data.result.content))
+      .catch((err) => console.error("Error fetching cards:", err));
+  }, []);
 
   const totalPages = Math.ceil(cards.length / ITEMS_PER_PAGE);
-  //전체 조회 - useEffect로 전달 ?
+  //city, subcity, field 변경될때만 useEffect
   useEffect(() => {
-    const handleAll = async () => {
-      const accessToken = localStorage.getItem("accessToken");
-      try {
-        const client = await fetch(`${api}volunteers`, {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        });
-        const data = client.json();
-        console.log("봉사 리스트 조회 res: ", data);
-      } catch (error) {
-        console.log("REQUEST FAILED:", error);
-        alert("서버와의 연결에 문제가 생겼습니다.");
-      }
-    };
-    handleAll();
-  }, []);
-  // 지역별 봉사 리스트 조회 - useEffect?
-  const handleRegions = async () => {
-    const accessToken = localStorage.getItem("accessToken");
-    try {
-      const client = await fetch(
-        `${api}volunteers/regions?city=${city}&district=${subCity}&page=0&size=10`,
-        {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        }
-      );
-      const data = client.json();
-      console.log("지역별 봉사 리스트 조회 res:", data);
-    } catch (error) {
-      console.log("REQUEST FAILED:", error);
-      alert("서버와의 연결에 문제가 생겼습니다.");
+    if (city && subCity) {
+      api
+        .get(
+          `/volunteers/regions?city=${city}&district=${subCity}&page=0&size=10`,
+        )
+        .then((res) => setCards(res.data.result.content))
+        .catch((err) => console.error("Error fetching cards:", err));
     }
-  };
-  // 분야별 봉사 리스트 조회 - useEffect?
-  const handleFields = async () => {
-    const accessToken = localStorage.getItem("accessToken");
-    try {
-      const client = await fetch(`${api}volunteers/fields?field=${field}`, {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      });
-      const data = client.json();
-      console.log("분야별 봉사 리스트 조회 res:", data);
-    } catch (error) {
-      console.error("REQUEST FAILED:", error);
-      alert("서버와의 연결에 문제가 생겼습니다.");
+  }, [city, subCity]); // 의존성 배열 추가
+
+  useEffect(() => {
+    if (field) {
+      api
+        .get(`${api}volunteers/fields?field=${field}`)
+        .then((res) => setCards(res.data.result.content))
+        .catch((err) => console.error("Error fetching cards:", err));
     }
+  }, [field]); // 의존성 배열 추가
+  const handleCityClick = (selected: string) => {
+    setCity(selected);
+    setSubCity(""); // 도시 변경 시 구 초기화
   };
+
+  const handleSubCityClick = (selected: string) => {
+    setSubCity(selected);
+  };
+
+  const handleFieldClick = (selected: string) => {
+    setField(selected);
+  };
+  // 해당 post의 volunteerId를 통해 해당 Id의 상세 내용을 post.tsx에서 볼 수 있게 해줘
+  //const handleParticalPost =
   return (
     <>
       <Container>
@@ -173,60 +161,73 @@ const VolunteerPage = () => {
           <SidebarWrapper>
             {selectedTab === "city" ? (
               <>
-                {/* 도시 리스트 **
+                {/* 도시 리스트 */}
                 <CityList>
-                  {cities.map((city) => (
+                  {cities.map((cityItem) => (
                     <CityItem
-                      key={city}
-                      active={selectedCity === city}
-                      onClick={() => setSelectedCity(city)}
+                      key={cityItem}
+                      active={city === cityItem}
+                      onClick={() => handleCityClick(cityItem)}
                     >
-                      {city}
+                      {cityItem}
                     </CityItem>
                   ))}
                 </CityList>
 
-                {/* 서울 선택 시만 구 리스트 표시 **
-                {selectedCity === "서울" && (
+                {/* 서울 선택 시만 구 리스트 표시 */}
+                {city === "서울" && (
                   <DistrictList>
                     {SeoulDistrict.map((district) => (
-                      <DistrictItem key={district}>{district}</DistrictItem>
+                      <DistrictItem
+                        key={district}
+                        active={subCity === district}
+                        onClick={() => handleSubCityClick(district)}
+                      >
+                        {district}
+                      </DistrictItem>
                     ))}
                   </DistrictList>
                 )}
               </>
             ) : (
-              /* 분야 리스트 **
+              /* 분야 리스트 **/
               <FieldList>
                 {tags.map((tag) => (
-                  <FieldItem key={tag.name}>{tag.text}</FieldItem>
+                  <FieldItem
+                    key={tag.name}
+                    active={field === tag.name}
+                    onClick={() => handleFieldClick(tag.name)}
+                  >
+                    {tag.text}
+                  </FieldItem>
                 ))}
               </FieldList>
             )}
           </SidebarWrapper>
+          {/**오늘 날짜 - deadline 형태만 삭제 */}
           <CardGrid>
-            {currentCard.map(card, index) => (
-              <Card key={index} >
+            {currentCards.map((card, index) => (
+              <Card key={index}>
                 <CardTitle>{card.title}</CardTitle>
                 <CardName>{card.nickname}</CardName>
-                <CardLocation>{card.city} {card.district}</CardLocation>
+                <CardLocation>{card.address}</CardLocation>
                 <CardDate>D-{card.deadline}</CardDate>
               </Card>
-            )}}
+            ))}
           </CardGrid>
           <Pagination>
-        {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-          (pageNumber) => (
-            <PageNumber
-              key={pageNumber}
-              active={pageNumber === currentPage}
-              onClick={() => handlePageClick(pageNumber)}
-            >
-              {pageNumber}
-            </PageNumber>
-          ),
-        )}
-      </Pagination>
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+              (pageNumber) => (
+                <PageNumber
+                  key={pageNumber}
+                  active={pageNumber === currentPage}
+                  onClick={() => handlePageClick(pageNumber)}
+                >
+                  {pageNumber}
+                </PageNumber>
+              ),
+            )}
+          </Pagination>
         </Wrapper>
         <Footer />
       </Container>
@@ -253,8 +254,9 @@ const Wrapper = styled.div`
 `;
 const ButtonWrapper = styled.div`
   display: flex;
-  justify-conten: center;
+  justify-content: center;
   align-items: center;
+  gap: 10px;
 `;
 interface ButtonProps {
   active: boolean;
@@ -270,22 +272,136 @@ const Button = styled.button<ButtonProps>`
   cursor: pointer;
   position: relative;
 `;
-const SidebarWrapper = styled.div``;
-const CityList = styled.div``;
-const CityItem = styled.div``;
+const SidebarWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 400px; /* 사이드바 크기 제한 */
+  margin: 0 auto;
+`;
 
-const DistrictList = styled.div``;
-const DistrictItem = styled.div``;
+const CityList = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 10px;
+`;
 
-const FieldList = styled.div``;
-const FieldItem = styled.div``;
+const CityItem = styled.div.withConfig({
+  shouldForwardProp: (prop) => prop !== "active",
+})<{ active?: boolean }>`
+  padding: 10px 15px;
+  border-radius: 5px;
+  background-color: #e6d9d2;
+  color: #3e5879;
+  cursor: pointer;
+  transition: background 0.3s;
+  &:hover {
+    background-color: #3e5879;
+    color: white;
+  }
+`;
 
-const CardGrid = styled.div``;
-const Card = styled.div``;
-const CardTitle = styled.div``;
-const CardName = styled.div``;
-const CardDate = styled.div``;
-const CardLocation = styled.div``;
+const FieldList = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 10px;
+`;
+
+const FieldItem = styled.div.withConfig({
+  shouldForwardProp: (prop) => prop !== "active",
+})<{ active?: boolean }>`
+  padding: 10px 15px;
+  border-radius: 5px;
+  background-color: #e6d9d2;
+  color: #3e5879;
+  cursor: pointer;
+  transition: background 0.3s;
+  &:hover {
+    background-color: #3e5879;
+    color: white;
+  }
+`;
+
+const DistrictList = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  padding: 10px;
+  max-width: 500px; /* 최대 너비 설정 */
+  margin: 0 auto; /* 중앙 정렬 */
+`;
+
+const DistrictItem = styled.div.withConfig({
+  shouldForwardProp: (prop) => prop !== "active",
+})<{ active?: boolean }>`
+  padding: 10px 15px;
+  border-radius: 5px;
+  background-color: ${({ active }) => (active ? "#3e5879" : "#e6d9d2")};
+  color: ${({ active }) => (active ? "white" : "#3e5879")};
+  cursor: pointer;
+  transition: background 0.3s;
+  text-align: center;
+  font-size: 14px;
+  font-weight: bold;
+  &:hover {
+    background-color: #3e5879;
+    color: white;
+  }
+`;
+
+const CardGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 20px;
+  padding: 20px;
+  width: 100%;
+  max-width: 1000px;
+  margin: 20px auto;
+`;
+
+const Card = styled.div`
+  background: white;
+  padding: 15px;
+  border-radius: 10px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+`;
+
+const CardTitle = styled.div`
+  font-size: 18px;
+  font-weight: bold;
+  color: #3e5879;
+  margin-bottom: 5px;
+`;
+
+const CardName = styled.div`
+  font-size: 14px;
+  color: #777;
+  margin-bottom: 5px;
+`;
+
+const CardLocation = styled.div`
+  font-size: 14px;
+  color: #3e5879;
+  margin-bottom: 5px;
+`;
+
+const CardDate = styled.div`
+  font-size: 14px;
+  font-weight: bold;
+  color: #ff6b6b;
+  margin-top: auto;
+`;
+
 const Pagination = styled.div`
   display: flex;
   justify-content: right;
@@ -301,4 +417,3 @@ const PageNumber = styled.div<{ active?: boolean }>`
   font-size: clamp(12px, 1.2vw, 20px);
   color: ${(props) => (props.active ? "#3e5879" : "#e6d9d2")};
 `;
-*/

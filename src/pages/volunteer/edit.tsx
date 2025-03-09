@@ -49,7 +49,7 @@ const EditPage = () => {
     const volunteerRequestDto = {
       nickname: "string",
       title: "string",
-      field: "EDUCATION",
+      field: "LIVING_SUPPORT",
       content: "string",
       startTime: "2016-10-27T00:00:00",
       deadline: "2016-10-27T00:00:00",
@@ -77,7 +77,7 @@ const EditPage = () => {
         console.log(`📂 images[${index}]:`, file.name);
       });
     } else {
-      formData.append("images", "");
+      formData.append("images", new Blob([], { type: undefined }));
     }
     for (const [key, value] of formData.entries()) {
       console.log(`📄 FormData - ${key}:`, value);
