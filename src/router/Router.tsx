@@ -16,6 +16,8 @@ import PostEdit from "../pages/posts/edit";
 import SponserFundingPage from "../pages/mypage/sponser/funding";
 import SponserAnnouncePage from "../pages/mypage/sponser/announce";
 import PersonalEditPage from "../pages/mypage/sponser/personal-edit";
+import VolunteerPage from "../pages/volunteer/main";
+import ScrapPage from "../pages/mypage/sponser/scrap";
 
 const RoutesConfig = () => {
   return (
@@ -31,6 +33,7 @@ const RoutesConfig = () => {
       <Route path="/volunteer/post" element={<PostPage />} />
       <Route path="/users/login" element={<LoginForm />} />
       <Route path="/crowdfunding/all" element={<CrowdFunding />} />
+      <Route path="/volunteer" element={<VolunteerPage />} />
       <Route path="/manager/organ" element={<OrganPage />} />
       <Route path="/manager/bene" element={<BenePage />} />
       <Route path="/manager/funding" element={<FundingPage />} />
@@ -38,6 +41,7 @@ const RoutesConfig = () => {
       <Route path="/sponser/funding" element={<SponserFundingPage />} />
       <Route path="/sponser/announce" element={<SponserAnnouncePage />} />
       <Route path="/sponser/personal-edit" element={<PersonalEditPage />} />
+      <Route path="/sponser/scrap" element={<ScrapPage />} />
     </Routes>
   );
 };
