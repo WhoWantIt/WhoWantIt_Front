@@ -1,34 +1,28 @@
-//fund
+//bene
 import { useState } from "react";
 import styled from "styled-components";
 import "@toast-ui/editor/dist/toastui-editor.css";
 import "react-datepicker/dist/react-datepicker.css";
 import Navigation from "../../../components/Navigation";
+import Footer from "../../../components/Footer";
 import { useEffect } from "react";
 import api from "../../../utils/api";
-interface FundingType {
-  fundingId: number;
-  title: string;
-  attachedImage: string;
-  fundingAmount: number;
-  beneficiaryId: number;
-  beneficiaryName: string;
-  beneficiaryNickname: string;
-  dday: string;
-}
+// 기관 카드 데이터 예제
 const ITEMS_PER_PAGE = 10;
-
-// 메인 컴포넌트
-const SponserFundingPage = () => {
-  //const api = import.meta.env.VITE_API_URL;
+interface SponType {
+  attachedImage: string;
+  nickname: string;
+  name: string;
+}
+const SponPage = () => {
   const [documents] = useState<string[]>([
-    "스크랩",
-    "참여한 펀딩",
-    "참여한 봉사",
-    "개인정보 수정",
+    "등록된 기관",
+    "후원자 정보",
+    "게시글 요청",
+    "펀딩 요청",
   ]);
   const [activeDoc, setActiveDoc] = useState<string | null>(null);
-  const [cards, setCards] = useState<FundingType[]>([]);
+  const [cards, setCards] = useState<SponType[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const endIndex = startIndex + ITEMS_PER_PAGE;
@@ -39,8 +33,8 @@ const SponserFundingPage = () => {
   const totalpages = Math.ceil(cards.length / ITEMS_PER_PAGE);
   useEffect(() => {
     api
-      .get("/admins/funding")
-      .then((res) => setCards(res.data.result.fundingResponseList))
+      .get("/admins/sponsors")
+      .then((res) => setCards(res.data.result.sponsorList))
       .catch((err) => console.error("Error fetching cards:", err));
   });
   return (
@@ -49,7 +43,7 @@ const SponserFundingPage = () => {
       <Container>
         {/* 왼쪽 사이드바 */}
         <Sidebar>
-          <ButtonWrapper>마이페이지</ButtonWrapper>
+          <SidebarTitle>마이페이지</SidebarTitle>
           <DocumentList>
             {documents.map((doc, index) => (
               <DocumentItem
@@ -62,32 +56,25 @@ const SponserFundingPage = () => {
             ))}
           </DocumentList>
         </Sidebar>
+
+        {/* 오른쪽 메인 콘텐츠 */}
         <MainContent>
-          <Title>펀딩 요청청</Title>
+          <Title>후원자 정보</Title>
           <TotalCount>
-            <strong>6</strong>개의 펀딩 요청
+            <strong>100</strong> 개의 기관
           </TotalCount>
           <Divider />
 
           {/* 기관 카드 목록 */}
-          <StyledPostGrid>
-            {currentCards.map((fund, index) => (
-              <StyledPostCard key={index}>
-                <StyledImagePlaceholder />
-                <StyledAchievement>
-                  {fund.fundingAmount}% 달성
-                </StyledAchievement>
-                <StyledCardTitle>{fund.title}</StyledCardTitle>
-                <StyledPostDetails>
-                  <StyledPostInstitution>
-                    {fund.beneficiaryNickname}
-                  </StyledPostInstitution>
-                  <StyledPostDaysLeft>{fund.dday}일 남음</StyledPostDaysLeft>
-                </StyledPostDetails>
-              </StyledPostCard>
+          <CardList>
+            {currentCards.map((spon, index) => (
+              <Card key={index}>
+                <CardImage />
+                <CardTitle>{spon.nickname}</CardTitle>
+              </Card>
             ))}
-          </StyledPostGrid>
-          {/**페이지네이션 */}
+          </CardList>
+
           {/* 페이지네이션 */}
           <Pagination>
             {Array.from({ length: totalpages }, (_, i) => i + 1).map(
@@ -104,56 +91,57 @@ const SponserFundingPage = () => {
           </Pagination>
         </MainContent>
       </Container>
+      <Footer />
     </>
   );
 };
 
-export default SponserFundingPage;
-// 스타일 컴포넌트 정의
+export default SponPage;
+
+/* 스타일 정의 */
 const Container = styled.div`
   display: flex;
   width: 100%;
-  height: auto;
+  height: 100%;
+  font-family: Pretendard, sans-serif;
 `;
+
 const Sidebar = styled.div`
   width: 250px;
   background-color: #3e5879;
   color: white;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  height: 100vh;
+  padding-top: 30px;
 `;
-const ButtonWrapper = styled.div`
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  margin-top: 30px;
+
+const SidebarTitle = styled.h3`
+  text-align: center;
+  margin-bottom: 30px;
 `;
+
 const DocumentList = styled.ul`
   list-style: none;
-  border-bottom: 2px solid #ffffff;
   padding: 0;
-  margin-top: 100px;
-  width: 250px;
+  margin: 0;
+  width: 100%;
 `;
+
 interface DocumentItemProps {
   active: boolean;
 }
 
-const DocumentItem = styled.li.withConfig({
-  shouldForwardProp: (prop) => prop !== "active",
-})<DocumentItemProps>`
-  background-color: ${({ active }) => (active ? "#3e5879" : "#3e5879")};
+const DocumentItem = styled.li<DocumentItemProps>`
+  padding: 15px 20px;
   cursor: pointer;
+  background-color: ${({ active }) => (active ? "#adacc2" : "transparent")};
+  border-bottom: 1px solid white;
+
   &:hover {
     background-color: #adacc2;
   }
-  border-top: 2px solid white;
-  height: 55px;
 `;
+
 /* 메인 콘텐츠 */
 const MainContent = styled.div`
   flex: 1;
@@ -184,51 +172,48 @@ const Divider = styled.hr`
   background-color: #ddd;
   margin: 20px 0;
 `;
-const StyledPostGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  grid-gap: 24px;
-  padding: 30px 80px;
+
+/* 카드 목록 */
+const CardList = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-around;
+  gap: 20px;
+  margin-top: 20px;
 `;
 
-const StyledPostCard = styled.div`
-  background-color: white;
-  padding: 16px;
-`;
-
-const StyledImagePlaceholder = styled.div`
-  width: 100%;
-  height: 150px;
-  background-color: #c0c7d6;
+const Card = styled.div`
+  width: 200px;
+  height: 200px;
+  background: #ffffff;
   border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 20px;
+  cursor: pointer;
+  &:hover {
+    background: #ffffff;
+  }
 `;
 
-const StyledAchievement = styled.div`
+const CardImage = styled.div`
+  width: 150px;
+  height: 150px;
+  background-color: #d9d9d9;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 10px;
+`;
+
+const CardTitle = styled.p`
+  margin-top: 20px;
   font-size: 16px;
   font-weight: bold;
-  margin-top: 8px;
-`;
-
-const StyledCardTitle = styled.div`
-  font-size: 14px;
-  font-weight: 600;
-  margin-bottom: 4px;
-`;
-
-const StyledPostDetails = styled.div`
-  display: flex;
-  justify-content: space-between;
-  font-size: 12px;
-  color: #6c6c6c;
-`;
-
-const StyledPostInstitution = styled.div`
-  font-weight: 500;
-`;
-
-const StyledPostDaysLeft = styled.div`
-  font-weight: bold;
-  color: #3e5879;
+  margin-right: 90px;
+  color: black;
 `;
 
 /* 페이지네이션 */
@@ -238,7 +223,7 @@ const Pagination = styled.div`
   margin-top: 30px;
 `;
 
-const PageNumber = styled.div<{ active?: boolean }>`
+const PageNumber = styled.div<{ active: boolean }>`
   margin: 0 5px;
   cursor: pointer;
   font-size: 16px;
