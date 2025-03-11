@@ -70,7 +70,7 @@ const AllPosts = () => {
               >
                 {pageNumber}
               </PageNumber>
-            ),
+            )
           )}
         </Pagination>
       </PaginationContainer>
