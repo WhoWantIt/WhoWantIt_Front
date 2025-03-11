@@ -17,7 +17,7 @@ const AllPosts = () => {
 
   useEffect(() => {
     api
-      .get("/posts")
+      .get(`/posts?size=${ITEMS_PER_PAGE}`)
       .then((res) => setPosts(res.data.result.content))
       .catch((err) => console.error("Error fetching posts:", err));
   }, []);
@@ -70,7 +70,7 @@ const AllPosts = () => {
               >
                 {pageNumber}
               </PageNumber>
-            ),
+            )
           )}
         </Pagination>
       </PaginationContainer>
