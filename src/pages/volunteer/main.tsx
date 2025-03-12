@@ -25,7 +25,7 @@ const cities = [
   "서울",
   "경기",
   "인천",
-  "댜천/충청/세종",
+  "대전/충청/세종",
   "부산/대구/경상",
   "강원",
   "제주",
@@ -52,12 +52,6 @@ const SeoulDistrict = [
   "영등포구",
   "동작구",
   "금천구",
-  "동작구",
-  "관악구",
-  "서초구",
-  "강남구",
-  "송파구",
-  "강동구",
 ];
 
 interface CardType {
@@ -88,18 +82,32 @@ const VolunteerPage = () => {
   const [city, setCity] = useState<string>("");
   const [subCity, setSubCity] = useState<string>("");
   const [field, setField] = useState<string>("");
-
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const endIndex = startIndex + ITEMS_PER_PAGE;
   const currentCards = cards.slice(startIndex, endIndex);
-
+  //총페이지
   const handlePageClick = (pageNumber: number) => {
     setCurrentPage(pageNumber);
   };
   useEffect(() => {
     api
       .get("/volunteers")
-      .then((res) => setCards(res.data.result.content))
+      .then((res) => {
+        const processedData = res.data.result.content.map((card: CardType) => {
+          const porcessedAaddress =
+            card.address.match(/^서울시\s\S+/)?.[0] || card.address;
+          const deadlineDate = new Date(card.deadline);
+          const today = new Date();
+          const time = deadlineDate.getTime() - today.getTime();
+          const dDay = Math.ceil(time / (1000 * 60 * 60 * 24));
+          return {
+            ...card,
+            address: porcessedAaddress,
+            deadline: dDay >= 0 ? `D-${dDay}` : `D+${-dDay}(마감)`,
+          };
+        });
+        setCards(processedData);
+      })
       .catch((err) => console.error("Error fetching cards:", err));
   }, []);
 
@@ -109,9 +117,26 @@ const VolunteerPage = () => {
     if (city && subCity) {
       api
         .get(
-          `/volunteers/regions?city=${city}&district=${subCity}&page=0&size=10`,
+          `/volunteers/regions?city=${city}&district=${subCity}&page=0&size=9`,
         )
-        .then((res) => setCards(res.data.result.content))
+        .then((res) => {
+          const processedData = res.data.result.content.map(
+            (card: CardType) => {
+              const porcessedAaddress =
+                card.address.match(/^서울시\s\S+/)?.[0] || card.address;
+              const deadlineDate = new Date(card.deadline);
+              const today = new Date();
+              const time = deadlineDate.getTime() - today.getTime();
+              const dDay = Math.ceil(time / (1000 * 60 * 60 * 24));
+              return {
+                ...card,
+                address: porcessedAaddress,
+                deadline: dDay >= 0 ? `D-${dDay}` : `D+${-dDay}(마감)`,
+              };
+            },
+          );
+          setCards(processedData);
+        })
         .catch((err) => console.error("Error fetching cards:", err));
     }
   }, [city, subCity]); // 의존성 배열 추가
@@ -120,7 +145,24 @@ const VolunteerPage = () => {
     if (field) {
       api
         .get(`${api}volunteers/fields?field=${field}`)
-        .then((res) => setCards(res.data.result.content))
+        .then((res) => {
+          const processedData = res.data.result.content.map(
+            (card: CardType) => {
+              const porcessedAaddress =
+                card.address.match(/^서울시\s\S+/)?.[0] || card.address;
+              const deadlineDate = new Date(card.deadline);
+              const today = new Date();
+              const time = deadlineDate.getTime() - today.getTime();
+              const dDay = Math.ceil(time / (1000 * 60 * 60 * 24));
+              return {
+                ...card,
+                address: porcessedAaddress,
+                deadline: dDay >= 0 ? `D-${dDay}` : `D+${-dDay}(마감)`,
+              };
+            },
+          );
+          setCards(processedData);
+        })
         .catch((err) => console.error("Error fetching cards:", err));
     }
   }, [field]); // 의존성 배열 추가
@@ -143,21 +185,21 @@ const VolunteerPage = () => {
       <Container>
         <Navigation />
         <Image src={image} />
+        <ButtonWrapper>
+          <Button
+            active={selectedTab === "city"}
+            onClick={() => setSelectedTab("city")}
+          >
+            #도시 설정
+          </Button>
+          <Button
+            active={selectedTab === "field"}
+            onClick={() => setSelectedTab("field")}
+          >
+            #분야 설정
+          </Button>
+        </ButtonWrapper>
         <Wrapper>
-          <ButtonWrapper>
-            <Button
-              active={selectedTab === "city"}
-              onClick={() => setSelectedTab("city")}
-            >
-              #도시 설정
-            </Button>
-            <Button
-              active={selectedTab === "field"}
-              onClick={() => setSelectedTab("field")}
-            >
-              #분야 설정
-            </Button>
-          </ButtonWrapper>
           <SidebarWrapper>
             {selectedTab === "city" ? (
               <>
@@ -208,27 +250,31 @@ const VolunteerPage = () => {
           <CardGrid>
             {currentCards.map((card, index) => (
               <Card key={index}>
-                <CardTitle>{card.title}</CardTitle>
-                <CardName>{card.nickname}</CardName>
-                <CardLocation>{card.address}</CardLocation>
-                <CardDate>D-{card.deadline}</CardDate>
+                <DetailInCard>
+                  <CardTitle>{card.title}</CardTitle>
+                  <CardName>{card.nickname}</CardName>
+                  <DetailWrapper>
+                    <CardLocation>{card.address}</CardLocation>
+                    <CardDate>{card.deadline}</CardDate>
+                  </DetailWrapper>
+                </DetailInCard>
               </Card>
             ))}
           </CardGrid>
-          <Pagination>
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-              (pageNumber) => (
-                <PageNumber
-                  key={pageNumber}
-                  active={pageNumber === currentPage}
-                  onClick={() => handlePageClick(pageNumber)}
-                >
-                  {pageNumber}
-                </PageNumber>
-              ),
-            )}
-          </Pagination>
         </Wrapper>
+        <Pagination>
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+            (pageNumber) => (
+              <PageNumber
+                key={pageNumber}
+                active={pageNumber === currentPage}
+                onClick={() => handlePageClick(pageNumber)}
+              >
+                {pageNumber}
+              </PageNumber>
+            ),
+          )}
+        </Pagination>
         <Footer />
       </Container>
     </>
@@ -236,6 +282,7 @@ const VolunteerPage = () => {
 };
 
 export default VolunteerPage;
+
 const Container = styled.div`
   display: flex;
   flex-direction: column;
@@ -248,21 +295,26 @@ const Image = styled.img`
 `;
 const Wrapper = styled.div`
   display: flex;
-  flex-direction: column;
-  font-family: Pretandard, sans-serif;
+  justify-content: column;
+  align-items: center;
   width: 100%;
+  max-width: 1200px;
+  margin-top: 40px;
+  margin-left: 160px;
+  gap: 20px;
 `;
 const ButtonWrapper = styled.div`
   display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 10px;
+  width: 300px;
+  max-width: 300px;
+  margin-left: 310px;
+  margin-top: 90px;
 `;
 interface ButtonProps {
   active: boolean;
 }
 const Button = styled.button<ButtonProps>`
-  font-size: 16px;
+  font-size: 20px;
   font-weight: bold;
   color: ${({ active }) => (active ? "#3E5879" : "#E6D9D2")};
   padding: 8px 16px;
@@ -272,140 +324,144 @@ const Button = styled.button<ButtonProps>`
   cursor: pointer;
   position: relative;
 `;
+
 const SidebarWrapper = styled.div`
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 100%;
-  max-width: 400px; /* 사이드바 크기 제한 */
-  margin: 0 auto;
+  background-color: #f8f9fa;
+  padding: 30px;
+  border-radius: 10px;
+  width: 300px;
+  height: 600px;
+  margin-top: -60px;
+  margin-left: 100px;
 `;
 
 const CityList = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 10px;
-  margin-top: 10px;
+  dflex: 1;
+  border-right: 1px solid #ccc;
+  padding-right: 10px;
+  overflow-y: auto;
 `;
 
 const CityItem = styled.div.withConfig({
   shouldForwardProp: (prop) => prop !== "active",
 })<{ active?: boolean }>`
-  padding: 10px 15px;
-  border-radius: 5px;
-  background-color: #e6d9d2;
-  color: #3e5879;
+  font-size: 16px;
+  font-weight: ${({ active }) => (active ? "bold" : "normal")};
+  padding: 6px 10px;
+  white-space: nowrap;
   cursor: pointer;
-  transition: background 0.3s;
-  &:hover {
-    background-color: #3e5879;
-    color: white;
-  }
-`;
-
-const FieldList = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 10px;
-  margin-top: 10px;
-`;
-
-const FieldItem = styled.div.withConfig({
-  shouldForwardProp: (prop) => prop !== "active",
-})<{ active?: boolean }>`
-  padding: 10px 15px;
-  border-radius: 5px;
-  background-color: #e6d9d2;
-  color: #3e5879;
-  cursor: pointer;
-  transition: background 0.3s;
-  &:hover {
-    background-color: #3e5879;
-    color: white;
-  }
+  color: ${({ active }) => (active ? "#3E5879" : "black")};
 `;
 
 const DistrictList = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 10px;
-  padding: 10px;
-  max-width: 500px; /* 최대 너비 설정 */
-  margin: 0 auto; /* 중앙 정렬 */
+  flex: 1;
+  min-width: 150px;
+  padding-left: 10px;
+  overflow: hidden;
 `;
 
 const DistrictItem = styled.div.withConfig({
   shouldForwardProp: (prop) => prop !== "active",
 })<{ active?: boolean }>`
-  padding: 10px 15px;
-  border-radius: 5px;
-  background-color: ${({ active }) => (active ? "#3e5879" : "#e6d9d2")};
-  color: ${({ active }) => (active ? "white" : "#3e5879")};
+  font-size: 15px;
+  padding: 6px 10px;
   cursor: pointer;
-  transition: background 0.3s;
-  text-align: center;
-  font-size: 14px;
-  font-weight: bold;
-  &:hover {
-    background-color: #3e5879;
-    color: white;
+  white-space: nowrap;
+  color: ${({ active }) => (active ? "#3E5879" : "black")};
+  font-weight: ${({ active }) => (active ? "bold" : "normal")};
+`;
+const FieldList = styled.div`
+  display: flex;
+  flex-direction: column;
+  width: 270px;
+  min-width: 100px;
+  padding-right: 10px;
+`;
+
+const FieldItem = styled.div.withConfig({
+  shouldForwardProp: (prop) => prop !== "active",
+})<{ active?: boolean }>`
+  font-size: 20px;
+  font-weight: ${({ active }) => (active ? "bold" : "normal")};
+  padding: 6px 10px;
+  white-space: nowrap;
+  cursor: pointer;
+  color: ${({ active }) => (active ? "#3E5879" : "#333")};
+`;
+const CardGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 30px;
+  padding: 20px;
+  margin-top: -60px;
+  width: 100%;
+  @media (max-width: 1024px) {
+    grid-template-columns: repeat(3, 1fr);
+    padding: 0 100px;
+  }
+
+  @media (max-width: 768px) {
+    grid-template-columns: repeat(2, 1fr);
+    padding: 0 50px;
   }
 `;
 
-const CardGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 20px;
-  padding: 20px;
-  width: 100%;
-  max-width: 1000px;
-  margin: 20px auto;
-`;
-
 const Card = styled.div`
-  background: white;
+  width: 280px;
+  height: 180px;
   padding: 15px;
   border-radius: 10px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  text-align: left;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
+`;
+const DetailInCard = styled.div`
+  width: 100%;
+  height: 170px;
+  padding: 10px;
+  background-color: #c0c7d6;
+  border-radius: 8px;
 `;
 
 const CardTitle = styled.div`
-  font-size: 18px;
+  display: flex;
+  margin-top: 10px;
+  margin-left: 10px;
+  font-size: 20px;
   font-weight: bold;
-  color: #3e5879;
-  margin-bottom: 5px;
+  color: black;
 `;
 
 const CardName = styled.div`
-  font-size: 14px;
-  color: #777;
-  margin-bottom: 5px;
+  display: flex;
+  margin-top: 15px;
+  margin-left: 10px;
+  font-size: 18px;
+  color: black;
 `;
-
+const DetailWrapper = styled.div`
+  display: flex;
+  justify-content: space-between;
+  margin-top: 50px;
+`;
 const CardLocation = styled.div`
-  font-size: 14px;
-  color: #3e5879;
-  margin-bottom: 5px;
+  display: flex;
+  margin-top: 10px;
+  margin-left: 10px;
+  font-size: 18px;
+  color: black;
 `;
 
 const CardDate = styled.div`
-  font-size: 14px;
-  font-weight: bold;
-  color: #ff6b6b;
-  margin-top: auto;
+  display: flex;
+  margin-top: 10px;
+  margin-right: 20px;
+  font-size: 18px;
+  color: black;
 `;
 
 const Pagination = styled.div`
   display: flex;
   justify-content: right;
-  margin-top: 70px;
+  margin-top: 0px;
   margin-bottom: 30px;
   margin-right: clamp(50px, 10vw, 170px);
 `;
