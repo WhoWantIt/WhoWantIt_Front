@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useEffect } from "react";
+import { getUserRole } from "../utils/jwt";
 const HeaderBar = styled.div`
   display: flex;
   justify-content: flex-start;
@@ -67,11 +68,13 @@ const SignupButton = styled.button`
   margin-right: 30px;
   width: 120px;
 `;
-const UserEmail = styled.span`
+const UserEmail = styled.button`
   font-size: 15px;
   color: #3e5879;
   margin-right: 20px;
   margin-top: 9px;
+  border: none;
+  background-color: #ffffff;
 `;
 
 const LogoutButton = styled.button`
@@ -85,6 +88,7 @@ const LogoutButton = styled.button`
   width: 100px;
 `;
 const Navigation = () => {
+  const role = getUserRole();
   const navigate = useNavigate();
   const [userEmail, setUserEmail] = useState<string | null>(null);
 
@@ -100,7 +104,13 @@ const Navigation = () => {
     navigate("/sign-up");
   };
   const handleMypage = () => {
-    navigate("/");
+    if (role === "ADMIN") {
+      navigate("/manager/bene");
+    } else if (role === "BENEFICIARY") {
+      //수혜자 마이페이지로 가주세요.
+    } else if (role === "SPONSOR") {
+      //후원자 마이페이지로 가주세요.
+    }
   };
   const handleLogout = () => {
     localStorage.removeItem("accessToken");
