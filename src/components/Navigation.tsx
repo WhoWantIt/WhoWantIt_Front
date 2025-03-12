@@ -11,6 +11,7 @@ const HeaderBar = styled.div`
   align-items: center;
   padding: 5px 20px;
   background-color: #ffffff;
+  font-family: Pretendard, sans-serif;
 `;
 
 const LogoLink = styled(Link)`
@@ -33,12 +34,14 @@ const HeaderMenu = styled.ul`
   margin: 0;
 `;
 
-const MenuItem = styled(Link)`
+const MenuItem = styled.button`
   margin-right: 20px;
   font-size: 15px;
   color: #3e5879;
   font-weight: regular;
   cursor: pointer;
+  border: none;
+  background-color: #ffffff;
 `;
 
 const HeaderButtons = styled.div`
@@ -118,15 +121,24 @@ const Navigation = () => {
     setUserEmail(null);
     window.location.reload(); // 새로고침하여 네비게이션 업데이트
   };
+  const handlePosts = () => {
+    navigate("/posts");
+  };
+  const handleVolunteer = () => {
+    navigate("/volunteer");
+  };
+  const handleFunding = () => {
+    navigate("/");
+  };
   return (
     <HeaderBar>
       <LogoLink to="/">
         <LogoImage src={Logo} />
       </LogoLink>
       <HeaderMenu>
-        <MenuItem to={"/posts"}>게시글</MenuItem>
-        <MenuItem to={"/volunteer"}>자원봉사</MenuItem>
-        <MenuItem to={"/"}>클라우드 펀딩</MenuItem>
+        <MenuItem onClick={handlePosts}>게시글</MenuItem>
+        <MenuItem onClick={handleVolunteer}>자원봉사</MenuItem>
+        <MenuItem onClick={handleFunding}>클라우드 펀딩</MenuItem>
       </HeaderMenu>
       <HeaderButtons>
         {userEmail ? (
