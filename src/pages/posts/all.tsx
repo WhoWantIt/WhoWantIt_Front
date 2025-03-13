@@ -11,26 +11,20 @@ import { getUserRole } from "../../utils/jwt";
 const ITEMS_PER_PAGE = 12;
 
 const AllPosts = () => {
-  const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(0);
   const [posts, setPosts] = useState<PostType[]>([]);
+  const [totalPages, setTotalPages] = useState(1);
   const role = getUserRole();
 
   useEffect(() => {
     api
-      .get(`/posts?size=${ITEMS_PER_PAGE}`)
-      .then((res) => setPosts(res.data.result.content))
+      .get(`/posts?page=${currentPage}&size=${ITEMS_PER_PAGE}`)
+      .then((res) => {
+        setPosts(res.data.result.content);
+        setTotalPages(res.data.result.totalPages);
+      })
       .catch((err) => console.error("Error fetching posts:", err));
-  }, []);
-
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const endIndex = startIndex + ITEMS_PER_PAGE;
-  const currentPosts = posts.slice(startIndex, endIndex);
-
-  const handlePageClick = (pageNumber: number) => {
-    setCurrentPage(pageNumber);
-  };
-
-  const totalPages = Math.ceil(posts.length / ITEMS_PER_PAGE);
+  }, [currentPage]);
 
   return (
     <Wrapper>
@@ -39,13 +33,19 @@ const AllPosts = () => {
 
       <TabMenu>
         <SelectedTabItem to="/posts">#전체</SelectedTabItem>
-        <TabItem to={"/posts/:institution"}>#기관별 모아보기</TabItem>
-        <TabItem to="/posts/:year/:month">#월별 모아보기</TabItem>
+        <TabItem to={"/posts/institution/:institution"}>
+          #기관별 모아보기
+        </TabItem>
+        <TabItem to="/posts/date/:year/:month">#월별 모아보기</TabItem>
       </TabMenu>
 
       <PostGrid>
-        {currentPosts.map((post, index) => (
-          <PostCard key={index} isVerified={post.isVerified}>
+        {posts.map((post) => (
+          <PostCard
+            key={post.postId}
+            to={`/posts/${post.postId}`}
+            isVerified={post.isVerified}
+          >
             <PostTitle>{post.title}</PostTitle>
             <PostInstitution>{post.nickname}</PostInstitution>
             <PostStatus>
@@ -65,12 +65,12 @@ const AllPosts = () => {
             (pageNumber) => (
               <PageNumber
                 key={pageNumber}
-                active={pageNumber === currentPage}
-                onClick={() => handlePageClick(pageNumber)}
+                active={pageNumber === currentPage + 1}
+                onClick={() => setCurrentPage(pageNumber - 1)}
               >
                 {pageNumber}
               </PageNumber>
-            )
+            ),
           )}
         </Pagination>
       </PaginationContainer>
@@ -137,7 +137,7 @@ const PostGrid = styled.div`
   }
 `;
 
-const PostCard = styled.div<{ isVerified: boolean }>`
+const PostCard = styled(NavLink)<{ isVerified: boolean }>`
   width: clamp(140px, 18vw, 200px);
   height: clamp(80px, 12vw, 120px);
   padding: clamp(10px, 2vw, 20px);
@@ -148,6 +148,12 @@ const PostCard = styled.div<{ isVerified: boolean }>`
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  text-decoration: none;
+  cursor: pointer;
+
+  &:hover {
+    background-color: ${(props) => (props.isVerified ? "#2d3e56" : "#a6b0c3")};
+  }
 `;
 
 const PostTitle = styled.div`
