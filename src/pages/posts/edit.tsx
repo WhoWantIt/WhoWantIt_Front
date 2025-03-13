@@ -148,7 +148,6 @@ const Container = styled.div`
   height: auto;
   font-family: Pretendard, sans-serif;
 `;
-
 const EditorContainer = styled.div`
   flex-grow: 1;
   padding: 20px;
@@ -167,6 +166,19 @@ const Title = styled.input`
   height: 70px;
   border: none;
   border-bottom: 1px solid;
+`;
+const FileInput = styled.input`
+  margin-top: 20px;
+`;
+const SubmitButton = styled.button`
+  margin-top: 20px;
+  padding: 10px 20px;
+  font-size: 18px;
+  cursor: pointer;
+  border-radius: 8px;
+  border: none;
+  background-color: #007bff;
+  color: white;
 `;
 
 const FileUploadContainer = styled.div`
