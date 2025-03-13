@@ -13,8 +13,9 @@ const ITEMS_PER_PAGE = 12;
 
 const PostsByInstitution = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [filteredPosts, setFilteredPosts] = useState<PostType[]>([]);
+  const [currentPage, setCurrentPage] = useState(0);
+  const [posts, setPosts] = useState<PostType[]>([]);
+  const [totalPages, setTotalPages] = useState(1);
   const [hasSearched, setHasSearched] = useState(false);
   const navigate = useNavigate();
   const { institution } = useParams<{ institution?: string }>();
@@ -23,22 +24,24 @@ const PostsByInstitution = () => {
   useEffect(() => {
     if (institution && institution !== ":institution") {
       setSearchTerm(institution);
-      handleSearchRequest(institution, 0);
+      fetchPosts(institution, 0);
     } else {
       setSearchTerm("");
-      setFilteredPosts([]);
+      setPosts([]);
       setHasSearched(false);
     }
-    setCurrentPage(1);
+    setCurrentPage(0);
   }, [institution]);
 
-  const handleSearchRequest = (term: string, page: number) => {
+  // ✅ API에서 게시글 가져오기
+  const fetchPosts = (term: string, page: number) => {
     api
       .get(
         `/posts/beneficiaries?nickname=${term}&page=${page}&size=${ITEMS_PER_PAGE}`,
       )
       .then((res) => {
-        setFilteredPosts(res.data.result.content);
+        setPosts(res.data.result.content);
+        setTotalPages(res.data.result.totalPages);
         setHasSearched(true);
       })
       .catch((err) => console.error("Error fetching posts:", err));
@@ -46,19 +49,14 @@ const PostsByInstitution = () => {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    navigate(`/posts/${searchTerm || ":institution"}`);
-    handleSearchRequest(searchTerm, 0);
-    setCurrentPage(1);
+    navigate(`/posts/institution/${searchTerm || ":institution"}`);
+    fetchPosts(searchTerm, 0);
+    setCurrentPage(0);
   };
-
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const endIndex = startIndex + ITEMS_PER_PAGE;
-  const currentPosts = filteredPosts.slice(startIndex, endIndex);
-  const totalPages = Math.ceil(filteredPosts.length / ITEMS_PER_PAGE);
 
   const handlePageClick = (pageNumber: number) => {
     setCurrentPage(pageNumber);
-    handleSearchRequest(searchTerm, pageNumber - 1);
+    fetchPosts(searchTerm, pageNumber);
   };
 
   return (
@@ -68,29 +66,35 @@ const PostsByInstitution = () => {
 
       <TabMenu>
         <TabItem to="/posts">#전체</TabItem>
-        <SelectedTabItem to={`/posts/${searchTerm || ":institution"}`}>
+        <SelectedTabItem
+          to={`/posts/institution/${searchTerm || ":institution"}`}
+        >
           #기관별 모아보기
         </SelectedTabItem>
-        <TabItem to="/posts/:year/:month">#월별 모아보기</TabItem>
+        <TabItem to="/posts/date/:year/:month">#월별 모아보기</TabItem>
       </TabMenu>
 
       <SearchArea onSubmit={handleSearch}>
         <SearchInput
           placeholder="기관명을 입력하세요"
           value={searchTerm}
-          onChange={(e) => setSearchTerm((e.target as HTMLInputElement).value)}
+          onChange={(e) => setSearchTerm(e.target.value)}
         />
         <SearchButton type="submit">검색</SearchButton>
       </SearchArea>
 
-      {hasSearched && filteredPosts.length === 0 ? (
+      {hasSearched && posts.length === 0 ? (
         <NoPostsMessage>검색 결과가 없습니다.</NoPostsMessage>
       ) : (
-        filteredPosts.length > 0 && (
+        posts.length > 0 && (
           <>
             <PostGrid>
-              {currentPosts.map((post, index) => (
-                <PostCard key={index} isVerified={post.isVerified}>
+              {posts.map((post) => (
+                <PostCard
+                  key={post.postId}
+                  to={`/posts/${post.postId}`}
+                  isVerified={post.isVerified}
+                >
                   <PostTitle>{post.title}</PostTitle>
                   <PostInstitution>{post.nickname}</PostInstitution>
                   <PostStatus>
@@ -111,8 +115,8 @@ const PostsByInstitution = () => {
                   (pageNumber) => (
                     <PageNumber
                       key={pageNumber}
-                      active={pageNumber === currentPage}
-                      onClick={() => handlePageClick(pageNumber)}
+                      active={pageNumber === currentPage + 1}
+                      onClick={() => handlePageClick(pageNumber - 1)}
                     >
                       {pageNumber}
                     </PageNumber>
@@ -206,7 +210,7 @@ const PostGrid = styled.div`
   }
 `;
 
-const PostCard = styled.div<{ isVerified: boolean }>`
+const PostCard = styled(NavLink)<{ isVerified: boolean }>`
   width: clamp(140px, 18vw, 200px);
   height: clamp(80px, 12vw, 120px);
   padding: clamp(10px, 2vw, 20px);
@@ -217,6 +221,12 @@ const PostCard = styled.div<{ isVerified: boolean }>`
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  text-decoration: none;
+  cursor: pointer;
+
+  &:hover {
+    background-color: ${(props) => (props.isVerified ? "#2d3e56" : "#a6b0c3")};
+  }
 `;
 
 const PostTitle = styled.div`
