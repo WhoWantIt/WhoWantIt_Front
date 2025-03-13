@@ -11,7 +11,9 @@ import { getUserRole } from "../../utils/jwt";
 const PostEdit = () => {
   const [title, setTitle] = useState<string>("");
   const [excelFile, setExcelFile] = useState<File | null>(null);
+  const [excelFileName, setExcelFileName] = useState<string>("");
   const [images, setImages] = useState<File[]>([]);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const editorRef = useRef<Editor>(null);
   const userRole = getUserRole();
 
@@ -24,13 +26,19 @@ const PostEdit = () => {
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
-      setImages(Array.from(e.target.files));
+      const files = Array.from(e.target.files);
+      setImages(files);
+
+      const previews = files.map((file) => URL.createObjectURL(file));
+      setImagePreviews(previews);
     }
   };
 
   const handleExcelUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files?.length) {
-      setExcelFile(e.target.files[0]);
+      const file = e.target.files[0];
+      setExcelFile(file);
+      setExcelFileName(file.name);
     }
   };
 
@@ -63,7 +71,7 @@ const PostEdit = () => {
       <Navigation />
       <Container>
         <EditorContainer>
-          <TitleInput
+          <Title
             type="text"
             placeholder="제목을 입력해주세요."
             value={title}
@@ -83,17 +91,48 @@ const PostEdit = () => {
             previewStyle="vertical"
             initialValue="내용을 입력해주세요."
           />
-          <FileInput
-            type="file"
-            accept="image/*"
-            multiple
-            onChange={handleImageUpload}
-          />
-          <FileInput
-            type="file"
-            accept=".xlsx, .xls"
-            onChange={handleExcelUpload}
-          />
+
+          <FileUploadContainer>
+            <UploadSection>
+              <label>
+                <FileInputLabel htmlFor="imageUpload">
+                  이미지 선택
+                </FileInputLabel>
+                <HiddenFileInput
+                  id="imageUpload"
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={handleImageUpload}
+                />
+              </label>
+            </UploadSection>
+            <PreviewSection>
+              {imagePreviews.map((src, index) => (
+                <PreviewImage key={index} src={src} alt={`preview-${index}`} />
+              ))}
+            </PreviewSection>
+          </FileUploadContainer>
+
+          <FileUploadContainer>
+            <UploadSection>
+              <label>
+                <FileInputLabel htmlFor="excelUpload">
+                  엑셀파일 선택
+                </FileInputLabel>
+                <HiddenFileInput
+                  id="excelUpload"
+                  type="file"
+                  accept=".xlsx, .xls"
+                  onChange={handleExcelUpload}
+                />
+              </label>
+            </UploadSection>
+            <PreviewSection>
+              {excelFileName && <FileName>{excelFileName}</FileName>}
+            </PreviewSection>
+          </FileUploadContainer>
+
           <SubmitButton onClick={handleSubmit}>등록하기</SubmitButton>
         </EditorContainer>
       </Container>
@@ -109,6 +148,7 @@ const Container = styled.div`
   height: auto;
   font-family: Pretendard, sans-serif;
 `;
+
 const EditorContainer = styled.div`
   flex-grow: 1;
   padding: 20px;
@@ -118,7 +158,8 @@ const EditorContainer = styled.div`
   justify-content: center;
   align-items: center;
 `;
-const TitleInput = styled.input`
+
+const Title = styled.input`
   font-size: 30px;
   padding: 10px;
   margin-bottom: 10px;
@@ -127,16 +168,69 @@ const TitleInput = styled.input`
   border: none;
   border-bottom: 1px solid;
 `;
-const FileInput = styled.input`
+
+const FileUploadContainer = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 60%;
   margin-top: 20px;
 `;
+
+const UploadSection = styled.div`
+  display: flex;
+  align-items: center;
+`;
+
+const PreviewSection = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+`;
+
+const FileInputLabel = styled.label`
+  padding: 8px 16px;
+  background-color: #3e5879;
+  color: #ffffff;
+  border-radius: 5px;
+  font-size: clamp(12px, 1.2vw, 16px);
+  cursor: pointer;
+  transition: background-color 0.3s;
+
+  &:hover {
+    background-color: #0056b3;
+  }
+`;
+
+const HiddenFileInput = styled.input`
+  display: none;
+`;
+
+const FileName = styled.div`
+  font-size: 14px;
+  color: #3e5879;
+`;
+
+const PreviewImage = styled.img`
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 5px;
+  border: 1px solid #ddd;
+`;
+
 const SubmitButton = styled.button`
   margin-top: 20px;
-  padding: 10px 20px;
-  font-size: 18px;
+  padding: 8px 16px;
+  background-color: #3e5879;
+  color: #ffffff;
+  border-radius: 5px;
+  font-size: clamp(12px, 1.2vw, 16px);
   cursor: pointer;
-  border-radius: 8px;
-  border: none;
-  background-color: #007bff;
-  color: white;
+  transition: background-color 0.3s;
+
+  &:hover {
+    background-color: #576981;
+  }
 `;
