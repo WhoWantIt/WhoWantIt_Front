@@ -5,9 +5,19 @@ import "@toast-ui/editor/dist/toastui-editor.css";
 import "react-datepicker/dist/react-datepicker.css";
 import Navigation from "../../../components/Navigation";
 import Footer from "../../../components/Footer";
-
+import { useEffect } from "react";
+import api from "../../../utils/api";
 // 기관 카드 데이터 예제
-const organizations = Array(9).fill({ name: "자연보호원" });
+interface PostType {
+  postId: number;
+  title: string;
+  beneficiaryId: number;
+  beneficiaryName: string;
+  beneficiaryNickname: string;
+  approvalStatus: string;
+  verified: boolean;
+}
+const ITEMS_PER_PAGE = 10;
 
 const PostRequestPage = () => {
   const [documents] = useState<string[]>([
@@ -17,7 +27,21 @@ const PostRequestPage = () => {
     "펀딩 요청",
   ]);
   const [activeDoc, setActiveDoc] = useState<string | null>(null);
-
+  const [cards, setCards] = useState<PostType[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const currentCards = cards.slice(startIndex, endIndex);
+  const handlePageClick = (pageNumber: number) => {
+    setCurrentPage(pageNumber);
+  };
+  const totalpages = Math.ceil(cards.length / ITEMS_PER_PAGE);
+  useEffect(() => {
+    api
+      .get("/admins/posts")
+      .then((res) => setCards(res.data.result.postList))
+      .catch((err) => console.error("Error fetching cards:", err));
+  });
   return (
     <>
       <Navigation />
@@ -48,19 +72,30 @@ const PostRequestPage = () => {
 
           {/* 기관 카드 목록 */}
           <CardList>
-            {organizations.map((org, index) => (
-              <Card key={index}>
-                <CardImage />
-                <CardTitle>{org.name}</CardTitle>
+            {currentCards.map((post, index) => (
+              <Card key={index} isVerified={post.verified}>
+                <CardTitle>{post.title}</CardTitle>
+                <CardNickname>{post.beneficiaryNickname}</CardNickname>
+                <CardStatus>
+                  {post.verified ? "Verified" : "Not Verified"}
+                </CardStatus>
               </Card>
             ))}
           </CardList>
 
           {/* 페이지네이션 */}
           <Pagination>
-            {[...Array(10)].map((_, index) => (
-              <PageNumber key={index}>{index + 1}</PageNumber>
-            ))}
+            {Array.from({ length: totalpages }, (_, i) => i + 1).map(
+              (pageNumber) => (
+                <PageNumber
+                  key={pageNumber}
+                  active={pageNumber === currentPage}
+                  onClick={() => handlePageClick(pageNumber)}
+                >
+                  {pageNumber}
+                </PageNumber>
+              ),
+            )}
           </Pagination>
         </MainContent>
       </Container>
@@ -155,34 +190,22 @@ const CardList = styled.div`
   margin-top: 20px;
 `;
 
-const Card = styled.div`
-  width: 200px;
-  height: 180px;
-  background: #ffffff;
-  border-radius: 8px;
+const Card = styled.div<{ isVerified: boolean }>`
+  width: clamp(140px, 18vw, 200px);
+  height: clamp(80px, 12vw, 120px);
+  padding: clamp(10px, 2vw, 20px);
+  border-radius: 10px;
+  background-color: ${(props) => (props.isVerified ? "#3e5879" : "#c0c7d6")};
+  color: ${(props) => (props.isVerified ? "#ffffff" : "#000000")};
+  text-align: left;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  padding-top: 20px;
-  cursor: pointer;
-
-  &:hover {
-    background: #ffffff;
-  }
-`;
-
-const CardImage = styled.div`
-  width: 200px;
-  height: 150px;
-  background-color: #c0c7d6;
-  border-radius: 8px;
+  justify-content: space-between;
 `;
 
 const CardTitle = styled.p`
-  margin-top: 10px;
-  font-size: 16px;
+  font-size: clamp(14px, 1.5vw, 20px);
   font-weight: bold;
-  margin-right: 90px;
 `;
 
 /* 페이지네이션 */
@@ -192,7 +215,7 @@ const Pagination = styled.div`
   margin-top: 30px;
 `;
 
-const PageNumber = styled.span`
+const PageNumber = styled.div<{ active: boolean }>`
   margin: 0 5px;
   cursor: pointer;
   font-size: 16px;
@@ -201,4 +224,15 @@ const PageNumber = styled.span`
   &:hover {
     font-weight: bold;
   }
+`;
+
+const CardNickname = styled.div`
+  font-size: clamp(12px, 1.2vw, 16px);
+  margin-top: 5px;
+`;
+const CardStatus = styled.div`
+  font-size: clamp(12px, 1.2vw, 16px);
+  text-align: right;
+  margin-top: auto;
+  align-self: flex-end;
 `;

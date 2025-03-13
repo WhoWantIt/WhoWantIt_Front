@@ -1,15 +1,35 @@
-//bene
+//organ
 import { useState } from "react";
 import styled from "styled-components";
 import "@toast-ui/editor/dist/toastui-editor.css";
 import "react-datepicker/dist/react-datepicker.css";
 import Navigation from "../../../components/Navigation";
 import Footer from "../../../components/Footer";
-
+import { useEffect } from "react";
+import api from "../../../utils/api";
 // 기관 카드 데이터 예제
-const organizations = Array(9).fill({ name: "자연보호원" });
-
+const ITEMS_PER_PAGE = 10;
+interface BeneType {
+  attachedImage: string;
+  nickname: string;
+  name: string;
+}
 const BenePage = () => {
+  const [cards, setCards] = useState<BeneType[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const currentCards = cards.slice(startIndex, endIndex);
+  const handlePageClick = (pageNumber: number) => {
+    setCurrentPage(pageNumber);
+  };
+  const totalpages = Math.ceil(cards.length / ITEMS_PER_PAGE);
+  useEffect(() => {
+    api
+      .get("/admins/beneficiaries")
+      .then((res) => setCards(res.data.result.beneficiaryList))
+      .catch((err) => console.error("Error fetching cards:", err));
+  });
   const [documents] = useState<string[]>([
     "등록된 기관",
     "후원자 정보",
@@ -17,7 +37,6 @@ const BenePage = () => {
     "펀딩 요청",
   ]);
   const [activeDoc, setActiveDoc] = useState<string | null>(null);
-
   return (
     <>
       <Navigation />
@@ -40,7 +59,7 @@ const BenePage = () => {
 
         {/* 오른쪽 메인 콘텐츠 */}
         <MainContent>
-          <Title>후원자 정보</Title>
+          <Title>등록된 기관</Title>
           <TotalCount>
             <strong>100</strong> 개의 기관
           </TotalCount>
@@ -48,19 +67,27 @@ const BenePage = () => {
 
           {/* 기관 카드 목록 */}
           <CardList>
-            {organizations.map((org, index) => (
+            {currentCards.map((bene, index) => (
               <Card key={index}>
-                <CardImage />
-                <CardTitle>{org.name}</CardTitle>
+                <img src={bene.attachedImage} />
+                <CardTitle>{bene.nickname}</CardTitle>
               </Card>
             ))}
           </CardList>
 
           {/* 페이지네이션 */}
           <Pagination>
-            {[...Array(10)].map((_, index) => (
-              <PageNumber key={index}>{index + 1}</PageNumber>
-            ))}
+            {Array.from({ length: totalpages }, (_, i) => i + 1).map(
+              (pageNumber) => (
+                <PageNumber
+                  key={pageNumber}
+                  active={pageNumber === currentPage}
+                  onClick={() => handlePageClick(pageNumber)}
+                >
+                  {pageNumber}
+                </PageNumber>
+              ),
+            )}
           </Pagination>
         </MainContent>
       </Container>
@@ -157,7 +184,7 @@ const CardList = styled.div`
 
 const Card = styled.div`
   width: 200px;
-  height: 200px;
+  height: 180px;
   background: #ffffff;
   border-radius: 8px;
   display: flex;
@@ -165,24 +192,20 @@ const Card = styled.div`
   align-items: center;
   padding-top: 20px;
   cursor: pointer;
+
   &:hover {
     background: #ffffff;
   }
-`;
-
-const CardImage = styled.div`
-  width: 150px;
-  height: 150px;
-  background-color: #d9d9d9;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 10px;
+  img {
+    width: 200px;
+    height: 150px;
+    background-color: #c0c7d6;
+    border-radius: 8px;
+  }
 `;
 
 const CardTitle = styled.p`
-  margin-top: 20px;
+  margin-top: 10px;
   font-size: 16px;
   font-weight: bold;
   margin-right: 90px;
@@ -195,7 +218,7 @@ const Pagination = styled.div`
   margin-top: 30px;
 `;
 
-const PageNumber = styled.span`
+const PageNumber = styled.div<{ active?: boolean }>`
   margin: 0 5px;
   cursor: pointer;
   font-size: 16px;

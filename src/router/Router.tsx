@@ -8,7 +8,6 @@ import EditPage from "../pages/volunteer/edit";
 import PostPage from "../pages/volunteer/post";
 import LoginForm from "../pages/users/login";
 import CrowdFunding from "../pages/crowdfunding/all";
-import OrganPage from "../pages/mypage/manager/organ";
 import BenePage from "../pages/mypage/manager/bene";
 import FundingPage from "../pages/mypage/manager/funding";
 import PostRequestPage from "../pages/mypage/manager/post-request";
@@ -16,12 +15,9 @@ import PostEdit from "../pages/posts/edit";
 import SponserFundingPage from "../pages/mypage/sponser/funding";
 import SponserAnnouncePage from "../pages/mypage/sponser/announce";
 import PersonalEditPage from "../pages/mypage/sponser/personal-edit";
-import BeneficiaryMain from "../pages/mypage/beneficiary/index";
-import BeneficiaryProfile from "../pages/mypage/beneficiary/profile";
-import AnnouncementList from "../pages/mypage/beneficiary/announce";
-import FundingHistory from "../pages/mypage/beneficiary/funding";
-import PostHistory from "../pages/mypage/beneficiary/post";
-import PersonalEdit from "../pages/mypage/beneficiary/personal-edit";
+import VolunteerPage from "../pages/volunteer/main";
+import ScrapPage from "../pages/mypage/sponser/scrap";
+import SponPage from "../pages/mypage/manager/spon";
 
 const RoutesConfig = () => {
   return (
@@ -37,25 +33,15 @@ const RoutesConfig = () => {
       <Route path="/volunteer/post" element={<PostPage />} />
       <Route path="/users/login" element={<LoginForm />} />
       <Route path="/crowdfunding/all" element={<CrowdFunding />} />
-
-
-      <Route path="/manager/organ" element={<OrganPage />} />
+      <Route path="/volunteer" element={<VolunteerPage />} />
       <Route path="/manager/bene" element={<BenePage />} />
+      <Route path="/manager/spon" element={<SponPage />} />
       <Route path="/manager/funding" element={<FundingPage />} />
       <Route path="/manager/post-request" element={<PostRequestPage />} />
-
-
       <Route path="/sponser/funding" element={<SponserFundingPage />} />
       <Route path="/sponser/announce" element={<SponserAnnouncePage />} />
       <Route path="/sponser/personal-edit" element={<PersonalEditPage />} />
-
-      <Route path="/mypage/beneficiary" element={<BeneficiaryMain />}>
-        <Route path="profile" element={<BeneficiaryProfile />} />
-        <Route path="announce" element={<AnnouncementList />} />
-        <Route path="funding" element={<FundingHistory />} />
-        <Route path="post" element={<PostHistory />} />
-        <Route path="personal-edit" element={<PersonalEdit />} />
-      </Route>
+      <Route path="/sponser/scrap" element={<ScrapPage />} />
     </Routes>
   );
 };
