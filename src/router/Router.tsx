@@ -18,6 +18,7 @@ import PersonalEditPage from "../pages/mypage/sponser/personal-edit";
 import VolunteerPage from "../pages/volunteer/main";
 import ScrapPage from "../pages/mypage/sponser/scrap";
 import SponPage from "../pages/mypage/manager/spon";
+import PostDetail from "../pages/posts/detail";
 
 const RoutesConfig = () => {
   return (
@@ -26,8 +27,12 @@ const RoutesConfig = () => {
       <Route path="/home/homepage" element={<Homepage />} />
       <Route path="/" element={<Homepage />} />
       <Route path="/posts" element={<AllPosts />} />
-      <Route path="/posts/:institution" element={<PostsByInstitution />} />
-      <Route path="/posts/:year/:month" element={<PostsByDate />} />
+      <Route path="/posts/:postId" element={<PostDetail />} />
+      <Route
+        path="/posts/institution/:institution"
+        element={<PostsByInstitution />}
+      />
+      <Route path="/posts/date/:year/:month" element={<PostsByDate />} />
       <Route path="/posts/edit" element={<PostEdit />} />
       <Route path="/volunteer/edit" element={<EditPage />} />
       <Route path="/volunteer/post" element={<PostPage />} />
