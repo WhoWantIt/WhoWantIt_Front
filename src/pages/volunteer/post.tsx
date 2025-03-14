@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import BookMarkSVG from "../../assets/volunteer/bookmark.svg";
 import BookMarkColorSVG from "../../assets/volunteer/bookmark_color.svg";
 import api from "../../utils/api";
-
+import { useParams } from "react-router-dom";
 interface VolunteerType {
   volunteerId: number;
   beneficiaryId: string;
@@ -22,9 +22,11 @@ interface VolunteerType {
   address: string;
 }
 const PostPage = () => {
+  const { volunteerId } = useParams<{ volunteerId: string }>();
+  //const [searchParams] = useSearchParams();
+  //const navigate = useNavigate();
   const Api = import.meta.env.VITE_API_URL;
   const accessToken = localStorage.getItem("accessToken");
-  const volunteerId = localStorage.getItem("volunteerId");
   // 지원에 대한 상태 관리
   const [isApplied, setIsApplied] = useState<boolean>(false);
   // 스크랩에 대한 상태 관리
@@ -49,7 +51,7 @@ const PostPage = () => {
       .catch((err) => {
         console.error("Error fetching post:", err);
       });
-  });
+  }, [volunteerId]);
   const handleApply = async () => {
     try {
       const client = await fetch(`${Api}volunteers/${volunteerId}`, {

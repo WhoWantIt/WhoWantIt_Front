@@ -4,6 +4,7 @@ import Navigation from "../../components/Navigation";
 import image from "../../assets/just_image.svg";
 import Footer from "../../components/Footer";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import api from "../../utils/api";
 const ITEMS_PER_PAGE = 10;
@@ -73,6 +74,7 @@ interface CardType {
 }
 
 const VolunteerPage = () => {
+  const navigate = useNavigate();
   const [selectedTab, setSelectedTab] = useState<"city" | "field">("city");
   //const [selectedCity, setSelectedCity] = useState<string | null>(null);
   //const [loading, setLoading] = useState<boolean>(true);
@@ -178,6 +180,9 @@ const VolunteerPage = () => {
   const handleFieldClick = (selected: string) => {
     setField(selected);
   };
+  const handleDetailCard = (volunteerId: number) => {
+    navigate(`/volunteer/post/${volunteerId}`);
+  };
   // 해당 post의 volunteerId를 통해 해당 Id의 상세 내용을 post.tsx에서 볼 수 있게 해줘
   //const handleParticalPost =
   return (
@@ -249,7 +254,10 @@ const VolunteerPage = () => {
           {/**오늘 날짜 - deadline 형태만 삭제 */}
           <CardGrid>
             {currentCards.map((card, index) => (
-              <Card key={index}>
+              <Card
+                key={index}
+                onClick={() => handleDetailCard(card.volunteerId)}
+              >
                 <DetailInCard>
                   <CardTitle>{card.title}</CardTitle>
                   <CardName>{card.nickname}</CardName>

@@ -42,7 +42,7 @@ const RoutesConfig = () => {
       <Route path="/posts/date/:year/:month" element={<PostsByDate />} />
       <Route path="/posts/edit" element={<PostEdit />} />
       <Route path="/volunteer/edit" element={<EditPage />} />
-      <Route path="/volunteer/post" element={<PostPage />} />
+      <Route path="/volunteer/post/:volunteerId" element={<PostPage />} />
       <Route path="/users/login" element={<LoginForm />} />
       <Route path="/crowdfunding/all" element={<CrowdFunding />} />
       <Route
