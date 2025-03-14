@@ -19,6 +19,7 @@ import VolunteerPage from "../pages/volunteer/main";
 import ScrapPage from "../pages/mypage/sponser/scrap";
 import SponPage from "../pages/mypage/manager/spon";
 import PostDetail from "../pages/posts/detail";
+import PersonalPage from "../pages/mypage/sponser/mypage";
 
 const RoutesConfig = () => {
   return (
@@ -47,6 +48,7 @@ const RoutesConfig = () => {
       <Route path="/sponser/announce" element={<SponserAnnouncePage />} />
       <Route path="/sponser/personal-edit" element={<PersonalEditPage />} />
       <Route path="/sponser/scrap" element={<ScrapPage />} />
+      <Route path="/sponser/mypage" element={<PersonalPage />} />
     </Routes>
   );
 };

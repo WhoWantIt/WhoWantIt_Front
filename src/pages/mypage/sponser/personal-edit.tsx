@@ -161,26 +161,29 @@ const Title = styled.h2`
   margin-bottom: 30px;
   color: #3e5879;
 `;
+
 const InputWrapper = styled.div`
   width: 80%;
   display: flex;
   flex-direction: column;
-  align-items: flex-start; /* 왼쪽 정렬 */
+  align-items: flex-start;
   margin-bottom: 10px;
   margin-left: 10px;
 `;
+
 const Subtitle = styled.div`
   color: #3e5879;
   display: flex;
-  margin-left: 15px;
+  margin-left: 8px;
   margin-bottom: 5px;
   font-family: "Pretandard", sans-serif;
   font-weight: bold;
   justify-content: flex-start;
 `;
+
 const Input = styled.input`
   width: 90%;
-  height: 30px;
+  height: 20px;
   padding: 10px;
   margin-bottom: 10px;
   border: 1px solid #9a9ebe;
@@ -189,8 +192,8 @@ const Input = styled.input`
 `;
 
 const Button = styled.button`
-  width: 130px;
-  height: 50px;
+  width: 100px;
+  height: 40px;
   padding: 10px;
   background: #3e5879;
   color: white;
