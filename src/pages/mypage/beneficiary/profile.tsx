@@ -1,115 +1,116 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
+import axios from 'axios';
 
-type AgeGroup = 'infant' | 'child' | 'teen' | 'youth';
+type AgeGroup = 'toddler' | 'child' | 'adolescent' | 'youth';
 
 interface ProfileType {
-  name: string;
-  phone: string;
+  beneficiaryName: string;
+  phoneNumber: string;
   address: string;
-  description: string;
+  info: string;
   residents: Record<AgeGroup, number>;
+  image?: string;
+  email?: string;
 }
 
-const initialProfile: ProfileType = {
-  name: '자연보육원',
-  phone: '010-1234-5678',
-  address: '서울시 종로구 낙산길 198',
-  description: '',
-  residents: {
-    infant: 0,
-    child: 0,
-    teen: 0,
-    youth: 0,
-  },
-};
-
 const Profile = () => {
-  const [profile, setProfile] = useState<ProfileType>(initialProfile);
+  const [profile, setProfile] = useState<ProfileType | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [showMap, setShowMap] = useState(false);
+  const beneficiaryId = localStorage.getItem('beneficiaryId');
+
+  useEffect(() => {
+    if (!beneficiaryId) {
+      console.error("beneficiaryId가 없습니다!");
+      return;
+    }
+
+    const fetchProfile = async () => {
+      try {
+        const response = await axios.get(
+          `https://your-api.com/beneficiaries/profiles/${beneficiaryId}`
+        );
+
+        console.log("API 응답:", response.data); // ✅ 응답 확인
+
+        if (response.data.isSuccess) {
+          const data = response.data.result;
+          setProfile({
+            beneficiaryName: data.beneficiaryName,
+            phoneNumber: data.phoneNumber,
+            address: data.address,
+            info: data.info,
+            email: data.email,
+            image: data.image,
+            residents: {
+              toddler: data.toddler,
+              child: data.child,
+              adolescent: data.adolescent,
+              youth: data.youth,
+            },
+          });
+        } else {
+          console.error("API 요청은 성공했지만 데이터가 없습니다.");
+        }
+      } catch (error) {
+        console.error("프로필 정보를 불러오는 중 오류 발생:", error);
+      }
+    };
+
+    fetchProfile();
+  }, [beneficiaryId]);
 
   const handleEditClick = () => setIsEditing(true);
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    if (name.startsWith('resident-')) {
-      const ageGroup = name.split('-')[1] as AgeGroup;
-      setProfile((prev) => ({
-        ...prev,
-        residents: { ...prev.residents, [ageGroup]: Number(value) },
-      }));
-    } else {
-      setProfile((prev) => ({ ...prev, [name]: value }));
-    }
-  };
-
-  const handleSave = () => {
-    setIsEditing(false);
-  };
+  const handleSave = () => setIsEditing(false);
 
   return (
     <Container>
-      <Header>
-        <ImagePlaceholder />
-        <ProfileInfo>
-          <Name>{profile.name}</Name>
-          <Info><Label>연락처</Label>{profile.phone}</Info>
-          <Info><Label>주소</Label>{profile.address} <MapButton onClick={() => setShowMap(!showMap)}>위치</MapButton></Info>
-        </ProfileInfo>
-      </Header>
+      {profile ? (
+        <>
+          <Header>
+            {profile.image && <ProfileImage src={profile.image} alt="프로필 이미지" />}
+            <ProfileInfo>
+              <Name>{profile.beneficiaryName}</Name>
+              <Info><Label>이메일</Label>{profile.email}</Info>
+              <Info><Label>연락처</Label>{profile.phoneNumber}</Info>
+              <Info><Label>주소</Label>{profile.address} <MapButton onClick={() => setShowMap(!showMap)}>위치</MapButton></Info>
+            </ProfileInfo>
+          </Header>
 
-      {showMap && (
-        <MapContainer>
-          <img src="https://via.placeholder.com/300x200?text=Map" alt="지도" />
-        </MapContainer>
-      )}
-
-      <ContentRow>
-        <Section>
-          <SectionTitle>기관 소개</SectionTitle>
-          {isEditing ? (
-            <Textarea name="description" value={profile.description} onChange={handleChange} placeholder="기관 소개를 작성해주세요." />
-          ) : (
-            <Description>{profile.description || '작성한 기관 소개가 없습니다.'}</Description>
+          {showMap && (
+            <MapContainer>
+              <img src="https://via.placeholder.com/300x200?text=Map" alt="지도" />
+            </MapContainer>
           )}
-        </Section>
 
-        <Section>
-          <SectionTitle>원생 현황</SectionTitle>
+          <ContentRow>
+            <Section>
+              <SectionTitle>기관 소개</SectionTitle>
+              <Description>{profile.info || '작성한 기관 소개가 없습니다.'}</Description>
+            </Section>
+
+            <Section>
+              <SectionTitle>원생 현황</SectionTitle>
+              <ResidentChart>
+                {Object.entries(profile.residents).map(([key, value]) => (
+                  <ResidentBar key={key}>
+                    <BarHeight style={{ height: `${value * 5}px` }} />
+                    <BarLabel>{ageGroupLabel(key as AgeGroup)}<br />{value}명</BarLabel>
+                  </ResidentBar>
+                ))}
+              </ResidentChart>
+            </Section>
+          </ContentRow>
+
           {isEditing ? (
-            <ResidentForm>
-              {Object.entries(profile.residents).map(([key, value]) => (
-                <ResidentInput key={key}>
-                  <span>{ageGroupLabel(key as AgeGroup)}</span>
-                  <input
-                    type="number"
-                    name={`resident-${key}`}
-                    value={value}
-                    onChange={handleChange}
-                    min="0"
-                  />
-                  <span>명</span>
-                </ResidentInput>
-              ))}
-            </ResidentForm>
+            <SaveButton onClick={handleSave}>저장</SaveButton>
           ) : (
-            <ResidentChart>
-              {Object.entries(profile.residents).map(([key, value]) => (
-                <ResidentBar key={key}>
-                  <BarHeight style={{ height: `${value * 5}px` }} />
-                  <BarLabel>{ageGroupLabel(key as AgeGroup)}<br />{value}명</BarLabel>
-                </ResidentBar>
-              ))}
-            </ResidentChart>
+            <EditButton onClick={handleEditClick}>상세 정보 추가</EditButton>
           )}
-        </Section>
-      </ContentRow>
-
-      {isEditing ? (
-        <SaveButton onClick={handleSave}>저장</SaveButton>
+        </>
       ) : (
-        <EditButton onClick={handleEditClick}>상세 정보 추가</EditButton>
+        <p>프로필 정보를 불러오는 중...</p>
       )}
     </Container>
   );
@@ -117,13 +118,22 @@ const Profile = () => {
 
 const ageGroupLabel = (key: AgeGroup) => {
   const labels: Record<AgeGroup, string> = {
-    infant: '영유아 (0~6세)',
+    toddler: '영유아 (0~6세)',
     child: '어린이 (7~12세)',
-    teen: '청소년 (13~19세)',
+    adolescent: '청소년 (13~19세)',
     youth: '자립준비청년 (18~24세)',
   };
   return labels[key];
 };
+
+const ProfileImage = styled.img`
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-right: 20px;
+`;
+
 
 export default Profile;
 
@@ -136,13 +146,6 @@ const Header = styled.div`
   display: flex;
   align-items: flex-start;
   gap: 20px;
-`;
-
-const ImagePlaceholder = styled.div`
-  width: 490px;
-  height: 326px;
-  background-color: #c0c7d6;
-  border-radius: 8px;
 `;
 
 const ProfileInfo = styled.div`
@@ -194,24 +197,6 @@ const SectionTitle = styled.h4`
 const Description = styled.div`
   font-size: 14px;
   color: #555;
-`;
-
-const Textarea = styled.textarea`
-  width: 100%;
-  height: 80px;
-  resize: none;
-`;
-
-const ResidentForm = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-`;
-
-const ResidentInput = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 5px;
 `;
 
 const ResidentChart = styled.div`
