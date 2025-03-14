@@ -5,42 +5,26 @@ import Navigation from "../../components/Navigation";
 import Footer from "../../components/Footer";
 import image from "../../assets/just_image.svg";
 import api from "../../utils/api";
+import { PostType } from "../../types/PostType";
+import { getUserRole } from "../../utils/jwt";
 
 const ITEMS_PER_PAGE = 12;
 
-interface PostType {
-  postId: number;
-  beneficiaryId: number;
-  nickname: string;
-  title: string;
-  content: string;
-  attachedImages: string[];
-  attachedExcelFile: string;
-  approvalStatus: string;
-  isVerified: boolean;
-  createdAt: string;
-}
-
 const AllPosts = () => {
-  const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(0);
   const [posts, setPosts] = useState<PostType[]>([]);
+  const [totalPages, setTotalPages] = useState(1);
+  const role = getUserRole();
 
   useEffect(() => {
     api
-      .get("/posts")
-      .then((res) => setPosts(res.data.result.content))
+      .get(`/posts?page=${currentPage}&size=${ITEMS_PER_PAGE}`)
+      .then((res) => {
+        setPosts(res.data.result.content);
+        setTotalPages(res.data.result.totalPages);
+      })
       .catch((err) => console.error("Error fetching posts:", err));
-  }, []);
-
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const endIndex = startIndex + ITEMS_PER_PAGE;
-  const currentPosts = posts.slice(startIndex, endIndex);
-
-  const handlePageClick = (pageNumber: number) => {
-    setCurrentPage(pageNumber);
-  };
-
-  const totalPages = Math.ceil(posts.length / ITEMS_PER_PAGE);
+  }, [currentPage]);
 
   return (
     <Wrapper>
@@ -49,13 +33,19 @@ const AllPosts = () => {
 
       <TabMenu>
         <SelectedTabItem to="/posts">#전체</SelectedTabItem>
-        <TabItem to={"/posts/:institution"}>#기관별 모아보기</TabItem>
-        <TabItem to="/posts/:year/:month">#월별 모아보기</TabItem>
+        <TabItem to={"/posts/institution/:institution"}>
+          #기관별 모아보기
+        </TabItem>
+        <TabItem to="/posts/date/:year/:month">#월별 모아보기</TabItem>
       </TabMenu>
 
       <PostGrid>
-        {currentPosts.map((post, index) => (
-          <PostCard key={index} isVerified={post.isVerified}>
+        {posts.map((post) => (
+          <PostCard
+            key={post.postId}
+            to={`/posts/${post.postId}`}
+            isVerified={post.isVerified}
+          >
             <PostTitle>{post.title}</PostTitle>
             <PostInstitution>{post.nickname}</PostInstitution>
             <PostStatus>
@@ -65,19 +55,25 @@ const AllPosts = () => {
         ))}
       </PostGrid>
 
-      <Pagination>
-        {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-          (pageNumber) => (
-            <PageNumber
-              key={pageNumber}
-              active={pageNumber === currentPage}
-              onClick={() => handlePageClick(pageNumber)}
-            >
-              {pageNumber}
-            </PageNumber>
-          ),
+      <PaginationContainer>
+        {role === "BENEFICIARY" && (
+          <CreatePostButton to="/posts/edit">게시글 작성</CreatePostButton>
         )}
-      </Pagination>
+
+        <Pagination isButtonVisible={role === "BENEFICIARY"}>
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+            (pageNumber) => (
+              <PageNumber
+                key={pageNumber}
+                active={pageNumber === currentPage + 1}
+                onClick={() => setCurrentPage(pageNumber - 1)}
+              >
+                {pageNumber}
+              </PageNumber>
+            ),
+          )}
+        </Pagination>
+      </PaginationContainer>
 
       <Footer />
     </Wrapper>
@@ -141,7 +137,7 @@ const PostGrid = styled.div`
   }
 `;
 
-const PostCard = styled.div<{ isVerified: boolean }>`
+const PostCard = styled(NavLink)<{ isVerified: boolean }>`
   width: clamp(140px, 18vw, 200px);
   height: clamp(80px, 12vw, 120px);
   padding: clamp(10px, 2vw, 20px);
@@ -152,6 +148,12 @@ const PostCard = styled.div<{ isVerified: boolean }>`
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  text-decoration: none;
+  cursor: pointer;
+
+  &:hover {
+    background-color: ${(props) => (props.isVerified ? "#2d3e56" : "#a6b0c3")};
+  }
 `;
 
 const PostTitle = styled.div`
@@ -171,12 +173,26 @@ const PostStatus = styled.div`
   align-self: flex-end;
 `;
 
-const Pagination = styled.div`
+const PaginationContainer = styled.div`
   display: flex;
-  justify-content: right;
-  margin-top: 70px;
-  margin-bottom: 30px;
-  margin-right: clamp(50px, 10vw, 170px);
+  justify-content: space-between;
+  align-items: center;
+  margin: 70px clamp(50px, 10vw, 170px) 30px clamp(50px, 10vw, 170px);
+`;
+
+const CreatePostButton = styled(NavLink)`
+  padding: 8px 16px;
+  background-color: #3e5879;
+  color: #ffffff;
+  border-radius: 5px;
+  text-decoration: none;
+  font-size: clamp(12px, 1.2vw, 16px);
+`;
+
+const Pagination = styled.div<{ isButtonVisible?: boolean }>`
+  display: flex;
+  justify-content: ${(props) => (props.isButtonVisible ? "right" : "flex-end")};
+  flex-grow: 1;
 `;
 
 const PageNumber = styled.div<{ active?: boolean }>`
