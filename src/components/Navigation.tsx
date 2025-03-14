@@ -116,7 +116,8 @@ const Navigation = () => {
       <HeaderMenu>
         <MenuItem to={"/posts"}>게시글</MenuItem>
         <MenuItem to={"/volunteer"}>자원봉사</MenuItem>
-        <MenuItem to={"/"}>클라우드 펀딩</MenuItem>
+        <MenuItem to={"/crowdfunding/all"}>클라우드 펀딩</MenuItem>
+
       </HeaderMenu>
       <HeaderButtons>
         {userEmail ? (

@@ -7,7 +7,7 @@ import SignupForm from "../pages/users/register";
 import EditPage from "../pages/volunteer/edit";
 import PostPage from "../pages/volunteer/post";
 import LoginForm from "../pages/users/login";
-import CrowdFunding from "../pages/crowdfunding/all";
+import CrowdFunding from "../pages/crowdfunding/list/all";
 import OrganPage from "../pages/mypage/manager/organ";
 import BenePage from "../pages/mypage/manager/bene";
 import FundingPage from "../pages/mypage/manager/funding";
@@ -22,6 +22,7 @@ import FundingHistory from "../pages/mypage/beneficiary/funding";
 import PostHistory from "../pages/mypage/beneficiary/post";
 import PersonalEdit from "../pages/mypage/beneficiary/personal-edit";
 import BeneficiaryMain from "../pages/mypage/beneficiary";
+import CrowdfundingDetail from "../pages/crowdfunding/detail/index";
 
 const RoutesConfig = () => {
   return (
@@ -37,6 +38,7 @@ const RoutesConfig = () => {
       <Route path="/volunteer/post" element={<PostPage />} />
       <Route path="/users/login" element={<LoginForm />} />
       <Route path="/crowdfunding/all" element={<CrowdFunding />} />
+      <Route path="/crowdfunding/detail/:fundingId" element={<CrowdfundingDetail />} />
 
       <Route path="/manager/organ" element={<OrganPage />} />
       <Route path="/manager/bene" element={<BenePage />} />
@@ -55,6 +57,8 @@ const RoutesConfig = () => {
         <Route path="post" element={<PostHistory />} />
         <Route path="personal-edit" element={<PersonalEdit />} />
       </Route>
+
+      
     </Routes>
   );
 };
