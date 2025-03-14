@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import styled from "styled-components";
 import { Viewer } from "@toast-ui/react-editor";
@@ -13,6 +13,7 @@ const PostDetail = () => {
   const { postId } = useParams();
   const [post, setPost] = useState<PostType | null>(null);
   const [excelData, setExcelData] = useState<any[] | null>(null);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchPost = async () => {
@@ -53,17 +54,22 @@ const PostDetail = () => {
       <Container>
         <PostContainer>
           <Title>{post?.title}</Title>
-          <Author>작성자: {post?.nickname}</Author>
+          <Author>기관명 : {post?.nickname}</Author>
           <Viewer initialValue={post?.content || ""} />
-          <SectionTitle>첨부 이미지</SectionTitle>
+          <SectionTitle>후원 물품 사진</SectionTitle>
           <ImageContainer>
             {post?.attachedImages?.map((url, index) => (
-              <PreviewImage key={index} src={url} alt={`image-${index}`} />
+              <PreviewImage
+                key={index}
+                src={url}
+                alt={`image-${index}`}
+                onClick={() => setSelectedImage(url)}
+              />
             ))}
           </ImageContainer>
           {post?.attachedExcelFile && (
             <>
-              <SectionTitle>첨부 엑셀 파일</SectionTitle>
+              <SectionTitle>후원 물품 목록</SectionTitle>
               <ExcelContainer>
                 {excelData ? (
                   <table>
@@ -93,13 +99,18 @@ const PostDetail = () => {
         </PostContainer>
       </Container>
       <Footer />
+
+      {selectedImage && (
+        <Modal onClick={() => setSelectedImage(null)}>
+          <ModalImage src={selectedImage} alt="확대 이미지" />
+        </Modal>
+      )}
     </>
   );
 };
 
 export default PostDetail;
 
-/* 스타일 정의 */
 const Container = styled.div`
   display: flex;
   justify-content: center;
@@ -108,7 +119,7 @@ const Container = styled.div`
 `;
 
 const PostContainer = styled.div`
-  width: 70%;
+  width: 60%;
   background: #ffffff;
   padding: 20px;
   border-radius: 10px;
@@ -116,19 +127,21 @@ const PostContainer = styled.div`
 `;
 
 const Title = styled.h1`
-  font-size: 28px;
-  margin-bottom: 10px;
+  font-size: 30px;
+  margin-bottom: 50px;
+  text-align: center;
 `;
 
 const Author = styled.p`
-  font-size: 16px;
-  color: #555;
-  margin-bottom: 20px;
+  font-size: 18px;
+  margin-right: 20px;
+  margin-bottom: 40px;
+  text-align: right;
 `;
 
 const SectionTitle = styled.h2`
-  font-size: 20px;
-  margin-top: 30px;
+  font-size: 25px;
+  margin-top: 50px;
 `;
 
 const ImageContainer = styled.div`
@@ -161,4 +174,23 @@ const ExcelContainer = styled.div`
   th {
     background-color: #f4f4f4;
   }
+`;
+
+const Modal = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+`;
+
+const ModalImage = styled.img`
+  max-width: 90%;
+  max-height: 90%;
+  border-radius: 10px;
 `;
