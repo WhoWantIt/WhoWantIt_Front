@@ -139,7 +139,7 @@ const ImageSection = styled.div`
 const PlaceholderImage = styled.div`
   width: 100%;
   height: 300px;
-  background-color: #ccc;
+  background-color: #3e5879;
   border-radius: 8px;
 `;
 

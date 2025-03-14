@@ -38,7 +38,10 @@ const RoutesConfig = () => {
       <Route path="/volunteer/post" element={<PostPage />} />
       <Route path="/users/login" element={<LoginForm />} />
       <Route path="/crowdfunding/all" element={<CrowdFunding />} />
-      <Route path="/crowdfunding/detail/:fundingId" element={<CrowdfundingDetail />} />
+      <Route
+        path="/crowdfunding/detail/:fundingId"
+        element={<CrowdfundingDetail />}
+      />
 
       <Route path="/manager/organ" element={<OrganPage />} />
       <Route path="/manager/bene" element={<BenePage />} />
@@ -57,8 +60,6 @@ const RoutesConfig = () => {
         <Route path="post" element={<PostHistory />} />
         <Route path="personal-edit" element={<PersonalEdit />} />
       </Route>
-
-      
     </Routes>
   );
 };
