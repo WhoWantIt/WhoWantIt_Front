@@ -7,6 +7,8 @@ import ShareIcon from "../../../assets/share.svg";
 import { useEffect, useState } from "react";
 import api from "../../../utils/api";
 import { useParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 interface FundingType {
   funding: number;
   title: string;
@@ -25,6 +27,9 @@ const CrowdfundingDetail = () => {
   const { fundingId } = useParams<{ fundingId: string }>();
   const [fundings, setFundings] = useState<FundingType>();
   const [isSrcaped, setIsSrcaped] = useState<boolean>();
+  //const [paymentAmount, setPaymentAmount] = useState<number>(100000);
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   useEffect(() => {
     api
       .get(`/fundings/${fundingId}`)
@@ -48,7 +53,7 @@ const CrowdfundingDetail = () => {
       .post(`/fundings/pays/${fundingId}?paymentAmount=100000`)
       .then((res) => {
         if (res.data.isSuccess) {
-          const redirectUrl = res.data.result.next_direct_pc_url;
+          const redirectUrl = res.data.result.next_redirect_pc_url;
           if (redirectUrl) {
             window.location.href = redirectUrl;
           } else {
@@ -61,6 +66,23 @@ const CrowdfundingDetail = () => {
       })
       .catch((err) => console.error("Error fetching KakaoPay: ", err));
   };
+  useEffect(() => {
+    const pg_token = searchParams.get("pg_token");
+    if (!pg_token) return;
+    const handleKakaoPaySuccess = () => {
+      api
+        .post(`/fundings/success/`)
+        .then((res) => {
+          if (res.data.isSuccess) {
+            navigate(`/crowdfunding/detail/${fundingId}`);
+          } else {
+            alert("카카오 페이 승인 실패");
+          }
+        })
+        .catch((err) => console.error("Error fetching kakaoPay Success", err));
+    };
+    handleKakaoPaySuccess();
+  }, [searchParams, navigate, fundingId]);
   return (
     <PageContainer>
       <Navigation />
