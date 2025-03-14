@@ -4,12 +4,14 @@ import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useEffect } from "react";
+import { getUserRole } from "../utils/jwt";
 const HeaderBar = styled.div`
   display: flex;
   justify-content: flex-start;
   align-items: center;
   padding: 5px 20px;
   background-color: #ffffff;
+  font-family: Pretendard, sans-serif;
 `;
 
 const LogoLink = styled(Link)`
@@ -32,12 +34,14 @@ const HeaderMenu = styled.ul`
   margin: 0;
 `;
 
-const MenuItem = styled(Link)`
+const MenuItem = styled.button`
   margin-right: 20px;
   font-size: 15px;
   color: #3e5879;
   font-weight: regular;
   cursor: pointer;
+  border: none;
+  background-color: #ffffff;
 `;
 
 const HeaderButtons = styled.div`
@@ -67,11 +71,13 @@ const SignupButton = styled.button`
   margin-right: 30px;
   width: 120px;
 `;
-const UserEmail = styled.span`
+const UserEmail = styled.button`
   font-size: 15px;
   color: #3e5879;
   margin-right: 20px;
   margin-top: 9px;
+  border: none;
+  background-color: #ffffff;
 `;
 
 const LogoutButton = styled.button`
@@ -85,6 +91,7 @@ const LogoutButton = styled.button`
   width: 100px;
 `;
 const Navigation = () => {
+  const role = getUserRole();
   const navigate = useNavigate();
   const [userEmail, setUserEmail] = useState<string | null>(null);
 
@@ -100,7 +107,13 @@ const Navigation = () => {
     navigate("/sign-up");
   };
   const handleMypage = () => {
-    navigate("/");
+    if (role === "ADMIN") {
+      navigate("/manager/bene");
+    } else if (role === "BENEFICIARY") {
+      //수혜자 마이페이지로 가주세요.
+    } else if (role === "SPONSOR") {
+      //후원자 마이페이지로 가주세요.
+    }
   };
   const handleLogout = () => {
     localStorage.removeItem("accessToken");
@@ -108,15 +121,24 @@ const Navigation = () => {
     setUserEmail(null);
     window.location.reload(); // 새로고침하여 네비게이션 업데이트
   };
+  const handlePosts = () => {
+    navigate("/posts");
+  };
+  const handleVolunteer = () => {
+    navigate("/volunteer");
+  };
+  const handleFunding = () => {
+    navigate("/");
+  };
   return (
     <HeaderBar>
       <LogoLink to="/">
         <LogoImage src={Logo} />
       </LogoLink>
       <HeaderMenu>
-        <MenuItem to={"/posts"}>게시글</MenuItem>
-        <MenuItem to={"/volunteer"}>자원봉사</MenuItem>
-        <MenuItem to={"/crowdfunding/all"}>클라우드 펀딩</MenuItem>
+        <MenuItem onClick={handlePosts}>게시글</MenuItem>
+        <MenuItem onClick={handleVolunteer}>자원봉사</MenuItem>
+        <MenuItem onClick={handleFunding}>클라우드 펀딩</MenuItem>
       </HeaderMenu>
       <HeaderButtons>
         {userEmail ? (

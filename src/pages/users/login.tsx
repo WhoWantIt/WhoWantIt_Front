@@ -61,7 +61,7 @@ const LoginForm = () => {
         localStorage.setItem("phoneNumber", userInfo.result.phoneNumber);
         localStorage.setItem("address", userInfo.result.address);
         localStorage.setItem("Image", userInfo.result.image);
-        navigate("/posts");
+        navigate("/");
       } else {
         console.error("로그인 실패:", data.message);
         alert("로그인에 실패했습니다. 다시 시도해주세요.");

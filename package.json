@@ -13,12 +13,14 @@
   "dependencies": {
     "@toast-ui/react-editor": "^3.2.3",
     "axios": "^1.7.9",
+    "jwt-decode": "^4.0.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-quill": "^2.0.0",
     "react-router-dom": "^7.1.5",
     "react-youtube": "^10.1.0",
-    "styled-components": "^6.1.15"
+    "styled-components": "^6.1.15",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@eslint/js": "^9.20.0",

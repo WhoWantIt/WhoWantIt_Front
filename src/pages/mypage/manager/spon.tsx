@@ -1,15 +1,20 @@
-//organ
+//bene
 import { useState } from "react";
 import styled from "styled-components";
 import "@toast-ui/editor/dist/toastui-editor.css";
 import "react-datepicker/dist/react-datepicker.css";
 import Navigation from "../../../components/Navigation";
 import Footer from "../../../components/Footer";
-
+import { useEffect } from "react";
+import api from "../../../utils/api";
 // 기관 카드 데이터 예제
-const organizations = Array(9).fill({ name: "자연보호원" });
-
-const OrganPage = () => {
+const ITEMS_PER_PAGE = 10;
+interface SponType {
+  attachedImage: string;
+  nickname: string;
+  name: string;
+}
+const SponPage = () => {
   const [documents] = useState<string[]>([
     "등록된 기관",
     "후원자 정보",
@@ -17,7 +22,21 @@ const OrganPage = () => {
     "펀딩 요청",
   ]);
   const [activeDoc, setActiveDoc] = useState<string | null>(null);
-
+  const [cards, setCards] = useState<SponType[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const currentCards = cards.slice(startIndex, endIndex);
+  const handlePageClick = (pageNumber: number) => {
+    setCurrentPage(pageNumber);
+  };
+  const totalpages = Math.ceil(cards.length / ITEMS_PER_PAGE);
+  useEffect(() => {
+    api
+      .get("/admins/sponsors")
+      .then((res) => setCards(res.data.result.sponsorList))
+      .catch((err) => console.error("Error fetching cards:", err));
+  });
   return (
     <>
       <Navigation />
@@ -40,7 +59,7 @@ const OrganPage = () => {
 
         {/* 오른쪽 메인 콘텐츠 */}
         <MainContent>
-          <Title>등록된 기관</Title>
+          <Title>후원자 정보</Title>
           <TotalCount>
             <strong>100</strong> 개의 기관
           </TotalCount>
@@ -48,19 +67,27 @@ const OrganPage = () => {
 
           {/* 기관 카드 목록 */}
           <CardList>
-            {organizations.map((org, index) => (
+            {currentCards.map((spon, index) => (
               <Card key={index}>
                 <CardImage />
-                <CardTitle>{org.name}</CardTitle>
+                <CardTitle>{spon.nickname}</CardTitle>
               </Card>
             ))}
           </CardList>
 
           {/* 페이지네이션 */}
           <Pagination>
-            {[...Array(10)].map((_, index) => (
-              <PageNumber key={index}>{index + 1}</PageNumber>
-            ))}
+            {Array.from({ length: totalpages }, (_, i) => i + 1).map(
+              (pageNumber) => (
+                <PageNumber
+                  key={pageNumber}
+                  active={pageNumber === currentPage}
+                  onClick={() => handlePageClick(pageNumber)}
+                >
+                  {pageNumber}
+                </PageNumber>
+              ),
+            )}
           </Pagination>
         </MainContent>
       </Container>
@@ -69,7 +96,7 @@ const OrganPage = () => {
   );
 };
 
-export default OrganPage;
+export default SponPage;
 
 /* 스타일 정의 */
 const Container = styled.div`
@@ -157,7 +184,7 @@ const CardList = styled.div`
 
 const Card = styled.div`
   width: 200px;
-  height: 180px;
+  height: 200px;
   background: #ffffff;
   border-radius: 8px;
   display: flex;
@@ -165,24 +192,28 @@ const Card = styled.div`
   align-items: center;
   padding-top: 20px;
   cursor: pointer;
-
   &:hover {
     background: #ffffff;
   }
 `;
 
 const CardImage = styled.div`
-  width: 200px;
+  width: 150px;
   height: 150px;
-  background-color: #c0c7d6;
-  border-radius: 8px;
+  background-color: #d9d9d9;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 10px;
 `;
 
 const CardTitle = styled.p`
-  margin-top: 10px;
+  margin-top: 20px;
   font-size: 16px;
   font-weight: bold;
   margin-right: 90px;
+  color: black;
 `;
 
 /* 페이지네이션 */
@@ -192,7 +223,7 @@ const Pagination = styled.div`
   margin-top: 30px;
 `;
 
-const PageNumber = styled.span`
+const PageNumber = styled.div<{ active: boolean }>`
   margin: 0 5px;
   cursor: pointer;
   font-size: 16px;

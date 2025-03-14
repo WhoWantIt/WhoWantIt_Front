@@ -6,53 +6,41 @@ import Footer from "../../components/Footer";
 import image from "../../assets/just_image.svg";
 import api from "../../utils/api";
 import { NavLink } from "react-router-dom";
+import { PostType } from "../../types/PostType";
+import { getUserRole } from "../../utils/jwt";
 
 const ITEMS_PER_PAGE = 12;
 
-interface PostType {
-  postId: number;
-  beneficiaryId: number;
-  nickname: string;
-  title: string;
-  content: string;
-  attachedImages: string[];
-  attachedExcelFile: string;
-  approvalStatus: string;
-  isVerified: boolean;
-  createdAt: string;
-}
-
 const PostsByMonth = () => {
-  const [year, setYear] = useState("");
-  const [month, setMonth] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [filteredPosts, setFilteredPosts] = useState<PostType[]>([]);
-  const [hasSearched, setHasSearched] = useState(false);
   const navigate = useNavigate();
-  const { yearParam, monthParam } = useParams<{
-    yearParam?: string;
-    monthParam?: string;
+  const { year: yearParam, month: monthParam } = useParams<{
+    year?: string;
+    month?: string;
   }>();
+  const [year, setYear] = useState(yearParam || "");
+  const [month, setMonth] = useState(monthParam || "");
+  const [currentPage, setCurrentPage] = useState(0);
+  const [posts, setPosts] = useState<PostType[]>([]);
+  const [totalPages, setTotalPages] = useState(1);
+  const [hasSearched, setHasSearched] = useState(!!yearParam);
+  const role = getUserRole();
 
   useEffect(() => {
     if (yearParam) {
       setYear(yearParam);
       setMonth(monthParam || "");
-      handleSearchRequest(yearParam, monthParam || "");
-    } else {
-      setYear("");
-      setMonth("");
-      setFilteredPosts([]);
-      setHasSearched(false);
+      fetchPosts(yearParam, monthParam || "", 0);
     }
-    setCurrentPage(1);
   }, [yearParam, monthParam]);
 
-  const handleSearchRequest = (year: string, month: string) => {
+  const fetchPosts = (year: string, month: string, page: number) => {
     api
-      .get(`/posts/monthly?year=${year}&month=${month}&size=${ITEMS_PER_PAGE}`)
+      .get(
+        `/posts/monthly?year=${year}&month=${month}&page=${page}&size=${ITEMS_PER_PAGE}`,
+      )
       .then((res) => {
-        setFilteredPosts(res.data.result.content);
+        setPosts(res.data.result.content);
+        setTotalPages(res.data.result.totalPages);
         setHasSearched(true);
       })
       .catch((err) => console.error("Error fetching posts:", err));
@@ -60,18 +48,14 @@ const PostsByMonth = () => {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    navigate(`/posts/${year}/${month || undefined}`);
-    handleSearchRequest(year, month);
-    setCurrentPage(1);
+    navigate(`/posts/date/${year}/${month || ""}`);
+    fetchPosts(year, month, 0);
+    setCurrentPage(0);
   };
-
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const endIndex = startIndex + ITEMS_PER_PAGE;
-  const currentPosts = filteredPosts.slice(startIndex, endIndex);
-  const totalPages = Math.ceil(filteredPosts.length / ITEMS_PER_PAGE);
 
   const handlePageClick = (pageNumber: number) => {
     setCurrentPage(pageNumber);
+    fetchPosts(year, month, pageNumber);
   };
 
   return (
@@ -81,8 +65,8 @@ const PostsByMonth = () => {
 
       <TabMenu>
         <TabItem to="/posts">#전체</TabItem>
-        <TabItem to="/posts/:institution">#기관별 모아보기</TabItem>
-        <SelectedTabItem to={`/posts/${year}/${month || undefined}`}>
+        <TabItem to="/posts/institution/:institution">#기관별 모아보기</TabItem>
+        <SelectedTabItem to={`/posts/date/${year}/${month || ""}`}>
           #월별 모아보기
         </SelectedTabItem>
       </TabMenu>
@@ -107,14 +91,18 @@ const PostsByMonth = () => {
         <SearchButton type="submit">검색</SearchButton>
       </SearchArea>
 
-      {hasSearched && filteredPosts.length === 0 ? (
+      {hasSearched && posts.length === 0 ? (
         <NoPostsMessage>검색 결과가 없습니다.</NoPostsMessage>
       ) : (
-        filteredPosts.length > 0 && (
+        posts.length > 0 && (
           <>
             <PostGrid>
-              {currentPosts.map((post, index) => (
-                <PostCard key={index} isVerified={post.isVerified}>
+              {posts.map((post) => (
+                <PostCard
+                  key={post.postId}
+                  to={`/posts/${post.postId}`}
+                  isVerified={post.isVerified}
+                >
                   <PostTitle>{post.title}</PostTitle>
                   <PostInstitution>{post.nickname}</PostInstitution>
                   <PostStatus>
@@ -123,19 +111,27 @@ const PostsByMonth = () => {
                 </PostCard>
               ))}
             </PostGrid>
-            <Pagination>
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                (pageNumber) => (
-                  <PageNumber
-                    key={pageNumber}
-                    active={pageNumber === currentPage}
-                    onClick={() => handlePageClick(pageNumber)}
-                  >
-                    {pageNumber}
-                  </PageNumber>
-                ),
+            <PaginationContainer>
+              {role === "BENEFICIARY" && (
+                <CreatePostButton to="/posts/edit">
+                  게시글 작성
+                </CreatePostButton>
               )}
-            </Pagination>
+
+              <Pagination isButtonVisible={role === "BENEFICIARY"}>
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                  (pageNumber) => (
+                    <PageNumber
+                      key={pageNumber}
+                      active={pageNumber === currentPage + 1}
+                      onClick={() => handlePageClick(pageNumber - 1)}
+                    >
+                      {pageNumber}
+                    </PageNumber>
+                  ),
+                )}
+              </Pagination>
+            </PaginationContainer>
           </>
         )
       )}
@@ -186,19 +182,19 @@ const SearchArea = styled.form`
 `;
 
 const YearSelect = styled.select`
-  padding: 10px;
+  padding: 5px 10px;
   border: 1px solid #3e5879;
   border-radius: 5px;
   margin-right: 10px;
-  font-size: 16px;
+  font-size: clamp(10px, 1.2vw, 16px);
 `;
 
 const MonthSelect = styled.select`
-  padding: 10px;
+  padding: 5px 10px;
   border: 1px solid #3e5879;
   border-radius: 5px;
   margin-right: 10px;
-  font-size: 16px;
+  font-size: clamp(10px, 1.2vw, 16px);
 `;
 
 const SearchButton = styled.button`
@@ -229,7 +225,7 @@ const PostGrid = styled.div`
   }
 `;
 
-const PostCard = styled.div<{ isVerified: boolean }>`
+const PostCard = styled(NavLink)<{ isVerified: boolean }>`
   width: clamp(140px, 18vw, 200px);
   height: clamp(80px, 12vw, 120px);
   padding: clamp(10px, 2vw, 20px);
@@ -240,6 +236,12 @@ const PostCard = styled.div<{ isVerified: boolean }>`
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  text-decoration: none;
+  cursor: pointer;
+
+  &:hover {
+    background-color: ${(props) => (props.isVerified ? "#2d3e56" : "#a6b0c3")};
+  }
 `;
 
 const PostTitle = styled.div`
@@ -259,12 +261,26 @@ const PostStatus = styled.div`
   align-self: flex-end;
 `;
 
-const Pagination = styled.div`
+const PaginationContainer = styled.div`
   display: flex;
-  justify-content: right;
-  margin-top: 70px;
-  margin-bottom: 30px;
-  margin-right: clamp(50px, 10vw, 170px);
+  justify-content: space-between;
+  align-items: center;
+  margin: 70px clamp(50px, 10vw, 170px) 30px clamp(50px, 10vw, 170px);
+`;
+
+const CreatePostButton = styled(NavLink)`
+  padding: 8px 16px;
+  background-color: #3e5879;
+  color: #ffffff;
+  border-radius: 5px;
+  text-decoration: none;
+  font-size: clamp(12px, 1.2vw, 16px);
+`;
+
+const Pagination = styled.div<{ isButtonVisible?: boolean }>`
+  display: flex;
+  justify-content: ${(props) => (props.isButtonVisible ? "right" : "flex-end")};
+  flex-grow: 1;
 `;
 
 const PageNumber = styled.div<{ active?: boolean }>`

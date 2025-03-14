@@ -18,7 +18,7 @@ interface Funding {
   dday: string;
 }
 
-const AllPosts = () => {
+const CrowdFunding = () => {
   const navigate = useNavigate();
   const [fundings, setFundings] = useState<Funding[]>([]);
   const [currentPageType, setCurrentPageType] = useState<
@@ -111,7 +111,7 @@ const AllPosts = () => {
   );
 };
 
-export default AllPosts;
+export default CrowdFunding;
 
 // Styled Components
 const StyledPageContainer = styled.div`

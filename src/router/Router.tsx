@@ -8,7 +8,6 @@ import EditPage from "../pages/volunteer/edit";
 import PostPage from "../pages/volunteer/post";
 import LoginForm from "../pages/users/login";
 import CrowdFunding from "../pages/crowdfunding/list/all";
-import OrganPage from "../pages/mypage/manager/organ";
 import BenePage from "../pages/mypage/manager/bene";
 import FundingPage from "../pages/mypage/manager/funding";
 import PostRequestPage from "../pages/mypage/manager/post-request";
@@ -23,6 +22,10 @@ import PostHistory from "../pages/mypage/beneficiary/post";
 import PersonalEdit from "../pages/mypage/beneficiary/personal-edit";
 import BeneficiaryMain from "../pages/mypage/beneficiary";
 import CrowdfundingDetail from "../pages/crowdfunding/detail/index";
+import VolunteerPage from "../pages/volunteer/main";
+import ScrapPage from "../pages/mypage/sponser/scrap";
+import SponPage from "../pages/mypage/manager/spon";
+import PostDetail from "../pages/posts/detail";
 
 const RoutesConfig = () => {
   return (
@@ -31,8 +34,12 @@ const RoutesConfig = () => {
       <Route path="/home/homepage" element={<Homepage />} />
       <Route path="/" element={<Homepage />} />
       <Route path="/posts" element={<AllPosts />} />
-      <Route path="/posts/:institution" element={<PostsByInstitution />} />
-      <Route path="/posts/:year/:month" element={<PostsByDate />} />
+      <Route path="/posts/:postId" element={<PostDetail />} />
+      <Route
+        path="/posts/institution/:institution"
+        element={<PostsByInstitution />}
+      />
+      <Route path="/posts/date/:year/:month" element={<PostsByDate />} />
       <Route path="/posts/edit" element={<PostEdit />} />
       <Route path="/volunteer/edit" element={<EditPage />} />
       <Route path="/volunteer/post" element={<PostPage />} />
@@ -42,15 +49,11 @@ const RoutesConfig = () => {
         path="/crowdfunding/detail/:fundingId"
         element={<CrowdfundingDetail />}
       />
-
-      <Route path="/manager/organ" element={<OrganPage />} />
+      <Route path="/volunteer" element={<VolunteerPage />} />
       <Route path="/manager/bene" element={<BenePage />} />
+      <Route path="/manager/spon" element={<SponPage />} />
       <Route path="/manager/funding" element={<FundingPage />} />
       <Route path="/manager/post-request" element={<PostRequestPage />} />
-
-      <Route path="/sponser/funding" element={<SponserFundingPage />} />
-      <Route path="/sponser/announce" element={<SponserAnnouncePage />} />
-      <Route path="/sponser/personal-edit" element={<PersonalEditPage />} />
 
       <Route path="/mypage/beneficiary" element={<BeneficiaryMain />}>
         <Route index element={<Navigate replace to="profile" />} />
@@ -60,6 +63,11 @@ const RoutesConfig = () => {
         <Route path="post" element={<PostHistory />} />
         <Route path="personal-edit" element={<PersonalEdit />} />
       </Route>
+
+      <Route path="/sponser/funding" element={<SponserFundingPage />} />
+      <Route path="/sponser/announce" element={<SponserAnnouncePage />} />
+      <Route path="/sponser/personal-edit" element={<PersonalEditPage />} />
+      <Route path="/sponser/scrap" element={<ScrapPage />} />
     </Routes>
   );
 };
