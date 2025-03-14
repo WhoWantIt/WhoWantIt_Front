@@ -1,11 +1,66 @@
-import React from "react";
 import styled from "styled-components";
 import Navigation from "../../../components/Navigation";
 import Footer from "../../../components/Footer";
 import BookmarkIcon from "../../../assets/bookmark.svg";
+import BookMarkColor from "../../../assets/volunteer/bookmark_color.svg";
 import ShareIcon from "../../../assets/share.svg";
-
+import { useEffect, useState } from "react";
+import api from "../../../utils/api";
+import { useParams } from "react-router-dom";
+interface FundingType {
+  funding: number;
+  title: string;
+  content: string;
+  status: string;
+  productName: string;
+  currentAmount: number;
+  attachedImage: string;
+  approvalStatus: string;
+  attainmentPercent: number;
+  beneficiaryId: number;
+  beneficiaryName: string;
+  beneficiaryNickname: string;
+}
 const CrowdfundingDetail = () => {
+  const { fundingId } = useParams<{ fundingId: string }>();
+  const [fundings, setFundings] = useState<FundingType>();
+  const [isSrcaped, setIsSrcaped] = useState<boolean>();
+  useEffect(() => {
+    api
+      .get(`/fundings/${fundingId}`)
+      .then((res) => setFundings(res.data.result))
+      .catch((err) => console.error("Error fetching funding detail: ", err));
+  }, [fundingId]);
+  const handleMark = () => {
+    setIsSrcaped(true);
+    api
+      .post(`/fundings/scraps/${fundingId}`)
+      .catch((err) => console.error("Error fetching scrap: ", err));
+  };
+  const handleDeleteMark = () => {
+    setIsSrcaped(false);
+    api
+      .post(`/fundings/scraps/${fundingId}`)
+      .catch((err) => console.error("Eror fetching delete scrap: ", err));
+  };
+  const handleKakaoPay = () => {
+    api
+      .post(`/fundings/pays/${fundingId}?paymentAmount=100000`)
+      .then((res) => {
+        if (res.data.isSuccess) {
+          const redirectUrl = res.data.result.next_direct_pc_url;
+          if (redirectUrl) {
+            window.location.href = redirectUrl;
+          } else {
+            console.error("결제 요청 응답에서 url이 존재하지 않습니다.");
+          }
+        } else {
+          //카카오페이 결재 진행 중 취소
+          api.get("/funding/cancel").then((res) => alert(res.data.result));
+        }
+      })
+      .catch((err) => console.error("Error fetching KakaoPay: ", err));
+  };
   return (
     <PageContainer>
       <Navigation />
@@ -14,16 +69,20 @@ const CrowdfundingDetail = () => {
           <PlaceholderImage />
         </ImageSection>
         <InfoSection>
-          <Achievement>680% 달성</Achievement>
-          <TotalAmount>13,426,230원 달성</TotalAmount>
+          <Achievement>{fundings?.attainmentPercent} 달성</Achievement>
+          <TotalAmount>{fundings?.currentAmount}원 달성</TotalAmount>
           <Actions>
-            <IconButton>
-              <img src={BookmarkIcon} alt="북마크" />
+            <IconButton onClick={!isSrcaped ? handleMark : handleDeleteMark}>
+              {!isSrcaped ? (
+                <img src={BookmarkIcon} />
+              ) : (
+                <img src={BookMarkColor} />
+              )}
             </IconButton>
             <IconButton>
               <img src={ShareIcon} alt="공유" />
             </IconButton>
-            <FundButton>펀딩하기</FundButton>
+            <FundButton onClick={() => handleKakaoPay()}>펀딩하기</FundButton>
           </Actions>
         </InfoSection>
       </ContentWrapper>

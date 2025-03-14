@@ -1,12 +1,11 @@
 import styled from "styled-components";
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
 import Navigation from "../../../components/Navigation";
 import Footer from "../../../components/Footer";
 import image from "../../../assets/just2_image.svg";
 import axios from "axios";
-
-const API_BASE_URL = "http://13.209.33.88:8080";
+import { useNavigate } from "react-router-dom";
+const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 interface Funding {
   fundingId: number;
@@ -20,39 +19,60 @@ interface Funding {
 }
 
 const AllPosts = () => {
+  const navigate = useNavigate();
   const [fundings, setFundings] = useState<Funding[]>([]);
-  const [currentPageType, setCurrentPageType] = useState<'all' | 'ongoing' | 'completed'>('all');
+  const [currentPageType, setCurrentPageType] = useState<
+    "all" | "ongoing" | "completed"
+  >("all");
   const [loading, setLoading] = useState(true);
-
+  const accessToken = localStorage.getItem("accessToken");
   useEffect(() => {
     setLoading(true);
-    let apiUrl = `${API_BASE_URL}/fundings/lists`;
-    if (currentPageType === "ongoing") apiUrl = `${API_BASE_URL}/fundings/filters?status=IN_PROGRESS`;
-    if (currentPageType === "completed") apiUrl = `${API_BASE_URL}/fundings/filters?status=AFTER_PROGRESS`;
+    let apiUrl = `${API_BASE_URL}fundings/lists`;
+    if (currentPageType === "ongoing")
+      apiUrl = `${API_BASE_URL}fundings/filters?status=IN_PROGRESS`;
+    if (currentPageType === "completed")
+      apiUrl = `${API_BASE_URL}fundings/filters?status=AFTER_PROGRESS`;
 
-    axios.get(apiUrl)
-      .then(response => {
+    axios
+      .get(apiUrl, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      })
+      .then((response) => {
         if (response.data.isSuccess) {
           setFundings(response.data.result);
         }
       })
-      .catch(error => console.error("Error fetching fundings:", error))
+      .catch((error) => console.error("Error fetching fundings:", error))
       .finally(() => setLoading(false));
   }, [currentPageType]);
-
+  const handleDetail = (fundingId: number) => {
+    navigate(`/crowdfunding/detail/${fundingId}`);
+  };
   return (
     <StyledPageContainer>
       <Navigation />
       <StyledHeroImage src={image} />
 
       <TabMenu>
-        <TabItem $active={currentPageType === 'all'} onClick={() => setCurrentPageType('all')}>
+        <TabItem
+          $active={currentPageType === "all"}
+          onClick={() => setCurrentPageType("all")}
+        >
           #전체
         </TabItem>
-        <TabItem $active={currentPageType === 'ongoing'} onClick={() => setCurrentPageType('ongoing')}>
+        <TabItem
+          $active={currentPageType === "ongoing"}
+          onClick={() => setCurrentPageType("ongoing")}
+        >
           #진행 중인 펀딩
         </TabItem>
-        <TabItem $active={currentPageType === 'completed'} onClick={() => setCurrentPageType('completed')}>
+        <TabItem
+          $active={currentPageType === "completed"}
+          onClick={() => setCurrentPageType("completed")}
+        >
           #완료된 펀딩
         </TabItem>
       </TabMenu>
@@ -63,12 +83,19 @@ const AllPosts = () => {
         <StyledPostGrid>
           {fundings.length > 0 ? (
             fundings.map((funding) => (
-              <StyledPostCard key={funding.fundingId}>
+              <StyledPostCard
+                key={funding.fundingId}
+                onClick={() => handleDetail(funding.fundingId)}
+              >
                 <StyledImage src={funding.attachedImage} alt={funding.title} />
-                <StyledAchievement>{funding.fundingAmount.toLocaleString()}원 모금</StyledAchievement>
+                <StyledAchievement>
+                  {funding.fundingAmount}원 모금
+                </StyledAchievement>
                 <StyledCardTitle>{funding.title}</StyledCardTitle>
                 <StyledPostDetails>
-                  <StyledPostInstitution>{funding.beneficiaryName}</StyledPostInstitution>
+                  <StyledPostInstitution>
+                    {funding.beneficiaryName}
+                  </StyledPostInstitution>
                   <StyledPostDaysLeft>{funding.dday}일 남음</StyledPostDaysLeft>
                 </StyledPostDetails>
               </StyledPostCard>
@@ -109,8 +136,9 @@ const TabItem = styled.div<{ $active?: boolean }>`
   font-size: clamp(16px, 2vw, 30px);
   font-weight: bold;
   padding-bottom: 10px;
-  color: ${(props) => (props.$active ? '#3e5879' : '#e6d9d2')};
-  border-bottom: ${(props) => (props.$active ? '3px solid #3e5879' : '1px solid #e6d9d2')};
+  color: ${(props) => (props.$active ? "#3e5879" : "#e6d9d2")};
+  border-bottom: ${(props) =>
+    props.$active ? "3px solid #3e5879" : "1px solid #e6d9d2"};
   cursor: pointer;
 `;
 
