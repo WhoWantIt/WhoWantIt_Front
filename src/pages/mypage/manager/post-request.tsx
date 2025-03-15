@@ -7,6 +7,7 @@ import Navigation from "../../../components/Navigation";
 import Footer from "../../../components/Footer";
 import { useEffect } from "react";
 import api from "../../../utils/api";
+import { useNavigate } from "react-router-dom";
 // 기관 카드 데이터 예제
 interface PostType {
   postId: number;
@@ -42,6 +43,10 @@ const PostRequestPage = () => {
       .then((res) => setCards(res.data.result.postList))
       .catch((err) => console.error("Error fetching cards:", err));
   });
+  const navigate = useNavigate();
+  const handleDetailPost = (postId: number) => {
+    navigate(`/posts/detail/${postId}`);
+  };
   return (
     <>
       <Navigation />
@@ -73,7 +78,11 @@ const PostRequestPage = () => {
           {/* 기관 카드 목록 */}
           <CardList>
             {currentCards.map((post, index) => (
-              <Card key={index} isVerified={post.verified}>
+              <Card
+                key={index}
+                isVerified={post.verified}
+                onClick={() => handleDetailPost(post.postId)}
+              >
                 <CardTitle>{post.title}</CardTitle>
                 <CardNickname>{post.beneficiaryNickname}</CardNickname>
                 <CardStatus>

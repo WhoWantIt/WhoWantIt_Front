@@ -7,6 +7,7 @@ import Navigation from "../../../components/Navigation";
 import Footer from "../../../components/Footer";
 import { useEffect } from "react";
 import api from "../../../utils/api";
+import { useNavigate } from "react-router-dom";
 // 기관 카드 데이터 예제
 const ITEMS_PER_PAGE = 10;
 interface BeneType {
@@ -15,6 +16,7 @@ interface BeneType {
   name: string;
 }
 const BenePage = () => {
+  const navigate = useNavigate();
   const [cards, setCards] = useState<BeneType[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
@@ -30,13 +32,15 @@ const BenePage = () => {
       .then((res) => setCards(res.data.result.beneficiaryList))
       .catch((err) => console.error("Error fetching cards:", err));
   });
-  const [documents] = useState<string[]>([
-    "등록된 기관",
-    "후원자 정보",
-    "게시글 요청",
-    "펀딩 요청",
-  ]);
-  const [activeDoc, setActiveDoc] = useState<string | null>(null);
+  const documents = [
+    { label: "등록된 기관", path: "manager/bene" },
+    { label: "후원자 정보", path: "manager/spon" },
+    { label: "게시글 요청", path: "manager/post-request" },
+    { label: "펀딩 요청", path: "manager/funding" },
+  ];
+  const handleDetailCard = (beneficiaryId: number) => {
+    navigate(`/bene/${beneficiaryId}`);
+  };
   return (
     <>
       <Navigation />
@@ -48,10 +52,10 @@ const BenePage = () => {
             {documents.map((doc, index) => (
               <DocumentItem
                 key={index}
-                active={activeDoc === doc}
-                onClick={() => setActiveDoc(doc)}
+                active={window.location.pathname === doc.path}
+                onClick={() => navigate(doc.path)}
               >
-                {doc}
+                {doc.label}
               </DocumentItem>
             ))}
           </DocumentList>
@@ -68,7 +72,10 @@ const BenePage = () => {
           {/* 기관 카드 목록 */}
           <CardList>
             {currentCards.map((bene, index) => (
-              <Card key={index}>
+              <Card
+                key={index}
+                onClick={() => handleDetailCard(bene.beneficiaryId)}
+              >
                 <img src={bene.attachedImage} />
                 <CardTitle>{bene.nickname}</CardTitle>
               </Card>
@@ -86,7 +93,7 @@ const BenePage = () => {
                 >
                   {pageNumber}
                 </PageNumber>
-              ),
+              )
             )}
           </Pagination>
         </MainContent>
@@ -183,6 +190,7 @@ const CardList = styled.div`
 `;
 
 const Card = styled.div`
+  display: fix;
   width: 200px;
   height: 180px;
   background: #ffffff;

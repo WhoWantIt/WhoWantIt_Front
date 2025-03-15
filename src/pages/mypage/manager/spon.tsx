@@ -10,6 +10,7 @@ import api from "../../../utils/api";
 // 기관 카드 데이터 예제
 const ITEMS_PER_PAGE = 10;
 interface SponType {
+  sponsorId: number;
   attachedImage: string;
   nickname: string;
   name: string;
