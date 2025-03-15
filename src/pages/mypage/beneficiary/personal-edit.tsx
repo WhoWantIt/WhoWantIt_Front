@@ -1,20 +1,24 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
+import axios from 'axios';
 
 const PersonalEdit = () => {
   const [form, setForm] = useState({
-    name: '',
-    email: '',
-    password: '',
-    phone: '',
-    address: '',
+    info: '',
+    toddler: 0,
+    child: 0,
+    adolescent: 0,
+    youth: 0,
   });
 
   const [image, setImage] = useState<string | null>(null);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+    setForm((prev) => ({
+      ...prev,
+      [name]: name === 'info' ? value : Number(value),
+    }));
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -32,8 +36,13 @@ const PersonalEdit = () => {
     setImage(null);
   };
 
-  const handleSubmit = () => {
-    console.log('수정 완료:', form);
+  const handleSubmit = async () => {
+    try {
+      const response = await axios.put('https://your-api.com/beneficiaries/profiles/details', form);
+      console.log('수정 완료:', response.data);
+    } catch (error) {
+      console.error('수정 중 오류 발생:', error);
+    }
   };
 
   return (
@@ -56,20 +65,20 @@ const PersonalEdit = () => {
       </ImageContainer>
 
       <Form>
-        <Label>기관명</Label>
-        <Input name="name" value={form.name} onChange={handleChange} placeholder="기관명을 입력해주세요." />
+        <Label>기관 소개</Label>
+        <Textarea name="info" value={form.info} onChange={handleChange} placeholder="기관 소개를 입력해주세요." />
 
-        <Label>이메일</Label>
-        <Input name="email" type="email" value={form.email} onChange={handleChange} placeholder="이메일을 입력해주세요." />
+        <Label>영유아 (0~6세)</Label>
+        <Input name="toddler" type="number" value={form.toddler} onChange={handleChange} min="0" />
 
-        <Label>비밀번호</Label>
-        <Input name="password" type="password" value={form.password} onChange={handleChange} placeholder="비밀번호를 입력해주세요." />
+        <Label>어린이 (7~12세)</Label>
+        <Input name="child" type="number" value={form.child} onChange={handleChange} min="0" />
 
-        <Label>연락처</Label>
-        <Input name="phone" value={form.phone} onChange={handleChange} placeholder="연락처를 입력해주세요. ex) 010-1234-5678" />
+        <Label>청소년 (13~19세)</Label>
+        <Input name="adolescent" type="number" value={form.adolescent} onChange={handleChange} min="0" />
 
-        <Label>주소</Label>
-        <Input name="address" value={form.address} onChange={handleChange} placeholder="주소를 입력해주세요. ex) 서울시 종로구 낙산길 198" />
+        <Label>자립준비청년 (18~24세)</Label>
+        <Input name="youth" type="number" value={form.youth} onChange={handleChange} min="0" />
 
         <SubmitButton onClick={handleSubmit}>수정 완료</SubmitButton>
       </Form>
@@ -160,6 +169,12 @@ const Label = styled.label`
   font-size: 14px;
   font-weight: bold;
   color: #3e5879;
+`;
+
+const Textarea = styled.textarea`
+  width: 100%;
+  height: 80px;
+  resize: none;
 `;
 
 const Input = styled.input`

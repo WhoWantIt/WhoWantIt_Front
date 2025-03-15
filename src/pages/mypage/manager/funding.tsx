@@ -6,11 +6,12 @@ import "react-datepicker/dist/react-datepicker.css";
 import Navigation from "../../../components/Navigation";
 import { useEffect } from "react";
 import api from "../../../utils/api";
+import { useNavigate } from "react-router-dom";
 interface FundingType {
   fundingId: number;
   title: string;
   attachedImage: string;
-  fundingAmount: number;
+  attainmentPercent: number;
   beneficiaryId: number;
   beneficiaryName: string;
   beneficiaryNickname: string;
@@ -19,13 +20,14 @@ interface FundingType {
 const ITEMS_PER_PAGE = 10;
 
 // 메인 컴포넌트
-const SponserFundingPage = () => {
+const FundingPage = () => {
+  const navigate = useNavigate();
   //const api = import.meta.env.VITE_API_URL;
   const [documents] = useState<string[]>([
-    "스크랩",
-    "참여한 펀딩",
-    "참여한 봉사",
-    "개인정보 수정",
+    "등록된 기관",
+    "후원자 정보",
+    "게시글 요청",
+    "펀딩 요청",
   ]);
   const [activeDoc, setActiveDoc] = useState<string | null>(null);
   const [cards, setCards] = useState<FundingType[]>([]);
@@ -38,11 +40,25 @@ const SponserFundingPage = () => {
   };
   const totalpages = Math.ceil(cards.length / ITEMS_PER_PAGE);
   useEffect(() => {
-    api
-      .get("/admins/funding")
-      .then((res) => setCards(res.data.result.fundingResponseList))
-      .catch((err) => console.error("Error fetching cards:", err));
-  });
+    const fetchData = async () => {
+      try {
+        const token = localStorage.getItem("accessToken"); // 토큰 저장 방식 확인
+        //console.log("토큰:", localStorage.getItem("accessToken"));
+        const response = await api.get("/admins/fundings", {
+          headers: {
+            Authorization: `Bearer ${token}`, // 토큰 포함
+          },
+        });
+        setCards(response.data.result.fundingResponseList);
+      } catch (err) {
+        console.error("Error fetching cards:", err);
+      }
+    };
+    fetchData();
+  }, []);
+  const handleApprovalFunding = (fundingId: number) => {
+    navigate(`/fundings/detail/${fundingId}`);
+  };
   return (
     <>
       <Navigation />
@@ -63,7 +79,7 @@ const SponserFundingPage = () => {
           </DocumentList>
         </Sidebar>
         <MainContent>
-          <Title>펀딩 요청청</Title>
+          <Title>펀딩 요청</Title>
           <TotalCount>
             <strong>6</strong>개의 펀딩 요청
           </TotalCount>
@@ -72,10 +88,13 @@ const SponserFundingPage = () => {
           {/* 기관 카드 목록 */}
           <StyledPostGrid>
             {currentCards.map((fund, index) => (
-              <StyledPostCard key={index}>
+              <StyledPostCard
+                key={index}
+                onClick={() => handleApprovalFunding(fund.fundingId)}
+              >
                 <StyledImagePlaceholder />
                 <StyledAchievement>
-                  {fund.fundingAmount}% 달성
+                  {fund.attainmentPercent}% 달성
                 </StyledAchievement>
                 <StyledCardTitle>{fund.title}</StyledCardTitle>
                 <StyledPostDetails>
@@ -108,7 +127,7 @@ const SponserFundingPage = () => {
   );
 };
 
-export default SponserFundingPage;
+export default FundingPage;
 // 스타일 컴포넌트 정의
 const Container = styled.div`
   display: flex;

@@ -1,32 +1,62 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
+import axios from 'axios';
 
-const posts = [
-  { month: '12월', status: 'Not Verified', institution: '자연보육원' },
-  { month: '11월', status: 'Verified', institution: '자연보육원' },
-  { month: '10월', status: 'Verified', institution: '자연보육원' },
-];
+interface Post {
+  status: string;
+  month: string;
+  institution: string;
+}
 
 const PostHistory = () => {
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [totalCount, setTotalCount] = useState<number>(0);
+  const beneficiaryId = localStorage.getItem('beneficiaryId'); // 사용자 ID 가져오기
+
+  useEffect(() => {
+    if (!beneficiaryId) return;
+
+    const fetchPosts = async () => {
+      try {
+        const response = await axios.get(
+          `https://your-api.com/beneficiaries/posts/${beneficiaryId}`
+        );
+
+        if (response.data.isSuccess) {
+          setPosts(response.data.result.postList as Post[]);
+          setTotalCount(response.data.result.totalCount);
+        }
+      } catch (error) {
+        console.error('Error fetching posts:', error);
+      }
+    };
+
+    fetchPosts();
+  }, [beneficiaryId]);
+
   return (
     <Container>
       <Header>
         <Title>게시글 내역</Title>
         <TotalCount>
-          <CountNumber>100</CountNumber>개의 기관
+          <CountNumber>{totalCount}</CountNumber>개의 기관
         </TotalCount>
       </Header>
       <Divider />
       <PostGrid>
-        {posts.map((post, index) => (
-          <PostCard key={index} status={post.status}>
-            <CardHeader>
-              <Month>{post.month} 후원 현황</Month>
-            </CardHeader>
-            <InstitutionName>{post.institution}</InstitutionName>
-            <Status>{post.status}</Status>
-          </PostCard>
-        ))}
+        {posts.length > 0 ? (
+          posts.map((post, index) => (
+            <PostCard key={index} status={post.status}>
+              <CardHeader>
+                <Month>{post.month} 후원 현황</Month>
+              </CardHeader>
+              <InstitutionName>{post.institution}</InstitutionName>
+              <Status>{post.status}</Status>
+            </PostCard>
+          ))
+        ) : (
+          <p>등록된 게시글이 없습니다.</p>
+        )}
       </PostGrid>
       <Pagination>
         {[...Array(10)].map((_, index) => (

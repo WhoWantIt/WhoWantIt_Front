@@ -1,50 +1,68 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
+import axios from 'axios';
 
-const fundings = [
-  {
-    achievement: 680,
-    title: '자립준비청년들에게 사회로 나갈 준비를 도와주세요.',
-    institution: '자연보육원',
-    daysLeft: 30,
-  },
-  {
-    achievement: 680,
-    title: '자립준비청년들에게 사회로 나갈 준비를 도와주세요.',
-    institution: '자연보육원',
-    daysLeft: 30,
-  },
-  {
-    achievement: 680,
-    title: '자립준비청년들에게 사회로 나갈 준비를 도와주세요.',
-    institution: '자연보육원',
-    daysLeft: 30,
-  },
-];
+interface Funding {
+  fundingId: number;
+  title: string;
+  attachedImage: string;
+  fundingAmount: number;
+  beneficiaryId: number;
+  beneficiaryName: string;
+  beneficiaryNickname: string;
+  dday: string;
+}
 
 const FundingHistory = () => {
+  const [fundings, setFundings] = useState<Funding[]>([]);
+  const beneficiaryId = localStorage.getItem('beneficiaryId');
+
+  useEffect(() => {
+    if (!beneficiaryId) return;
+
+    const fetchFundings = async () => {
+      try {
+        const response = await axios.get(
+          `https://your-api.com/beneficiaries/fundings/${beneficiaryId}`
+        );
+
+        if (response.data.isSuccess) {
+          setFundings(response.data.result.fundingList);
+        }
+      } catch (error) {
+        console.error('펀딩 목록 가져오기 실패:', error);
+      }
+    };
+
+    fetchFundings();
+  }, [beneficiaryId]);
+
   return (
     <Container>
       <Header>
         <Title>펀딩 내역</Title>
         <TotalCount>
-          <CountNumber>100</CountNumber>개의 기관
+          <CountNumber>{fundings.length}</CountNumber>개의 펀딩
         </TotalCount>
       </Header>
       <Divider />
-      <FundingGrid>
-        {fundings.map((funding, index) => (
-          <FundingCard key={index}>
-            <ImagePlaceholder />
-            <Achievement>{funding.achievement}% 달성</Achievement>
-            <FundingTitle>{funding.title}</FundingTitle>
-            <FundingDetails>
-              <Institution>{funding.institution}</Institution>
-              <DaysLeft>{funding.daysLeft}일 남음</DaysLeft>
-            </FundingDetails>
-          </FundingCard>
-        ))}
-      </FundingGrid>
+      {fundings.length > 0 ? (
+        <FundingGrid>
+          {fundings.map((funding) => (
+            <FundingCard key={funding.fundingId}>
+              <Image src={funding.attachedImage || "https://via.placeholder.com/140"} alt="펀딩 이미지" />
+              <Achievement>{funding.fundingAmount}원 모금됨</Achievement>
+              <FundingTitle>{funding.title}</FundingTitle>
+              <FundingDetails>
+                <Institution>{funding.beneficiaryName}</Institution>
+                <DaysLeft>{funding.dday}일 남음</DaysLeft>
+              </FundingDetails>
+            </FundingCard>
+          ))}
+        </FundingGrid>
+      ) : (
+        <NoFundingMessage>등록된 펀딩이 없습니다.</NoFundingMessage>
+      )}
       <Pagination>
         {[...Array(10)].map((_, index) => (
           <PageNumber key={index}>{index + 1}</PageNumber>
@@ -107,10 +125,10 @@ const FundingCard = styled.div`
   padding: 20px;
 `;
 
-const ImagePlaceholder = styled.div`
+const Image = styled.img`
   width: 100%;
   height: 140px;
-  background-color: #c0c7d6;
+  object-fit: cover;
   border-radius: 8px;
   margin-bottom: 10px;
 `;
@@ -136,6 +154,13 @@ const FundingDetails = styled.div`
 const Institution = styled.div``;
 
 const DaysLeft = styled.div``;
+
+const NoFundingMessage = styled.div`
+  text-align: center;
+  font-size: 16px;
+  color: #3e5879;
+  margin: 20px 0;
+`;
 
 const Pagination = styled.div`
   margin-top: 30px;

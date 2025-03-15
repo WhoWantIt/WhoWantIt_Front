@@ -138,7 +138,7 @@ const Navigation = () => {
       <HeaderMenu>
         <MenuItem onClick={handlePosts}>게시글</MenuItem>
         <MenuItem onClick={handleVolunteer}>자원봉사</MenuItem>
-        <MenuItem onClick={handleFunding}>클라우드 펀딩</MenuItem>
+        <MenuItem onClick={handleFunding}>크라우드 펀딩</MenuItem>
       </HeaderMenu>
       <HeaderButtons>
         {userEmail ? (

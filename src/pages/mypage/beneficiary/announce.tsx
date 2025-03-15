@@ -1,73 +1,67 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
+import axios from 'axios';
 
-const announcements = [
-  { institution: '자연보육원' },
-  { institution: '자연보육원' },
-  { institution: '자연보육원' },
-  { institution: '자연보육원' },
-  { institution: '자연보육원' },
-  { institution: '자연보육원' },
-];
+interface Announcement {
+  postId: number;
+  title: string;
+  attachedImage: string;
+  approvalStatus: string;
+  beneficiaryId: number;
+  beneficiaryName: string;
+  beneficiaryNickname: string;
+  dday: string;
+}
 
-const mockSupporters = [
-  { name: '김ㅇㅇ', email: '800@naver.com', phone: '010-0000-0000' },
-  { name: '김ㅇㅇ', email: '800@naver.com', phone: '010-0000-0000' },
-  { name: '김ㅇㅇ', email: '800@naver.com', phone: '010-0000-0000' },
-  { name: '김ㅇㅇ', email: '800@naver.com', phone: '010-0000-0000' },
-];
+const AnnouncementHistory = () => {
+  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+  const beneficiaryId = localStorage.getItem('beneficiaryId');
 
-const AnnouncementList = () => {
-  const [selectedAnnouncement, setSelectedAnnouncement] = useState<number | null>(null);
+  useEffect(() => {
+    if (!beneficiaryId) return;
 
-  const handleImageClick = (index: number) => {
-    setSelectedAnnouncement(index);
-  };
+    const fetchAnnouncements = async () => {
+      try {
+        const response = await axios.get(
+          `https://your-api.com/beneficiaries/posts/${beneficiaryId}`
+        );
 
-  const handleCloseSupporters = () => {
-    setSelectedAnnouncement(null);
-  };
+        if (response.data.isSuccess) {
+          setAnnouncements(response.data.result.postList);
+        }
+      } catch (error) {
+        console.error('Error fetching announcement history:', error);
+      }
+    };
+
+    fetchAnnouncements();
+  }, [beneficiaryId]);
 
   return (
     <Container>
       <Header>
         <Title>공고 현황</Title>
         <TotalCount>
-          <CountNumber>100</CountNumber>개의 기관
+          <CountNumber>{announcements.length}</CountNumber>개의 공고
         </TotalCount>
       </Header>
       <Divider />
-      <ContentWrapper>
+      {announcements.length > 0 ? (
         <AnnouncementGrid>
-          {announcements.map((announcement, index) => (
-            <AnnouncementCard key={index}>
-              <ImagePlaceholder onClick={() => handleImageClick(index)} />
-              <InstitutionName>{announcement.institution}</InstitutionName>
+          {announcements.map((announcement) => (
+            <AnnouncementCard key={announcement.postId}>
+              <Image src={announcement.attachedImage || "https://via.placeholder.com/140"} alt="공고 이미지" />
+              <AnnouncementTitle>{announcement.title}</AnnouncementTitle>
+              <AnnouncementDetails>
+                <Institution>{announcement.beneficiaryName}</Institution>
+                <Status>{announcement.approvalStatus === 'APPROVED' ? '승인됨' : '대기 중'}</Status>
+              </AnnouncementDetails>
             </AnnouncementCard>
           ))}
         </AnnouncementGrid>
-
-        {selectedAnnouncement !== null && (
-          <SupporterPanel>
-            <PanelHeader>
-              <PanelTitle>후원자 목록</PanelTitle>
-              <CloseButton onClick={handleCloseSupporters}>X</CloseButton>
-            </PanelHeader>
-            <SupporterList>
-              {mockSupporters.map((supporter, index) => (
-                <SupporterItem key={index}>
-                  <ProfileImage />
-                  <SupporterInfo>
-                    <div>이름: {supporter.name}</div>
-                    <div>이메일: {supporter.email}</div>
-                    <div>전화번호: {supporter.phone}</div>
-                  </SupporterInfo>
-                </SupporterItem>
-              ))}
-            </SupporterList>
-          </SupporterPanel>
-        )}
-      </ContentWrapper>
+      ) : (
+        <NoAnnouncementMessage>등록된 공고가 없습니다.</NoAnnouncementMessage>
+      )}
       <Pagination>
         {[...Array(10)].map((_, index) => (
           <PageNumber key={index}>{index + 1}</PageNumber>
@@ -77,7 +71,7 @@ const AnnouncementList = () => {
   );
 };
 
-export default AnnouncementList;
+export default AnnouncementHistory;
 
 const Container = styled.div`
   padding: 40px;
@@ -91,12 +85,10 @@ const Header = styled.div`
 `;
 
 const Title = styled.h2`
-  font-size: 33px;
+  font-size: 36px;
   font-weight: Semibold;
   color: #3e5879;
   margin: 0;
-  text-align: center;
-  width: 90%;
 `;
 
 const TotalCount = styled.div`
@@ -120,92 +112,47 @@ const Divider = styled.div`
   margin: 20px 0 30px 0;
 `;
 
-const ContentWrapper = styled.div`
-  display: flex;
-  gap: 20px;
-`;
-
 const AnnouncementGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 30px;
-  flex: 1;
 `;
 
 const AnnouncementCard = styled.div`
-  padding: 20px;
-  background-color: #f0f3f8;
+  background-color: #f8f9fa;
   border-radius: 12px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  padding: 20px;
 `;
 
-const ImagePlaceholder = styled.div`
+const Image = styled.img`
   width: 100%;
-  height: 120px;
-  background-color: #c0c7d6;
+  height: 140px;
+  object-fit: cover;
   border-radius: 8px;
   margin-bottom: 10px;
-  cursor: pointer;
 `;
 
-const InstitutionName = styled.div`
+const AnnouncementTitle = styled.div`
   font-size: 14px;
-  font-weight: bold;
-  color: #3e5879;
+  margin-bottom: 10px;
 `;
 
-const SupporterPanel = styled.div`
-  width: 250px;
-  background-color: #f0f3f8;
-  border-radius: 8px;
-  padding: 10px;
-  overflow-y: auto;
-  max-height: 400px;
-`;
-
-const PanelHeader = styled.div`
+const AnnouncementDetails = styled.div`
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 10px;
-`;
-
-const PanelTitle = styled.div`
-  font-weight: bold;
-  color: #3e5879;
-`;
-
-const CloseButton = styled.button`
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 16px;
-`;
-
-const SupporterList = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-`;
-
-const SupporterItem = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 10px;
-`;
-
-const ProfileImage = styled.div`
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background-color: #c0c7d6;
-`;
-
-const SupporterInfo = styled.div`
   font-size: 12px;
-  color: #333;
+  color: #555;
+`;
+
+const Institution = styled.div``;
+
+const Status = styled.div``;
+
+const NoAnnouncementMessage = styled.div`
+  text-align: center;
+  font-size: 16px;
+  color: #3e5879;
+  margin: 20px 0;
 `;
 
 const Pagination = styled.div`
