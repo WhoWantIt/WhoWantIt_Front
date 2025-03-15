@@ -6,7 +6,7 @@ import Navigation from "../../../components/Navigation";
 import { useNavigate } from "react-router-dom";
 import api from "../../../utils/api";
 
-const SponserFundingPage = () => {
+const SponserVolunteerPage = () => {
   const navigate = useNavigate();
   const [documents] = useState<string[]>([
     "스크랩",
@@ -15,27 +15,21 @@ const SponserFundingPage = () => {
     "마이페이지",
   ]);
   const [activeDoc, setActiveDoc] = useState<string | null>(null);
-  const [fundingData, setFundingData] = useState<any[]>([]);
-  const [totalFundingAmount, setTotalFundingAmount] = useState<number>(0);
+  const [volunteerData, setVolunteerData] = useState<any[]>([]);
 
   useEffect(() => {
-    const fetchFundingData = async () => {
+    const fetchVolunteers = async () => {
       try {
-        const response = await api.get("/sponsors/fundings");
+        const response = await api.get("/sponsors/volunteers");
         if (response.data.isSuccess) {
-          setFundingData(response.data.result.fundingList);
-          const totalAmount = response.data.result.fundingList.reduce(
-            (sum, funding) => sum + funding.fundingAmount,
-            0,
-          );
-          setTotalFundingAmount(totalAmount);
+          setVolunteerData(response.data.result.volunteerList);
         }
       } catch (error) {
-        console.error("Failed to fetch funding data", error);
+        console.error("Failed to fetch volunteer data", error);
       }
     };
 
-    fetchFundingData();
+    fetchVolunteers();
   }, []);
 
   const handleNavigation = (doc: string) => {
@@ -49,15 +43,15 @@ const SponserFundingPage = () => {
     navigate(routes[doc]);
   };
 
-  const goToFundingDetail = (fundingId: number) => {
-    navigate(`/crowdfunding/${fundingId}`);
+  const goToVolunteerDetail = (volunteerId: number) => {
+    navigate(`/volunteer/${volunteerId}`);
   };
 
   return (
     <>
       <Navigation />
       <Container>
-      <Sidebar>
+        <Sidebar>
           <ButtonWrapper>마이페이지</ButtonWrapper>
           <DocumentList>
             {documents.map((doc, index) => (
@@ -72,42 +66,33 @@ const SponserFundingPage = () => {
           </DocumentList>
         </Sidebar>
         <MainContent>
-          <Title>참여한 펀딩</Title>
+          <Title>참여한 봉사</Title>
           <TotalCount>
-            <strong>{totalFundingAmount.toLocaleString()}</strong>원 펀딩
+            <strong>{volunteerData.length}</strong>건의 봉사 참여
           </TotalCount>
           <Divider />
-          <FundingGrid>
-            {fundingData.map((funding) => (
-              <FundingCard
-                key={funding.fundingId}
-                onClick={() => goToFundingDetail(funding.fundingId)}
+          <VolunteerGrid>
+            {volunteerData.map((volunteer) => (
+              <VolunteerCard
+                key={volunteer.volunteerId}
+                onClick={() => goToVolunteerDetail(volunteer.volunteerId)}
               >
-                <FundingImage src={funding.attachedImage} alt={funding.title} />
-                <FundingAmount>
-                  {funding.fundingAmount.toLocaleString()}원 펀딩
-                </FundingAmount>
-                <FundingTitle>{funding.title}</FundingTitle>
-                <FundingDetails>
-                  <FundingInstitution>
-                    {funding.beneficiaryName}
-                  </FundingInstitution>
-                  <FundingDday>
-                    {funding.dday === "마감"
-                      ? "마감"
-                      : `${funding.dday}일 남음`}
-                  </FundingDday>
-                </FundingDetails>
-              </FundingCard>
+                <VolunteerTitle>{volunteer.title}</VolunteerTitle>
+                <VolunteerInstitution>{volunteer.beneficiaryName}</VolunteerInstitution>
+                <VolunteerDetails>
+                  <VolunteerAddress>{volunteer.address}</VolunteerAddress>
+                  <VolunteerDday>{volunteer.dday}</VolunteerDday>
+                </VolunteerDetails>
+              </VolunteerCard>
             ))}
-          </FundingGrid>
+          </VolunteerGrid>
         </MainContent>
       </Container>
     </>
   );
 };
 
-export default SponserFundingPage;
+export default SponserVolunteerPage;
 
 const Container = styled.div`
   display: flex;
@@ -122,6 +107,7 @@ const Sidebar = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
+  height: 100vh;
 `;
 
 const ButtonWrapper = styled.div`
@@ -193,7 +179,7 @@ const Divider = styled.hr`
   margin: 20px 0;
 `;
 
-const FundingGrid = styled.div`
+const VolunteerGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   grid-gap: 20px;
@@ -211,52 +197,45 @@ const FundingGrid = styled.div`
   }
 `;
 
-const FundingCard = styled.div`
-  background-color: #ffffff;
-  padding: 20px;
+const VolunteerCard = styled.div`
+  width: clamp(140px, 18vw, 200px);
+  height: clamp(80px, 12vw, 120px);
+  padding: clamp(10px, 2vw, 20px);
   border-radius: 10px;
+  background-color: #c0c7d6;
+  color: #000000;
   display: flex;
   flex-direction: column;
+  justify-content: space-between;
+  text-decoration: none;
   cursor: pointer;
   &:hover {
-    background-color: #f0f0f0;
+    background-color: #a6b0c3;
   }
 `;
 
-const FundingImage = styled.img`
-  width: 100%;
-  height: 150px;
-  object-fit: cover;
-  border-radius: 8px;
-  background-color: #c0c7d6;
-`;
-
-const FundingAmount = styled.div`
-  font-size: 20px;
+const VolunteerTitle = styled.div`
+  font-size: clamp(14px, 1.5vw, 20px);
   font-weight: bold;
-  color: #1e3a5f;
-  margin-top: 15px;
 `;
 
-const FundingTitle = styled.div`
-  font-size: 16px;
-  font-weight: bold;
-  margin-top: 15px;
-  margin-bottom: 15px;
+const VolunteerInstitution = styled.div`
+  font-size: clamp(12px, 1.2vw, 16px);
+  margin-top: 5px;
 `;
 
-const FundingDetails = styled.div`
+const VolunteerDetails = styled.div`
   display: flex;
   justify-content: space-between;
-  font-size: 14px;
+  font-size: clamp(12px, 1.2vw, 16px);
   margin-top: auto;
-  color: #6c6c6c;
 `;
 
-const FundingInstitution = styled.div`
-  font-size: 14px;
+const VolunteerAddress = styled.div`
+  font-size: clamp(12px, 1.2vw, 16px);
 `;
 
-const FundingDday = styled.div`
-  color: #3e5879;
+const VolunteerDday = styled.div`
+  font-weight: bold;
+  color: #333;
 `;

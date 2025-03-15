@@ -112,7 +112,7 @@ const Navigation = () => {
     } else if (role === "BENEFICIARY") {
       //수혜자 마이페이지로 가주세요.
     } else if (role === "SPONSOR") {
-      //후원자 마이페이지로 가주세요.
+      navigate("/sponser/mypage");
     }
   };
   const handleLogout = () => {
