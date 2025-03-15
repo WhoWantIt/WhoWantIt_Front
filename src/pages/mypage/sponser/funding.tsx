@@ -1,34 +1,70 @@
-//fund
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import styled from "styled-components";
 import "@toast-ui/editor/dist/toastui-editor.css";
 import "react-datepicker/dist/react-datepicker.css";
 import Navigation from "../../../components/Navigation";
+import { useNavigate } from "react-router-dom";
+import api from "../../../utils/api";
 
-// 메인 컴포넌트
 const SponserFundingPage = () => {
-  //const api = import.meta.env.VITE_API_URL;
+  const navigate = useNavigate();
   const [documents] = useState<string[]>([
     "스크랩",
     "참여한 펀딩",
     "참여한 봉사",
-    "개인정보 수정",
+    "마이페이지",
   ]);
   const [activeDoc, setActiveDoc] = useState<string | null>(null);
+  const [fundingData, setFundingData] = useState<any[]>([]);
+  const [totalFundingAmount, setTotalFundingAmount] = useState<number>(0);
+
+  useEffect(() => {
+    const fetchFundingData = async () => {
+      try {
+        const response = await api.get("/sponsors/fundings");
+        if (response.data.isSuccess) {
+          setFundingData(response.data.result.fundingList);
+          const totalAmount = response.data.result.fundingList.reduce(
+            (sum, funding) => sum + funding.fundingAmount,
+            0,
+          );
+          setTotalFundingAmount(totalAmount);
+        }
+      } catch (error) {
+        console.error("Failed to fetch funding data", error);
+      }
+    };
+
+    fetchFundingData();
+  }, []);
+
+  const handleNavigation = (doc: string) => {
+    setActiveDoc(doc);
+    const routes: { [key: string]: string } = {
+      스크랩: "/sponser/scrap/funding",
+      "참여한 펀딩": "/sponser/funding",
+      "참여한 봉사": "/sponser/volunteer",
+      마이페이지: "/sponser/mypage",
+    };
+    navigate(routes[doc]);
+  };
+
+  const goToFundingDetail = (fundingId: number) => {
+    navigate(`/crowdfunding/${fundingId}`);
+  };
 
   return (
     <>
       <Navigation />
       <Container>
-        {/* 왼쪽 사이드바 */}
-        <Sidebar>
+      <Sidebar>
           <ButtonWrapper>마이페이지</ButtonWrapper>
           <DocumentList>
             {documents.map((doc, index) => (
               <DocumentItem
                 key={index}
                 active={activeDoc === doc}
-                onClick={() => setActiveDoc(doc)}
+                onClick={() => handleNavigation(doc)}
               >
                 {doc}
               </DocumentItem>
@@ -38,27 +74,33 @@ const SponserFundingPage = () => {
         <MainContent>
           <Title>참여한 펀딩</Title>
           <TotalCount>
-            <strong>10,000,000</strong>원 펀딩
+            <strong>{totalFundingAmount.toLocaleString()}</strong>원 펀딩
           </TotalCount>
           <Divider />
-
-          {/* 기관 카드 목록 */}
-          <StyledPostGrid>
-            {Array.from({ length: 8 }).map((_, index) => (
-              <StyledPostCard key={index}>
-                <StyledImagePlaceholder />
-                <StyledAchievement>680% 달성</StyledAchievement>
-                <StyledCardTitle>
-                  자립준비청년들에게 사회로 나갈 준비를 도와주세요.
-                </StyledCardTitle>
-                <StyledPostDetails>
-                  <StyledPostInstitution>자립복지원</StyledPostInstitution>
-                  <StyledPostDaysLeft>30일 남음</StyledPostDaysLeft>
-                </StyledPostDetails>
-              </StyledPostCard>
+          <FundingGrid>
+            {fundingData.map((funding) => (
+              <FundingCard
+                key={funding.fundingId}
+                onClick={() => goToFundingDetail(funding.fundingId)}
+              >
+                <FundingImage src={funding.attachedImage} alt={funding.title} />
+                <FundingAmount>
+                  {funding.fundingAmount.toLocaleString()}원 펀딩
+                </FundingAmount>
+                <FundingTitle>{funding.title}</FundingTitle>
+                <FundingDetails>
+                  <FundingInstitution>
+                    {funding.beneficiaryName}
+                  </FundingInstitution>
+                  <FundingDday>
+                    {funding.dday === "마감"
+                      ? "마감"
+                      : `${funding.dday}일 남음`}
+                  </FundingDday>
+                </FundingDetails>
+              </FundingCard>
             ))}
-          </StyledPostGrid>
-          {/**페이지네이션 */}
+          </FundingGrid>
         </MainContent>
       </Container>
     </>
@@ -66,12 +108,13 @@ const SponserFundingPage = () => {
 };
 
 export default SponserFundingPage;
-// 스타일 컴포넌트 정의
+
 const Container = styled.div`
   display: flex;
   width: 100%;
   height: auto;
 `;
+
 const Sidebar = styled.div`
   width: 250px;
   background-color: #3e5879;
@@ -79,21 +122,24 @@ const Sidebar = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  height: 100vh;
 `;
+
 const ButtonWrapper = styled.div`
   display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  margin-top: 30px;
+  margin-top: 50px;
+  font-size: 25px;
+  font-weight: bold;
 `;
+
 const DocumentList = styled.ul`
   list-style: none;
-  border-bottom: 2px solid #ffffff;
+  border-bottom: 1px solid #ffffff;
   padding: 0;
-  margin-top: 100px;
+  margin-top: 50px;
   width: 250px;
 `;
 interface DocumentItemProps {
@@ -103,15 +149,20 @@ interface DocumentItemProps {
 const DocumentItem = styled.li.withConfig({
   shouldForwardProp: (prop) => prop !== "active",
 })<DocumentItemProps>`
-  background-color: ${({ active }) => (active ? "#3e5879" : "#3e5879")};
+  background-color: ${({ active }) => (active ? "#adacc2" : "#3e5879")};
   cursor: pointer;
   &:hover {
     background-color: #adacc2;
   }
-  border-top: 2px solid white;
+  border-top: 1px solid #ffffff;
   height: 55px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 18px;
 `;
-/* 메인 콘텐츠 */
+
 const MainContent = styled.div`
   flex: 1;
   padding: 40px;
@@ -141,49 +192,71 @@ const Divider = styled.hr`
   background-color: #ddd;
   margin: 20px 0;
 `;
-const StyledPostGrid = styled.div`
+
+const FundingGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  grid-gap: 24px;
-  padding: 30px 80px;
+  grid-template-columns: repeat(3, 1fr);
+  grid-gap: 20px;
+  padding: 20px 60px;
+  box-sizing: border-box;
+
+  @media (max-width: 1024px) {
+    grid-template-columns: repeat(2, 1fr);
+    padding: 0 100px;
+  }
+
+  @media (max-width: 768px) {
+    grid-template-columns: repeat(1, 1fr);
+    padding: 0 50px;
+  }
 `;
 
-const StyledPostCard = styled.div`
-  background-color: white;
-  padding: 16px;
+const FundingCard = styled.div`
+  background-color: #ffffff;
+  padding: 20px;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
+  &:hover {
+    background-color: #f0f0f0;
+  }
 `;
 
-const StyledImagePlaceholder = styled.div`
+const FundingImage = styled.img`
   width: 100%;
   height: 150px;
-  background-color: #c0c7d6;
+  object-fit: cover;
   border-radius: 8px;
+  background-color: #c0c7d6;
 `;
 
-const StyledAchievement = styled.div`
+const FundingAmount = styled.div`
+  font-size: 20px;
+  font-weight: bold;
+  color: #1e3a5f;
+  margin-top: 15px;
+`;
+
+const FundingTitle = styled.div`
   font-size: 16px;
   font-weight: bold;
-  margin-top: 8px;
+  margin-top: 15px;
+  margin-bottom: 15px;
 `;
 
-const StyledCardTitle = styled.div`
-  font-size: 14px;
-  font-weight: 600;
-  margin-bottom: 4px;
-`;
-
-const StyledPostDetails = styled.div`
+const FundingDetails = styled.div`
   display: flex;
   justify-content: space-between;
-  font-size: 12px;
+  font-size: 14px;
+  margin-top: auto;
   color: #6c6c6c;
 `;
 
-const StyledPostInstitution = styled.div`
-  font-weight: 500;
+const FundingInstitution = styled.div`
+  font-size: 14px;
 `;
 
-const StyledPostDaysLeft = styled.div`
-  font-weight: bold;
+const FundingDday = styled.div`
   color: #3e5879;
 `;
