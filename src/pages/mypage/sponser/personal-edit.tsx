@@ -1,26 +1,138 @@
-//fund
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
-import "@toast-ui/editor/dist/toastui-editor.css";
-import "react-datepicker/dist/react-datepicker.css";
+import api from "../../../utils/api";
+import { AxiosError } from "axios";
 import Navigation from "../../../components/Navigation";
 
-// 메인 컴포넌트
 const PersonalEditPage = () => {
-  //const api = import.meta.env.VITE_API_URL;
+  const navigate = useNavigate();
   const [documents] = useState<string[]>([
     "스크랩",
     "참여한 펀딩",
     "참여한 봉사",
-    "개인정보 수정",
+    "마이페이지",
   ]);
   const [activeDoc, setActiveDoc] = useState<string | null>(null);
+
+  const handleNavigation = (doc: string) => {
+    setActiveDoc(doc);
+    const routes: { [key: string]: string } = {
+      스크랩: "/sponser/scrap/funding",
+      "참여한 펀딩": "/sponser/funding",
+      "참여한 봉사": "/sponser/volunteer",
+      마이페이지: "/sponser/mypage",
+    };
+    navigate(routes[doc]);
+  };
+  const [formData, setFormData] = useState({
+    nickname: "",
+    name: "",
+    email: "",
+    password: "",
+    phoneNumber: "",
+    address: "",
+  });
+  const [originalData, setOriginalData] = useState({
+    nickname: "",
+    name: "",
+    email: "",
+    password: "",
+    phoneNumber: "",
+    address: "",
+  });
+  const [image, setImage] = useState<File | null>(null);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const response = await api.get("/my/info", {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+          },
+        });
+        setFormData(response.data);
+        setOriginalData(response.data);
+      } catch (error) {
+        console.error(
+          "사용자 정보 불러오기 실패:",
+          (error as AxiosError).message,
+        );
+      }
+    };
+    fetchUserData();
+  }, []);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async () => {
+    console.log("보낼 데이터:", formData);
+    const cleanedFormData = {
+      nickname: formData.nickname || originalData.nickname,
+      name: formData.name || originalData.name,
+      email: formData.email || originalData.email,
+      password: formData.password || originalData.password,
+      phoneNumber: formData.phoneNumber || originalData.phoneNumber,
+      address: formData.address || originalData.address,
+    };
+
+    try {
+      const response = await api.put(
+        "/my/info",
+        JSON.stringify(cleanedFormData),
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+          },
+        },
+      );
+
+      console.log("응답 데이터:", response.data);
+      navigate("/sponser/mypage");
+    } catch (error: AxiosError | any) {
+      console.error(
+        "개인정보 수정 실패:",
+        error.response?.data || error.message,
+      );
+    }
+  };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setImage(file);
+      setPreviewImage(URL.createObjectURL(file));
+    }
+  };
+
+  const uploadImage = async () => {
+    if (!image) return;
+    const imageFormData = new FormData();
+    imageFormData.append("images", image);
+    try {
+      const response = await api.put("/my/info/images", imageFormData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+        },
+      });
+      console.log("이미지 업로드 성공:", response.data);
+    } catch (error: AxiosError | any) {
+      console.error(
+        "이미지 업로드 실패:",
+        error.response?.data || error.message,
+      );
+    }
+  };
 
   return (
     <>
       <Navigation />
       <Container>
-        {/* 왼쪽 사이드바 */}
         <Sidebar>
           <ButtonWrapper>마이페이지</ButtonWrapper>
           <DocumentList>
@@ -28,7 +140,7 @@ const PersonalEditPage = () => {
               <DocumentItem
                 key={index}
                 active={activeDoc === doc}
-                onClick={() => setActiveDoc(doc)}
+                onClick={() => handleNavigation(doc)}
               >
                 {doc}
               </DocumentItem>
@@ -38,7 +150,33 @@ const PersonalEditPage = () => {
         <MainContent>
           <FormWrapper>
             <Title>개인정보 수정</Title>
-            <CardImage />
+            <CardImage
+              onClick={() => document.getElementById("imageInput")?.click()}
+            >
+              {previewImage ? (
+                <img src={previewImage} alt="미리보기" />
+              ) : (
+                "사진 추가"
+              )}
+            </CardImage>
+            <input
+              id="imageInput"
+              type="file"
+              accept="image/*"
+              onChange={handleImageChange}
+              style={{ display: "none" }}
+            />
+
+            <InputWrapper>
+              <Subtitle>닉네임</Subtitle>
+              <Input
+                type="text"
+                name="nickname"
+                placeholder="닉네임을 입력해주세요."
+                value={formData.nickname}
+                onChange={handleInputChange}
+              />
+            </InputWrapper>
 
             <InputWrapper>
               <Subtitle>이름</Subtitle>
@@ -46,6 +184,8 @@ const PersonalEditPage = () => {
                 type="text"
                 name="name"
                 placeholder="이름을 입력해주세요."
+                value={formData.name}
+                onChange={handleInputChange}
               />
             </InputWrapper>
 
@@ -55,15 +195,18 @@ const PersonalEditPage = () => {
                 type="text"
                 name="email"
                 placeholder="이메일을 입력해주세요."
+                value={formData.email}
+                onChange={handleInputChange}
               />
             </InputWrapper>
 
             <InputWrapper>
               <Subtitle>비밀번호</Subtitle>
               <Input
-                type="text"
+                type="password"
                 name="password"
                 placeholder="비밀번호를 입력해주세요."
+                onChange={handleInputChange}
               />
             </InputWrapper>
 
@@ -71,8 +214,10 @@ const PersonalEditPage = () => {
               <Subtitle>연락처</Subtitle>
               <Input
                 type="text"
-                name="phonenumber"
-                placeholder="연락처를 입력해주세요. ex) 010-1234-5678"
+                name="phoneNumber"
+                placeholder="연락처를 입력해주세요."
+                value={formData.phoneNumber}
+                onChange={handleInputChange}
               />
             </InputWrapper>
 
@@ -81,11 +226,20 @@ const PersonalEditPage = () => {
               <Input
                 type="text"
                 name="address"
-                placeholder="주소를 입력해주세요. ex) 서울시 종로구 낙산길 198"
+                placeholder="주소를 입력해주세요."
+                value={formData.address}
+                onChange={handleInputChange}
               />
             </InputWrapper>
 
-            <Button>수정완료</Button>
+            <Button
+              onClick={async () => {
+                await handleSubmit();
+                await uploadImage();
+              }}
+            >
+              수정완료
+            </Button>
           </FormWrapper>
         </MainContent>
       </Container>
@@ -94,13 +248,14 @@ const PersonalEditPage = () => {
 };
 
 export default PersonalEditPage;
-// 스타일 컴포넌트 정의
+
 const Container = styled.div`
   display: flex;
   width: 100%;
   height: auto;
   font-family: Pretendard, sans-serif;
 `;
+
 const Sidebar = styled.div`
   width: 250px;
   background-color: #3e5879;
@@ -110,19 +265,23 @@ const Sidebar = styled.div`
   align-items: center;
   height: 100vh;
 `;
+
 const ButtonWrapper = styled.div`
   display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  margin-top: 30px;
+  margin-top: 50px;
+  font-size: 25px;
+  font-weight: bold;
 `;
+
 const DocumentList = styled.ul`
   list-style: none;
-  border-bottom: 2px solid #ffffff;
+  border-bottom: 1px solid #ffffff;
   padding: 0;
-  margin-top: 100px;
+  margin-top: 50px;
   width: 250px;
 `;
 interface DocumentItemProps {
@@ -132,20 +291,26 @@ interface DocumentItemProps {
 const DocumentItem = styled.li.withConfig({
   shouldForwardProp: (prop) => prop !== "active",
 })<DocumentItemProps>`
-  background-color: ${({ active }) => (active ? "#3e5879" : "#3e5879")};
+  background-color: ${({ active }) => (active ? "#adacc2" : "#3e5879")};
   cursor: pointer;
   &:hover {
     background-color: #adacc2;
   }
-  border-top: 2px solid white;
+  border-top: 1px solid #ffffff;
   height: 55px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 18px;
 `;
-/* 메인 콘텐츠 */
+
 const MainContent = styled.div`
   flex: 1;
   display: flex;
   justify-content: center;
 `;
+
 const FormWrapper = styled.div`
   width: 50%;
   text-align: center;
@@ -161,48 +326,42 @@ const Title = styled.h2`
   margin-bottom: 30px;
   color: #3e5879;
 `;
+
 const InputWrapper = styled.div`
   width: 80%;
   display: flex;
   flex-direction: column;
-  align-items: flex-start; /* 왼쪽 정렬 */
+  align-items: flex-start;
   margin-bottom: 10px;
   margin-left: 10px;
 `;
+
 const Subtitle = styled.div`
   color: #3e5879;
   display: flex;
-  margin-left: 15px;
+  margin-left: 8px;
   margin-bottom: 5px;
-  font-family: "Pretandard", sans-serif;
   font-weight: bold;
-  justify-content: flex-start;
 `;
+
 const Input = styled.input`
   width: 90%;
-  height: 30px;
+  height: 20px;
   padding: 10px;
-  margin-bottom: 10px;
   border: 1px solid #9a9ebe;
   border-radius: 5px;
   font-size: 14px;
 `;
 
 const Button = styled.button`
-  width: 130px;
-  height: 50px;
-  padding: 10px;
+  width: 100px;
+  height: 40px;
   background: #3e5879;
   color: white;
   border: none;
   border-radius: 5px;
   cursor: pointer;
   margin-top: 30px;
-
-  &:hover {
-    background: #3e5879;
-  }
-  font-family: "Pretandard", sans-serif;
 `;
 
 const CardImage = styled.div`
@@ -214,4 +373,12 @@ const CardImage = styled.div`
   align-items: center;
   justify-content: center;
   margin-bottom: 40px;
+  cursor: pointer;
+  overflow: hidden;
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+  }
 `;

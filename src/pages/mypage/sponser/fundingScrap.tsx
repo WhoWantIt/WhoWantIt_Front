@@ -6,7 +6,7 @@ import Navigation from "../../../components/Navigation";
 import { useNavigate } from "react-router-dom";
 import api from "../../../utils/api";
 
-const SponserFundingPage = () => {
+const FundingScrapPage = () => {
   const navigate = useNavigate();
   const [documents] = useState<string[]>([
     "스크랩",
@@ -16,26 +16,19 @@ const SponserFundingPage = () => {
   ]);
   const [activeDoc, setActiveDoc] = useState<string | null>(null);
   const [fundingData, setFundingData] = useState<any[]>([]);
-  const [totalFundingAmount, setTotalFundingAmount] = useState<number>(0);
 
   useEffect(() => {
-    const fetchFundingData = async () => {
+    const fetchFundingScraps = async () => {
       try {
-        const response = await api.get("/sponsors/fundings");
+        const response = await api.get("/sponsors/scraps/fundings");
         if (response.data.isSuccess) {
-          setFundingData(response.data.result.fundingList);
-          const totalAmount = response.data.result.fundingList.reduce(
-            (sum, funding) => sum + funding.fundingAmount,
-            0,
-          );
-          setTotalFundingAmount(totalAmount);
+          setFundingData(response.data.result);
         }
       } catch (error) {
-        console.error("Failed to fetch funding data", error);
+        console.error("Failed to fetch funding scrap data", error);
       }
     };
-
-    fetchFundingData();
+    fetchFundingScraps();
   }, []);
 
   const handleNavigation = (doc: string) => {
@@ -53,11 +46,15 @@ const SponserFundingPage = () => {
     navigate(`/crowdfunding/${fundingId}`);
   };
 
+  const goToVolunteerPage = () => {
+    navigate("/sponser/scrap/volunteer");
+  };
+
   return (
     <>
       <Navigation />
       <Container>
-      <Sidebar>
+        <Sidebar>
           <ButtonWrapper>마이페이지</ButtonWrapper>
           <DocumentList>
             {documents.map((doc, index) => (
@@ -72,47 +69,50 @@ const SponserFundingPage = () => {
           </DocumentList>
         </Sidebar>
         <MainContent>
-          <Title>참여한 펀딩</Title>
-          <TotalCount>
-            <strong>{totalFundingAmount.toLocaleString()}</strong>원 펀딩
-          </TotalCount>
-          <Divider />
-          <FundingGrid>
-            {fundingData.map((funding) => (
-              <FundingCard
-                key={funding.fundingId}
-                onClick={() => goToFundingDetail(funding.fundingId)}
-              >
-                <FundingImage src={funding.attachedImage} alt={funding.title} />
-                <FundingAmount>
-                  {funding.fundingAmount.toLocaleString()}원 펀딩
-                </FundingAmount>
-                <FundingTitle>{funding.title}</FundingTitle>
-                <FundingDetails>
+          <Content>
+            <ButtonWrapper>
+              <Button active>#클라우드 펀딩</Button>
+              <Button onClick={goToVolunteerPage}>#자원봉사 공고</Button>
+            </ButtonWrapper>
+            <FundingGrid>
+              {fundingData.map((funding) => (
+                <FundingCard
+                  key={funding.fundingId}
+                  onClick={() => goToFundingDetail(funding.fundingId)}
+                >
+                  <FundingImage
+                    src={funding.attachedImage}
+                    alt={funding.title}
+                  />
+                  <FundingAmount>
+                    {funding.targetAmount.toLocaleString()}원 펀딩
+                  </FundingAmount>
+                  <FundingTitle>{funding.title}</FundingTitle>
                   <FundingInstitution>
                     {funding.beneficiaryName}
                   </FundingInstitution>
-                  <FundingDday>
-                    {funding.dday === "마감"
-                      ? "마감"
-                      : `${funding.dday}일 남음`}
-                  </FundingDday>
-                </FundingDetails>
-              </FundingCard>
-            ))}
-          </FundingGrid>
+                  <FundingDetails>
+                    <FundingDday>
+                      {funding.dday === "마감" ? "마감" : `D-${funding.dday}`}
+                    </FundingDday>
+                  </FundingDetails>
+                </FundingCard>
+              ))}
+            </FundingGrid>
+          </Content>
         </MainContent>
       </Container>
     </>
   );
 };
 
-export default SponserFundingPage;
+export default FundingScrapPage;
 
 const Container = styled.div`
   display: flex;
   width: 100%;
   height: auto;
+  font-family: Pretendard, sans-serif;
 `;
 
 const Sidebar = styled.div`
@@ -122,6 +122,7 @@ const Sidebar = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
+  height: 100vh;
 `;
 
 const ButtonWrapper = styled.div`
@@ -165,32 +166,29 @@ const DocumentItem = styled.li.withConfig({
 
 const MainContent = styled.div`
   flex: 1;
-  padding: 40px;
 `;
 
-const Title = styled.h2`
-  font-size: 24px;
-  font-weight: bold;
-  text-align: center;
+const Content = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 40px;
+  flex-direction: column;
 `;
 
-const TotalCount = styled.p`
-  text-align: right;
-  font-size: 18px;
-  margin: 10px 0;
-  color: #3e5879;
-
-  strong {
-    font-size: 24px;
-    font-weight: bold;
-  }
-`;
-
-const Divider = styled.hr`
+interface ButtonProps {
+  active: boolean;
+}
+const Button = styled.button<ButtonProps>`
+  font-size: 23px;
+  color: ${({ active }) => (active ? "#3E5879" : "#E6D9D2")};
+  width: 250px;
+  padding: 15px 16px;
   border: none;
-  height: 1px;
-  background-color: #ddd;
-  margin: 20px 0;
+  border-bottom: 1.5px solid ${({ active }) => (active ? "#3E5879" : "#E6D9D2")};
+  background: transparent;
+  cursor: pointer;
+  position: relative;
 `;
 
 const FundingGrid = styled.div`
