@@ -13,13 +13,14 @@ import FundingPage from "../pages/mypage/manager/funding";
 import PostRequestPage from "../pages/mypage/manager/post-request";
 import PostEdit from "../pages/posts/edit";
 import SponserFundingPage from "../pages/mypage/sponser/funding";
-import SponserAnnouncePage from "../pages/mypage/sponser/announce";
 import PersonalEditPage from "../pages/mypage/sponser/personal-edit";
 import VolunteerPage from "../pages/volunteer/main";
-import ScrapPage from "../pages/mypage/sponser/scrap";
 import SponPage from "../pages/mypage/manager/spon";
 import PostDetail from "../pages/posts/detail";
 import PersonalPage from "../pages/mypage/sponser/mypage";
+import SponserVolunteerPage from "../pages/mypage/sponser/volunteer";
+import FundingScrapPage from "../pages/mypage/sponser/fundingScrap";
+import VolunteerScrapPage from "../pages/mypage/sponser/volunteerScrap";
 
 const RoutesConfig = () => {
   return (
@@ -45,10 +46,11 @@ const RoutesConfig = () => {
       <Route path="/manager/funding" element={<FundingPage />} />
       <Route path="/manager/post-request" element={<PostRequestPage />} />
       <Route path="/sponser/funding" element={<SponserFundingPage />} />
-      <Route path="/sponser/announce" element={<SponserAnnouncePage />} />
+      <Route path="/sponser/volunteer" element={<SponserVolunteerPage />} />
       <Route path="/sponser/personal-edit" element={<PersonalEditPage />} />
-      <Route path="/sponser/scrap" element={<ScrapPage />} />
       <Route path="/sponser/mypage" element={<PersonalPage />} />
+      <Route path="/sponser/scrap/funding" element={<FundingScrapPage />} />
+      <Route path="/sponser/scrap/volunteer" element={<VolunteerScrapPage />} />
     </Routes>
   );
 };
