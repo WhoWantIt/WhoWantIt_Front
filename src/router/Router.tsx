@@ -71,7 +71,6 @@ const RoutesConfig = () => {
       <Route path="/sponser/funding" element={<SponserFundingPage />} />
       <Route path="/sponser/volunteer" element={<SponserVolunteerPage />} />
       <Route path="/sponser/personal-edit" element={<PersonalEditPage />} />
-      <Route path="/sponser/scrap" element={<ScrapPage />} />
       <Route path="/posts/detail/:postId" element={<PostRequestDetail />} />
       <Route
         path="/fundings/detail/:fundingId"

@@ -21,20 +21,11 @@ const FooterInfo = styled.div`
   align-items: center;
 `;
 
-const FooterLinks = styled.div`
-  margin-bottom: 10px;
-`;
-
-const FooterLink = styled.a`
-  color: #666;
-  text-decoration: none;
-  margin: 0 10px;
-  font-size: 14px;
-`;
-
-const Copyright = styled.p`
-  font-size: 12px;
+const Copyright = styled.a`
+  font-size: 18px;
   color: #999;
+  margin-top: 20px;
+  margin-bottom: 80px;
 `;
 
 const Footer = () => {
@@ -42,12 +33,9 @@ const Footer = () => {
     <FooterContainer>
       <FooterLogoImage src={Logo} alt="WhoWantIt Logo" />
       <FooterInfo>
-        <FooterLinks>
-          <FooterLink href="#">Mobile app</FooterLink>
-          <FooterLink href="#">Community</FooterLink>
-          <FooterLink href="#">Company</FooterLink>
-        </FooterLinks>
-        <Copyright>© Photo, Inc. 2019. We love our users!</Copyright>
+        <Copyright href="https://github.com/WhoWantIt">
+          Developed by 구자연, 김영현, 백선영, 홍가을(thank you for 김희정)
+        </Copyright>
       </FooterInfo>
     </FooterContainer>
   );
