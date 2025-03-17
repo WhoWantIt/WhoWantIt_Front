@@ -273,7 +273,6 @@ const DetailOutCard = styled.div`
   display: flex;
   justify-content: space-between;
   margin-top: 10px;
-  margin-left: 20px;
   font-size: 20px;
   color: white;
   font-weight: 400;
