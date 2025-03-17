@@ -223,7 +223,7 @@ const Card = styled.div`
 
 const VolunteerCard = styled.div`
   width: 250px;
-  height: 150px;
+  height: 130px;
   padding: clamp(10px, 2vw, 20px);
   border-radius: 10px;
   background-color: #c0c7d6;
@@ -239,17 +239,17 @@ const VolunteerCard = styled.div`
 `;
 
 const CardTitle = styled.div`
-  font-size: clamp(14px, 1.5vw, 18px);
+  font-size: clamp(14px, 1.5vw, 16px);
   font-weight: bold;
 `;
 
 const CardStartDate = styled.div`
-  font-size: clamp(12px, 1.2vw, 16px);
+  font-size: clamp(12px, 1.2vw, 14px);
   margin-top: 5px;
 `;
 
 const CardMax = styled.div`
-  font-size: clamp(12px, 1.2vw, 16px);
+  font-size: clamp(12px, 1.2vw, 14px);
   margin-top: 5px;
 `;
 
@@ -260,12 +260,12 @@ const DetailWrapper = styled.div`
 `;
 
 const CardAddresss = styled.div`
-  font-size: clamp(12px, 1.2vw, 16px);
+  font-size: clamp(12px, 1.2vw, 14px);
 `;
 
 const CardDeadLine = styled.div`
   display: flex;
-  font-size: clamp(12px, 1.2vw, 16px);
+  font-size: clamp(12px, 1.2vw, 14px);
   color: black;
 `;
 
