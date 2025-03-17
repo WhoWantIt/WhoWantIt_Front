@@ -128,7 +128,7 @@ const Navigation = () => {
     navigate("/volunteer");
   };
   const handleFunding = () => {
-    navigate("/");
+    navigate("/crowdfunding/all");
   };
   return (
     <HeaderBar>
