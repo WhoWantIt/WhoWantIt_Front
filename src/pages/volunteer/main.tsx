@@ -26,8 +26,8 @@ const cities = [
   "서울",
   "경기",
   "인천",
-  "대전/충청/세종",
-  "부산/대구/경상",
+  "대전",
+  "부산",
   "강원",
   "제주",
 ];
@@ -222,7 +222,7 @@ const VolunteerPage = () => {
                 </CityList>
 
                 {/* 서울 선택 시만 구 리스트 표시 */}
-                {city === "서울" && (
+                {(
                   <DistrictList>
                     {SeoulDistrict.map((district) => (
                       <DistrictItem
@@ -306,7 +306,7 @@ const ButtonWrapper = styled.div`
   display: flex;
   width: 300px;
   margin-top: 50px;
-  margin-left: 60px;
+  margin-left: 45px;
 `;
 interface ButtonProps {
   active: boolean;
@@ -321,6 +321,9 @@ const Button = styled.button<ButtonProps>`
   background: transparent;
   cursor: pointer;
   position: relative;
+  @media(max-width: 768px) {
+    font-size: 13px;
+  }
 `;
 const Wrapper = styled.div`
   display: flex;
@@ -337,19 +340,24 @@ const SidebarWrapper = styled.div`
   height: 600px;
   margin-top: 30px;
   margin-left: 20px;
+  @media (max-width: 768px) {
+    width: 250px;
+  }
 `;
 
 const CityList = styled.div`
-  dflex: 1;
+  flex: 1;
   border-right: 1px solid #ccc;
-  padding-right: 10px;
   overflow-y: auto;
+  @media(max-width: 768px) {
+    width: 110px;
+  }
 `;
 
 const CityItem = styled.div.withConfig({
   shouldForwardProp: (prop) => prop !== "active",
 })<{ active?: boolean }>`
-  font-size: 16px;
+  font-size: 15px;
   font-weight: ${({ active }) => (active ? "bold" : "normal")};
   padding: 6px 10px;
   white-space: nowrap;
@@ -359,7 +367,6 @@ const CityItem = styled.div.withConfig({
 
 const DistrictList = styled.div`
   flex: 1;
-  min-width: 150px;
   padding-left: 10px;
   overflow: hidden;
 `;
@@ -403,7 +410,7 @@ const CardGrid = styled.div`
   }
 
   @media (max-width: 768px) {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(1, 1fr);
     padding: 0 50px;
   }
 `;

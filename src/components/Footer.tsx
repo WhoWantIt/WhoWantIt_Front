@@ -22,7 +22,7 @@ const FooterInfo = styled.div`
 `;
 
 const Copyright = styled.a`
-  font-size: 18px;
+  font-size: 12px;
   color: #999;
   margin-top: 20px;
   margin-bottom: 80px;
@@ -34,7 +34,7 @@ const Footer = () => {
       <FooterLogoImage src={Logo} alt="WhoWantIt Logo" />
       <FooterInfo>
         <Copyright href="https://github.com/WhoWantIt">
-          Developed by 구자연, 김영현, 백선영, 홍가을(thank you for 김희정)
+          Developed by Jayeon Koo, Younghyun Kim, Seongyoung Baek, Gaeul Hong, Heejung Kim
         </Copyright>
       </FooterInfo>
     </FooterContainer>
