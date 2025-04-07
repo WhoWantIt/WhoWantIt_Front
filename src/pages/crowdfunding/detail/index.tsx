@@ -16,6 +16,7 @@ interface FundingType {
   status: string;
   productName: string;
   currentAmount: number;
+  
   attachedImage: string;
   approvalStatus: string;
   attainmentPercent: number;
@@ -84,9 +85,10 @@ const CrowdfundingDetail = () => {
     handleKakaoPaySuccess();
   }, [searchParams, navigate, fundingId]);
   return (
+  <>
+    <Navigation />
     <PageContainer>
-      <Navigation />
-      <ContentWrapper>
+s      <ContentWrapper>
         <ImageSection>
           <PlaceholderImage />
         </ImageSection>
@@ -113,6 +115,7 @@ const CrowdfundingDetail = () => {
       </DetailsSection>
       <Footer />
     </PageContainer>
+    </>
   );
 };
 

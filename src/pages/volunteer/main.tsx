@@ -301,28 +301,18 @@ const Image = styled.img`
   width: 100%;
   height: auto;
 `;
-const Wrapper = styled.div`
-  display: flex;
-  justify-content: column;
-  align-items: center;
-  width: 100%;
-  max-width: 1200px;
-  margin-top: 40px;
-  margin-left: 160px;
-  gap: 20px;
-`;
+
 const ButtonWrapper = styled.div`
   display: flex;
   width: 300px;
-  max-width: 300px;
-  margin-left: 310px;
-  margin-top: 90px;
+  margin-top: 50px;
+  margin-left: 60px;
 `;
 interface ButtonProps {
   active: boolean;
 }
 const Button = styled.button<ButtonProps>`
-  font-size: 20px;
+  font-size: 18px;
   font-weight: bold;
   color: ${({ active }) => (active ? "#3E5879" : "#E6D9D2")};
   padding: 8px 16px;
@@ -332,16 +322,21 @@ const Button = styled.button<ButtonProps>`
   cursor: pointer;
   position: relative;
 `;
-
+const Wrapper = styled.div`
+  display: flex;
+  flex-direction : row;
+  justify-center: flex-end;
+  width: 100%;
+`;
 const SidebarWrapper = styled.div`
   display: flex;
   background-color: #f8f9fa;
-  padding: 30px;
-  border-radius: 10px;
+  padding: 20px;
+  border-radius: 15px;
   width: 300px;
   height: 600px;
-  margin-top: -60px;
-  margin-left: 100px;
+  margin-top: 30px;
+  margin-left: 20px;
 `;
 
 const CityList = styled.div`
@@ -400,9 +395,7 @@ const FieldItem = styled.div.withConfig({
 const CardGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 30px;
   padding: 20px;
-  margin-top: -60px;
   width: 100%;
   @media (max-width: 1024px) {
     grid-template-columns: repeat(3, 1fr);

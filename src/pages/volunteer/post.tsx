@@ -47,7 +47,19 @@ const PostPage = () => {
   useEffect(() => {
     api
       .get(`/volunteers/${volunteerId}`)
-      .then((res) => setVolunteer(res.data.result))
+      .then((res) => {
+        const processedData = res.data.result.map((vol : VolunteerType)=> {
+          const deadlineDate = new Date(vol.deadline);
+          const today = new Date();
+          const time = deadlineDate.getTime() - today.getTime();
+          const dDay = Math.ceil(time/ (1000 * 60 * 60 * 24));
+          return {
+            ...vol,
+            deadline: dDay >= 0 ? `D-${dDay}` : `D-${-dDay}(마감)`,
+          };
+        });
+        setVolunteer(processedData);
+      })
       .catch((err) => {
         console.error("Error fetching post:", err);
       });
