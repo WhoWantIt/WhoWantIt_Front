@@ -384,17 +384,16 @@ const DistrictItem = styled.div.withConfig({
 const FieldList = styled.div`
   display: flex;
   flex-direction: column;
-  width: 270px;
-  min-width: 100px;
+  width: 180px;
   padding-right: 10px;
 `;
 
 const FieldItem = styled.div.withConfig({
   shouldForwardProp: (prop) => prop !== "active",
 })<{ active?: boolean }>`
-  font-size: 20px;
+  font-size: 18px;
   font-weight: ${({ active }) => (active ? "bold" : "normal")};
-  padding: 6px 10px;
+  padding: 15px 50px;
   white-space: nowrap;
   cursor: pointer;
   color: ${({ active }) => (active ? "#3E5879" : "#333")};
