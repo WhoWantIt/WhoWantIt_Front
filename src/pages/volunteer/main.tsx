@@ -410,8 +410,8 @@ const CardGrid = styled.div`
   }
 
   @media (max-width: 768px) {
-    grid-template-columns: repeat(1, 1fr);
-    padding: 0 50px;
+    grid-template-columns: repeat(2, 1fr);
+    padding: 0 20px;
   }
 `;
 
@@ -420,6 +420,10 @@ const Card = styled.div`
   height: 180px;
   padding: 15px;
   border-radius: 10px;
+  @media(max-width: 768px) {
+    width: 190px;
+    height: 160px;
+  }
 `;
 const DetailInCard = styled.div`
   width: 100%;
@@ -427,6 +431,9 @@ const DetailInCard = styled.div`
   padding: 10px;
   background-color: #c0c7d6;
   border-radius: 8px;
+  @media(max-width: 768px) {
+    height: 140px;
+  }
 `;
 
 const CardTitle = styled.div`
@@ -436,6 +443,9 @@ const CardTitle = styled.div`
   font-size: 20px;
   font-weight: bold;
   color: black;
+  @media(max-width: 768px) {
+      font-size:18px;
+  }
 `;
 
 const CardName = styled.div`
@@ -444,18 +454,25 @@ const CardName = styled.div`
   margin-left: 10px;
   font-size: 18px;
   color: black;
+  @media(max-width: 768px) {
+    font-size: 15px;
+  }
 `;
 const DetailWrapper = styled.div`
   display: flex;
   justify-content: space-between;
-  margin-top: 50px;
-`;
+  margin-top: 35px;
+  gap:10px;
+  `;
 const CardLocation = styled.div`
   display: flex;
   margin-top: 10px;
   margin-left: 10px;
   font-size: 18px;
   color: black;
+  @media(max-width: 768px) {
+    font-size: 14px;
+  }
 `;
 
 const CardDate = styled.div`
@@ -464,6 +481,9 @@ const CardDate = styled.div`
   margin-right: 20px;
   font-size: 18px;
   color: black;
+  @media(max-width:768px) {
+    font-size: 14px;
+  }
 `;
 
 const Pagination = styled.div`
