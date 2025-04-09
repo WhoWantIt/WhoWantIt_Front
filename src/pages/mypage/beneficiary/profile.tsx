@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
-import axios from 'axios';
+import api from '../../../utils/api'; // axios 대신 api 사용!
 
 type AgeGroup = 'toddler' | 'child' | 'adolescent' | 'youth';
 
@@ -28,11 +28,9 @@ const Profile = () => {
 
     const fetchProfile = async () => {
       try {
-        const response = await axios.get(
-          `https://your-api.com/beneficiaries/profiles/${beneficiaryId}`
-        );
+        const response = await api.get(`/beneficiaries/profiles/${beneficiaryId}`); // ✅ api 사용
 
-        console.log("API 응답:", response.data); // ✅ 응답 확인
+        console.log("API 응답:", response.data);
 
         if (response.data.isSuccess) {
           const data = response.data.result;
@@ -51,7 +49,7 @@ const Profile = () => {
             },
           });
         } else {
-          console.error("API 요청은 성공했지만 데이터가 없습니다.");
+          console.error("API는 성공했지만 데이터가 없습니다.");
         }
       } catch (error) {
         console.error("프로필 정보를 불러오는 중 오류 발생:", error);
@@ -60,7 +58,7 @@ const Profile = () => {
 
     fetchProfile();
   }, [beneficiaryId]);
-
+  
   const handleEditClick = () => setIsEditing(true);
   const handleSave = () => setIsEditing(false);
 

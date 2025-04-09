@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
-import axios from 'axios';
+import api from '../../../utils/api'; // ✅ axios → api 인스턴스
 
 const PersonalEdit = () => {
   const [form, setForm] = useState({
@@ -11,7 +11,7 @@ const PersonalEdit = () => {
     youth: 0,
   });
 
-  const [image, setImage] = useState<string | null>(null);
+  const [image, setImage] = useState<string | null>(null); // 이건 API에서 이미지도 받는지에 따라 활용
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -19,6 +19,15 @@ const PersonalEdit = () => {
       ...prev,
       [name]: name === 'info' ? value : Number(value),
     }));
+  };
+
+  const handleSubmit = async () => {
+    try {
+      const response = await api.put('/beneficiaries/profiles/details', form); // ✅ 변경 완료
+      console.log('수정 완료:', response.data);
+    } catch (error) {
+      console.error('수정 중 오류 발생:', error);
+    }
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -30,20 +39,11 @@ const PersonalEdit = () => {
       };
       reader.readAsDataURL(file);
     }
-  };
+  };  
 
   const handleImageDelete = () => {
     setImage(null);
-  };
-
-  const handleSubmit = async () => {
-    try {
-      const response = await axios.put('https://your-api.com/beneficiaries/profiles/details', form);
-      console.log('수정 완료:', response.data);
-    } catch (error) {
-      console.error('수정 중 오류 발생:', error);
-    }
-  };
+  };  
 
   return (
     <Container>

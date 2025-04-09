@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
-import axios from 'axios';
+import api from '../../../utils/api'; // ✅ axios 대신 api 인스턴스 사용!
 
 interface Announcement {
   postId: number;
@@ -22,8 +22,8 @@ const AnnouncementHistory = () => {
 
     const fetchAnnouncements = async () => {
       try {
-        const response = await axios.get(
-          `https://your-api.com/beneficiaries/posts/${beneficiaryId}`
+        const response = await api.get(
+          `/beneficiaries/posts/${beneficiaryId}`
         );
 
         if (response.data.isSuccess) {

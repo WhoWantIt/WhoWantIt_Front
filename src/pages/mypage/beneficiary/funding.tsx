@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
-import axios from 'axios';
+import api from '../../../utils/api'; // ✅ axios 대신 api 인스턴스 사용
 
 interface Funding {
   fundingId: number;
@@ -22,12 +22,12 @@ const FundingHistory = () => {
 
     const fetchFundings = async () => {
       try {
-        const response = await axios.get(
-          `https://your-api.com/beneficiaries/fundings/${beneficiaryId}`
+        const response = await api.get(
+          `/beneficiaries/fundings/${beneficiaryId}` // ✅ 실제 API 경로
         );
 
         if (response.data.isSuccess) {
-          setFundings(response.data.result.fundingList);
+          setFundings(response.data.result.fundingList); // ✅ 응답 구조 확인
         }
       } catch (error) {
         console.error('펀딩 목록 가져오기 실패:', error);
@@ -51,7 +51,7 @@ const FundingHistory = () => {
           {fundings.map((funding) => (
             <FundingCard key={funding.fundingId}>
               <Image src={funding.attachedImage || "https://via.placeholder.com/140"} alt="펀딩 이미지" />
-              <Achievement>{funding.fundingAmount}원 모금됨</Achievement>
+              <Achievement>{funding.fundingAmount.toLocaleString()}원 모금됨</Achievement>
               <FundingTitle>{funding.title}</FundingTitle>
               <FundingDetails>
                 <Institution>{funding.beneficiaryName}</Institution>
