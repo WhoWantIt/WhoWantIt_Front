@@ -30,7 +30,6 @@ import PersonalPage from "../pages/mypage/sponser/mypage";
 import SponserVolunteerPage from "../pages/mypage/sponser/volunteer";
 import FundingScrapPage from "../pages/mypage/sponser/fundingScrap";
 import VolunteerScrapPage from "../pages/mypage/sponser/volunteerScrap";
-
 const RoutesConfig = () => {
   return (
     <Routes>

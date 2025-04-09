@@ -26,8 +26,8 @@ const cities = [
   "서울",
   "경기",
   "인천",
-  "대전/충청/세종",
-  "부산/대구/경상",
+  "대전",
+  "부산",
   "강원",
   "제주",
 ];
@@ -222,7 +222,7 @@ const VolunteerPage = () => {
                 </CityList>
 
                 {/* 서울 선택 시만 구 리스트 표시 */}
-                {city === "서울" && (
+                {(
                   <DistrictList>
                     {SeoulDistrict.map((district) => (
                       <DistrictItem
@@ -301,28 +301,18 @@ const Image = styled.img`
   width: 100%;
   height: auto;
 `;
-const Wrapper = styled.div`
-  display: flex;
-  justify-content: column;
-  align-items: center;
-  width: 100%;
-  max-width: 1200px;
-  margin-top: 40px;
-  margin-left: 160px;
-  gap: 20px;
-`;
+
 const ButtonWrapper = styled.div`
   display: flex;
   width: 300px;
-  max-width: 300px;
-  margin-left: 310px;
-  margin-top: 90px;
+  margin-top: 50px;
+  margin-left: 45px;
 `;
 interface ButtonProps {
   active: boolean;
 }
 const Button = styled.button<ButtonProps>`
-  font-size: 20px;
+  font-size: 18px;
   font-weight: bold;
   color: ${({ active }) => (active ? "#3E5879" : "#E6D9D2")};
   padding: 8px 16px;
@@ -331,30 +321,43 @@ const Button = styled.button<ButtonProps>`
   background: transparent;
   cursor: pointer;
   position: relative;
+  @media(max-width: 768px) {
+    font-size: 13px;
+  }
 `;
-
+const Wrapper = styled.div`
+  display: flex;
+  flex-direction : row;
+  justify-center: flex-end;
+  width: 100%;
+`;
 const SidebarWrapper = styled.div`
   display: flex;
   background-color: #f8f9fa;
-  padding: 30px;
-  border-radius: 10px;
+  padding: 20px;
+  border-radius: 15px;
   width: 300px;
   height: 600px;
-  margin-top: -60px;
-  margin-left: 100px;
+  margin-top: 30px;
+  margin-left: 20px;
+  @media (max-width: 768px) {
+    width: 250px;
+  }
 `;
 
 const CityList = styled.div`
-  dflex: 1;
+  flex: 1;
   border-right: 1px solid #ccc;
-  padding-right: 10px;
   overflow-y: auto;
+  @media(max-width: 768px) {
+    width: 110px;
+  }
 `;
 
 const CityItem = styled.div.withConfig({
   shouldForwardProp: (prop) => prop !== "active",
 })<{ active?: boolean }>`
-  font-size: 16px;
+  font-size: 15px;
   font-weight: ${({ active }) => (active ? "bold" : "normal")};
   padding: 6px 10px;
   white-space: nowrap;
@@ -364,7 +367,6 @@ const CityItem = styled.div.withConfig({
 
 const DistrictList = styled.div`
   flex: 1;
-  min-width: 150px;
   padding-left: 10px;
   overflow: hidden;
 `;
@@ -382,17 +384,16 @@ const DistrictItem = styled.div.withConfig({
 const FieldList = styled.div`
   display: flex;
   flex-direction: column;
-  width: 270px;
-  min-width: 100px;
+  width: 180px;
   padding-right: 10px;
 `;
 
 const FieldItem = styled.div.withConfig({
   shouldForwardProp: (prop) => prop !== "active",
 })<{ active?: boolean }>`
-  font-size: 20px;
+  font-size: 18px;
   font-weight: ${({ active }) => (active ? "bold" : "normal")};
-  padding: 6px 10px;
+  padding: 15px 50px;
   white-space: nowrap;
   cursor: pointer;
   color: ${({ active }) => (active ? "#3E5879" : "#333")};
@@ -400,9 +401,7 @@ const FieldItem = styled.div.withConfig({
 const CardGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 30px;
   padding: 20px;
-  margin-top: -60px;
   width: 100%;
   @media (max-width: 1024px) {
     grid-template-columns: repeat(3, 1fr);
@@ -411,7 +410,7 @@ const CardGrid = styled.div`
 
   @media (max-width: 768px) {
     grid-template-columns: repeat(2, 1fr);
-    padding: 0 50px;
+    padding: 0 20px;
   }
 `;
 
@@ -420,6 +419,10 @@ const Card = styled.div`
   height: 180px;
   padding: 15px;
   border-radius: 10px;
+  @media(max-width: 768px) {
+    width: 190px;
+    height: 160px;
+  }
 `;
 const DetailInCard = styled.div`
   width: 100%;
@@ -427,6 +430,9 @@ const DetailInCard = styled.div`
   padding: 10px;
   background-color: #c0c7d6;
   border-radius: 8px;
+  @media(max-width: 768px) {
+    height: 140px;
+  }
 `;
 
 const CardTitle = styled.div`
@@ -436,6 +442,9 @@ const CardTitle = styled.div`
   font-size: 20px;
   font-weight: bold;
   color: black;
+  @media(max-width: 768px) {
+      font-size:18px;
+  }
 `;
 
 const CardName = styled.div`
@@ -444,18 +453,25 @@ const CardName = styled.div`
   margin-left: 10px;
   font-size: 18px;
   color: black;
+  @media(max-width: 768px) {
+    font-size: 15px;
+  }
 `;
 const DetailWrapper = styled.div`
   display: flex;
   justify-content: space-between;
-  margin-top: 50px;
-`;
+  margin-top: 35px;
+  gap:10px;
+  `;
 const CardLocation = styled.div`
   display: flex;
   margin-top: 10px;
   margin-left: 10px;
   font-size: 18px;
   color: black;
+  @media(max-width: 768px) {
+    font-size: 14px;
+  }
 `;
 
 const CardDate = styled.div`
@@ -464,6 +480,9 @@ const CardDate = styled.div`
   margin-right: 20px;
   font-size: 18px;
   color: black;
+  @media(max-width:768px) {
+    font-size: 14px;
+  }
 `;
 
 const Pagination = styled.div`
