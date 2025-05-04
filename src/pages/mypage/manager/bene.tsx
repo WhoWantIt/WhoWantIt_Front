@@ -57,6 +57,7 @@ const BenePage = () => {
       <Navigation />
       <Container>
         {/* 왼쪽 사이드바 */}
+        <Wrapper>
         <Sidebar>
           <SidebarTitle>마이페이지</SidebarTitle>
           <DocumentList>
@@ -71,7 +72,6 @@ const BenePage = () => {
             ))}
           </DocumentList>
         </Sidebar>
-
         {/* 오른쪽 메인 콘텐츠 */}
         <MainContent>
           <Title>등록된 기관</Title>
@@ -108,6 +108,7 @@ const BenePage = () => {
             )}
           </Pagination>
         </MainContent>
+        </Wrapper>
       </Container>
       <Footer />
     </>
@@ -118,17 +119,21 @@ export default BenePage;
 
 /* 스타일 정의 */
 const Container = styled.div`
-  display: flex;
+  display: fixed;
   width: 100%;
-  height: 100%;
   font-family: Pretendard, sans-serif;
 `;
-
+const Wrapper = styled.div`
+  display: flex;
+  flex-direction:row;
+  justify-center: flex-end;
+  width: 100%;
+`;
 const Sidebar = styled.div`
+  display: flex;
   width: 250px;
   background-color: #3e5879;
   color: white;
-  display: flex;
   flex-direction: column;
   align-items: center;
   height: 100vh;

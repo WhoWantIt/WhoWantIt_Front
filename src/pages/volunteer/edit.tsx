@@ -37,7 +37,16 @@ const EditPage = () => {
     const data = editorRef.current?.getInstance().getHTML();
     setBody(data);
   };*/
-
+  //interface
+  interface volunteerEditType {
+    nickname: string;
+    title: string;
+    field: string;
+    content: string;
+    startTime: string;
+    deadline: string;
+    maxCapacity: number;
+  }
   const handleIssue = async () => {
     const accessToken = localStorage.getItem("accessToken");
     if (!accessToken) {
@@ -182,7 +191,7 @@ const EditPage = () => {
             />
           </FieldContainer>
           <FieldContainer>
-            <FieldTitle>이미지 업로드</FieldTitle>
+            <FieldTitle>이미지 업로드(필수)</FieldTitle>
             <input type="file" id="imageInput" multiple accept="image/*" />
           </FieldContainer>
         </SidebarRight>
@@ -197,25 +206,36 @@ export default EditPage;
 const Container = styled.div`
   display: flex;
   width: 100%;
-  height: auto;
   font-family: Pretendard, sans-serif;
   border: 2px solid #3e5879;
+  flex-direction: row;
+  @media (max-width: 768px){
+    flex-direction: column;
+  }
 `;
 const EditorContainer = styled.div`
   flex-grow: 1;
   padding: 20px;
   display: flex;
   flex-direction: column;
+  @media (max-width: 768px) {
+    padding: 10px;
+  }
 `;
 
 const TitleInput = styled.input`
   font-size: 30px;
   padding: 10px;
   margin-bottom: 10px;
-  width: 99%;
+  width: 97%;
   height: 70px;
   border: none;
-`;
+  @media (max-width: 768px) {
+    font-size: 20px;
+    height: auto;
+    padding: 8px;
+  }
+ `;
 
 const SidebarRight = styled.div`
   width: 270px;
@@ -224,6 +244,9 @@ const SidebarRight = styled.div`
   display: flex;
   flex-direction: column;
   border-left: 2px solid black;
+  @media(max-width: 768px) {
+    width: 200px;
+  }
 `;
 const PostButton = styled.button`
   width: 100px;
@@ -234,8 +257,12 @@ const PostButton = styled.button`
   color: white;
   font-family: "Pretandard", sans-serif;
   font-size: 18px;
-  margin-left: auto; /* 왼쪽 여백을 자동으로 설정하여 오른쪽으로 이동 */
+  margin-left: auto;
   margin-bottom: 20px;
+  @media (max-width: 768px) {
+    height: 30px;
+    width: 80px;
+  }
 `;
 
 const FieldContainer = styled.div`

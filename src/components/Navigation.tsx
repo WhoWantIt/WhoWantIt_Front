@@ -18,13 +18,12 @@ const LogoLink = styled(Link)`
   display: flex;
   align-items: center;
   text-decoration: none;
+  margin-right: 15px;
 `;
 
 const LogoImage = styled.img`
   width: auto;
   height: 40px;
-  margin-left: 30px;
-  margin-right: 50px;
 `;
 
 const HeaderMenu = styled.ul`
@@ -75,7 +74,7 @@ const UserEmail = styled.button`
   font-size: 15px;
   color: #3e5879;
   margin-right: 20px;
-  margin-top: 9px;
+  margin-top: 3px;
   border: none;
   background-color: #ffffff;
 `;
@@ -110,7 +109,8 @@ const Navigation = () => {
     if (role === "ADMIN") {
       navigate("/manager/bene");
     } else if (role === "BENEFICIARY") {
-      //수혜자 마이페이지로 가주세요.
+      navigate("/beneficiary/mypage")
+      
     } else if (role === "SPONSOR") {
       navigate("/sponser/mypage");
     }
@@ -128,7 +128,7 @@ const Navigation = () => {
     navigate("/volunteer");
   };
   const handleFunding = () => {
-    navigate("/");
+    navigate("/crowdfunding/all");
   };
   return (
     <HeaderBar>
