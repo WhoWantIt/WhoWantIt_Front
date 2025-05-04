@@ -17,6 +17,13 @@ interface BeneType {
 }
 const BenePage = () => {
   const navigate = useNavigate();
+  const [documents] = useState<string[]>([
+    "등록된 기관",
+    "후원자 정보",
+    "게시글 요청",
+    "펀딩 요청",
+  ]);
+  const [activeDoc, setActiveDoc] = useState<string | null>(null);
   const [cards, setCards] = useState<BeneType[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
@@ -32,12 +39,16 @@ const BenePage = () => {
       .then((res) => setCards(res.data.result.beneficiaryList))
       .catch((err) => console.error("Error fetching cards:", err));
   });
-  const documents = [
-    { label: "등록된 기관", path: "manager/bene" },
-    { label: "후원자 정보", path: "manager/spon" },
-    { label: "게시글 요청", path: "manager/post-request" },
-    { label: "펀딩 요청", path: "manager/funding" },
-  ];
+  const handleNavigation = (doc: string) => {
+    setActiveDoc(doc);
+    const routes: { [key: string]: string } = {
+      "등록된 기관": "/manager/bene",
+      "후원자 정보": "/manager/spon",
+      "게시글 요청": "/manager/post-request",
+      "펀딩 요청": "/manager/funding",
+    };
+    navigate(routes[doc]);
+  };
   const handleDetailCard = (beneficiaryId: number) => {
     navigate(`/bene/${beneficiaryId}`);
   };
@@ -53,10 +64,10 @@ const BenePage = () => {
             {documents.map((doc, index) => (
               <DocumentItem
                 key={index}
-                active={window.location.pathname === doc.path}
-                onClick={() => navigate(doc.path)}
+                active={activeDoc === doc}
+                onClick={() => handleNavigation(doc)}
               >
-                {doc.label}
+                {doc}
               </DocumentItem>
             ))}
           </DocumentList>
@@ -93,7 +104,7 @@ const BenePage = () => {
                 >
                   {pageNumber}
                 </PageNumber>
-              )
+              ),
             )}
           </Pagination>
         </MainContent>
@@ -124,18 +135,23 @@ const Sidebar = styled.div`
   background-color: #3e5879;
   color: white;
   flex-direction: column;
-  padding-top: 30px;
+  align-items: center;
+  height: 100vh;
 `;
 
-const SidebarTitle = styled.h3`
+const SidebarTitle = styled.div`
   text-align: center;
-  margin-bottom: 30px;
+  margin-top: 50px;
+  font-size: 25px;
+  font-weight: bold;
+  margin-bottom: 25px;
 `;
 
 const DocumentList = styled.ul`
   list-style: none;
+  border-bottom: 1px solid #ffffff;
   padding: 0;
-  margin: 0;
+  margin-top: 50px;
   width: 100%;
 `;
 
@@ -143,15 +159,21 @@ interface DocumentItemProps {
   active: boolean;
 }
 
-const DocumentItem = styled.li<DocumentItemProps>`
+const DocumentItem = styled.li.withConfig({
+  shouldForwardProp: (prop) => prop !== "active",
+})<DocumentItemProps>`
   padding: 15px 20px;
   cursor: pointer;
-  background-color: ${({ active }) => (active ? "#adacc2" : "transparent")};
-  border-bottom: 1px solid white;
+  background-color: ${({ active }) => (active ? "#adacc2" : "#3d5879")};
 
   &:hover {
     background-color: #adacc2;
   }
+  border-top: 1px solid #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
 `;
 
 /* 메인 콘텐츠 */
