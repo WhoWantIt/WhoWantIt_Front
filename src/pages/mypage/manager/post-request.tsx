@@ -44,6 +44,17 @@ const PostRequestPage = () => {
       .catch((err) => console.error("Error fetching cards:", err));
   });
   const navigate = useNavigate();
+
+  const handleNavigation = (doc: string) => {
+    setActiveDoc(doc);
+    const routes: { [key: string]: string } = {
+      "등록된 기관": "/manager/bene",
+      "후원자 정보": "/manager/spon",
+      "게시글 요청": "/manager/post-request",
+      "펀딩 요청": "/manager/funding",
+    };
+    navigate(routes[doc]);
+  };
   const handleDetailPost = (postId: number) => {
     navigate(`/posts/detail/${postId}`);
   };
@@ -59,7 +70,7 @@ const PostRequestPage = () => {
               <DocumentItem
                 key={index}
                 active={activeDoc === doc}
-                onClick={() => setActiveDoc(doc)}
+                onClick={() => handleNavigation(doc)}
               >
                 {doc}
               </DocumentItem>
@@ -119,7 +130,6 @@ export default PostRequestPage;
 const Container = styled.div`
   display: flex;
   width: 100%;
-  height: 100%;
   font-family: Pretendard, sans-serif;
 `;
 
@@ -129,34 +139,45 @@ const Sidebar = styled.div`
   color: white;
   display: flex;
   flex-direction: column;
-  padding-top: 30px;
+  align-items: center;
+  height: 100vh;
 `;
 
 const SidebarTitle = styled.h3`
   text-align: center;
-  margin-bottom: 30px;
+  margin-top: 50px;
+  font-size: 25px;
+  font-weight: bold;
+  margin-bottom: 25px;
 `;
 
 const DocumentList = styled.ul`
   list-style: none;
   padding: 0;
-  margin: 0;
+  margin-top: 50px;
   width: 100%;
+  border-bottom: 1px solid #ffffff;
 `;
 
 interface DocumentItemProps {
   active: boolean;
 }
 
-const DocumentItem = styled.li<DocumentItemProps>`
+const DocumentItem = styled.li.withConfig({
+  shouldForwardProp: (prop) => prop !== "active",
+})<DocumentItemProps>`
+  display: flex;
   padding: 15px 20px;
   cursor: pointer;
-  background-color: ${({ active }) => (active ? "#adacc2" : "transparent")};
-  border-bottom: 1px solid white;
+  background-color: ${({ active }) => (active ? "#adacc2" : "#3d5879")};
+  border-top: 1px solid #ffffff;
 
   &:hover {
     background-color: #adacc2;
   }
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
 `;
 
 /* 메인 콘텐츠 */

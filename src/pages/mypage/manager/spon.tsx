@@ -7,6 +7,7 @@ import Navigation from "../../../components/Navigation";
 import Footer from "../../../components/Footer";
 import { useEffect } from "react";
 import api from "../../../utils/api";
+import { useNavigate } from "react-router-dom";
 // 기관 카드 데이터 예제
 const ITEMS_PER_PAGE = 10;
 interface SponType {
@@ -22,6 +23,7 @@ const SponPage = () => {
     "게시글 요청",
     "펀딩 요청",
   ]);
+  const navigate = useNavigate();
   const [activeDoc, setActiveDoc] = useState<string | null>(null);
   const [cards, setCards] = useState<SponType[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -38,6 +40,17 @@ const SponPage = () => {
       .then((res) => setCards(res.data.result.sponsorList))
       .catch((err) => console.error("Error fetching cards:", err));
   });
+  const handleNavigation = (doc: string) => {
+    setActiveDoc(doc);
+    const routes: { [key: string]: string } = {
+      "등록된 기관": "/manager/bene",
+      "후원자 정보": "/manager/spon",
+      "게시글 요청": "/manager/post-request",
+      "펀딩 요청": "/manager/funding",
+    };
+    navigate(routes[doc]);
+  };
+
   return (
     <>
       <Navigation />
@@ -50,7 +63,7 @@ const SponPage = () => {
               <DocumentItem
                 key={index}
                 active={activeDoc === doc}
-                onClick={() => setActiveDoc(doc)}
+                onClick={() => handleNavigation(doc)}
               >
                 {doc}
               </DocumentItem>
@@ -87,7 +100,7 @@ const SponPage = () => {
                 >
                   {pageNumber}
                 </PageNumber>
-              ),
+              )
             )}
           </Pagination>
         </MainContent>
@@ -103,7 +116,6 @@ export default SponPage;
 const Container = styled.div`
   display: flex;
   width: 100%;
-  height: 100%;
   font-family: Pretendard, sans-serif;
 `;
 
@@ -113,18 +125,22 @@ const Sidebar = styled.div`
   color: white;
   display: flex;
   flex-direction: column;
-  padding-top: 30px;
+  height: 100vh;
 `;
 
 const SidebarTitle = styled.h3`
   text-align: center;
-  margin-bottom: 30px;
+  margin-top: 50px;
+  font-size: 25px;
+  font-weight: bold;
+  margin-bottom: 25px;
 `;
 
 const DocumentList = styled.ul`
   list-style: none;
+  border-bottom: 1px solid #ffffff;
   padding: 0;
-  margin: 0;
+  margin-top: 50px;
   width: 100%;
 `;
 
@@ -132,15 +148,21 @@ interface DocumentItemProps {
   active: boolean;
 }
 
-const DocumentItem = styled.li<DocumentItemProps>`
+const DocumentItem = styled.li.withConfig({
+  shouldForwardProp: (prop) => prop !== "active",
+})<DocumentItemProps>`
+  display: flex;
   padding: 15px 20px;
   cursor: pointer;
-  background-color: ${({ active }) => (active ? "#adacc2" : "transparent")};
-  border-bottom: 1px solid white;
+  background-color: ${({ active }) => (active ? "#adacc2" : "#3d5879")};
+  border-top: 1px solid #ffffff;
 
   &:hover {
     background-color: #adacc2;
   }
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
 `;
 
 /* 메인 콘텐츠 */

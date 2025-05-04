@@ -56,6 +56,16 @@ const FundingPage = () => {
     };
     fetchData();
   }, []);
+  const handleNavigation = (doc: string) => {
+    setActiveDoc(doc);
+    const routes: { [key: string]: string } = {
+      "등록된 기관": "/manager/bene",
+      "후원자 정보": "/manager/spon",
+      "게시글 요청": "/manager/post-request",
+      "펀딩 요청": "/manager/funding",
+    };
+    navigate(routes[doc]);
+  };
   const handleApprovalFunding = (fundingId: number) => {
     navigate(`/fundings/detail/${fundingId}`);
   };
@@ -65,13 +75,13 @@ const FundingPage = () => {
       <Container>
         {/* 왼쪽 사이드바 */}
         <Sidebar>
-          <ButtonWrapper>마이페이지</ButtonWrapper>
+          <SidebarTitle>마이페이지</SidebarTitle>
           <DocumentList>
             {documents.map((doc, index) => (
               <DocumentItem
                 key={index}
                 active={activeDoc === doc}
-                onClick={() => setActiveDoc(doc)}
+                onClick={() => handleNavigation(doc)}
               >
                 {doc}
               </DocumentItem>
@@ -132,7 +142,7 @@ export default FundingPage;
 const Container = styled.div`
   display: flex;
   width: 100%;
-  height: auto;
+  font-family: Pretendard, sans-serif;
 `;
 const Sidebar = styled.div`
   width: 250px;
@@ -143,20 +153,19 @@ const Sidebar = styled.div`
   align-items: center;
   height: 100vh;
 `;
-const ButtonWrapper = styled.div`
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  margin-top: 30px;
+const SidebarTitle = styled.div`
+  text-align: center;
+  margin-top: 50px;
+  font-size: 25px;
+  font-weight: bold;
+  margin-bottom: 25px;
 `;
 const DocumentList = styled.ul`
   list-style: none;
-  border-bottom: 2px solid #ffffff;
+  border-bottom: 1px solid #ffffff;
   padding: 0;
-  margin-top: 100px;
-  width: 250px;
+  margin-top: 50px;
+  width: 100%;
 `;
 interface DocumentItemProps {
   active: boolean;
@@ -165,13 +174,17 @@ interface DocumentItemProps {
 const DocumentItem = styled.li.withConfig({
   shouldForwardProp: (prop) => prop !== "active",
 })<DocumentItemProps>`
-  background-color: ${({ active }) => (active ? "#3e5879" : "#3e5879")};
+  padding: 15px 20px;
+  background-color: ${({ active }) => (active ? "#adacc2" : "#3e5879")};
   cursor: pointer;
   &:hover {
-    background-color: #adacc2;
+    background-color:#adacc2;
   }
-  border-top: 2px solid white;
-  height: 55px;
+  border-top: 1px solid #ffffff;
+  display: flex;
+  align-items; center;
+  justify-content: center;
+  font-size: 18px;
 `;
 /* 메인 콘텐츠 */
 const MainContent = styled.div`
