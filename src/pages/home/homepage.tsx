@@ -2,6 +2,7 @@ import styled from "styled-components";
 import Navigation from "../../components/Navigation.tsx";
 import Footer from "../../components/Footer";
 import MainImage from "../../assets/main_image.svg";
+import YouTube from "react-youtube";
 import YouTubePlayer from "../../components/YouTubePlayer";
 import GlobalStyle from "../../components/GlobalStyle";
 import Chart from "../../components/Chart";
