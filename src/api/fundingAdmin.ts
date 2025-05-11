@@ -1,6 +1,6 @@
 import axios from "axios";
-
-const API_BASE_URL = "http://13.209.33.88:8080"; // 실제 API URL
+const api = import.meta.env.VITE_API_URL;
+const API_BASE_URL = api;
 
 // 1. 클라우드 펀딩 스크랩 삭제 (관리자)
 export const deleteFundingScrap = async (fundingId: number) => {

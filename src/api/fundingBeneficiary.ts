@@ -1,6 +1,7 @@
 import axios from "axios";
+const api = import.meta.env.VITE_API_URL;
+const API_BASE_URL = api;
 
-const API_BASE_URL = "http://13.209.33.88:8080";
 
 // 1. 특정 펀딩 상세 조회
 export const getBeneficiaryFundingDetail = async (fundingId: number) => {
