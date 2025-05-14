@@ -1,4 +1,3 @@
-// src/components/VolunteerSlider.tsx
 import React, { useState, useEffect, useCallback } from 'react';
 import styled from 'styled-components';
 import api from '../utils/api';
@@ -12,14 +11,16 @@ interface VolunteerPost {
 }
 
 const VolunteerSlider: React.FC = () => {
-  // 자원봉사 글 목록
+  // Hooks는 최상단에서 일관되게 호출
   const [posts, setPosts] = useState<VolunteerPost[]>([]);
-  // 로딩 상태
-  const [loading, setLoading] = useState(true);
-  // 현재 슬라이드 인덱스
-  const [pickIndex, setPickIndex] = useState(0);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [pickIndex, setPickIndex] = useState<number>(0);
 
+  // 데이터 페치
   useEffect(() => {
+    setLoading(true);
+    setError(null);
     api
       .get('/volunteers')
       .then(res => {
@@ -36,29 +37,32 @@ const VolunteerSlider: React.FC = () => {
             attachedImage: Array.isArray(item.attachedImage) ? item.attachedImage : [],
           }));
           setPosts(list);
+        } else {
+          setError('자원봉사 데이터를 불러올 수 없습니다.');
         }
       })
-      .catch(err => console.error('자원봉사 슬라이더 데이터 로드 실패:', err))
+      .catch(() => setError('네트워크 오류가 발생했습니다.'))
       .finally(() => setLoading(false));
   }, []);
 
-  // 로딩 끝나고 데이터 없으면 숨김
-  if (!loading && posts.length === 0) return null;
-
-  // 이전 슬라이드
+  // 이전/다음 인덱스 네비게이션
   const handlePrev = useCallback(() => {
-    setPickIndex(prev => (prev === 0 ? posts.length - 1 : prev - 1));
+    setPickIndex(prev => (posts.length ? (prev === 0 ? posts.length - 1 : prev - 1) : 0));
   }, [posts.length]);
 
-  // 다음 슬라이드
   const handleNext = useCallback(() => {
-    setPickIndex(prev => (prev === posts.length - 1 ? 0 : prev + 1));
+    setPickIndex(prev => (posts.length ? (prev === posts.length - 1 ? 0 : prev + 1) : 0));
   }, [posts.length]);
 
   return (
-    // 컨테이너 항상 렌더
     <Container>
-      {!loading && posts.length > 0 && (
+      {/* 로딩, 오류, 빈 데이터, 정상 데이터 순으로 렌더링 */}
+      {loading && <StatusText>로딩 중...</StatusText>}
+      {error && <ErrorText>{error}</ErrorText>}
+      {!loading && !error && posts.length === 0 && (
+        <StatusText>봉사 공고가 없습니다.</StatusText>
+      )}
+      {!loading && !error && posts.length > 0 && (
         <>
           <Slide>
             <ImageWrapper>
@@ -70,16 +74,20 @@ const VolunteerSlider: React.FC = () => {
             <Content>
               <PostTitle>{posts[pickIndex].title}</PostTitle>
               <Meta>{posts[pickIndex].deadline} · {posts[pickIndex].address}</Meta>
-              <DetailButton onClick={() => window.location.href = `/volunteer/post/${posts[pickIndex].volunteerId}`}>자세히 보기</DetailButton>
+              <DetailButton
+                onClick={() => (window.location.href = `/volunteer/post/${posts[pickIndex].volunteerId}`)}
+              >
+                자세히 보기
+              </DetailButton>
             </Content>
           </Slide>
-          <Arrow isLeft onClick={handlePrev}>{'<'}</Arrow>
-          <Arrow onClick={handleNext}>{'>'}</Arrow>
+          <Arrow isLeft onClick={handlePrev}>&lt;</Arrow>
+          <Arrow onClick={handleNext}>&gt;</Arrow>
           <PickerWrapper>
             {posts.map((_, idx) => (
               <Picker
                 key={idx}
-                onClick={() => idx !== pickIndex && setPickIndex(idx)}
+                onClick={() => setPickIndex(idx)}
                 background={pickIndex === idx ? '#3e5879' : '#ccc'}
               />
             ))}
@@ -97,10 +105,12 @@ const Container = styled.div`
   position: relative;
   width: 100%;
   max-width: 900px;
-  margin: 0 auto;
   height: 260px;
+  margin: 0 auto;
   background: #f5f5f5;
-  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 `;
 
 const Slide = styled.div`
@@ -163,15 +173,12 @@ const Arrow = styled.div<{ isLeft?: boolean }>`
   background: rgba(255,255,255,0.7);
   padding: 4px 8px;
   border-radius: 4px;
-  user-select: none;
 `;
 
 const PickerWrapper = styled.div`
   position: absolute;
   bottom: 12px;
-  width: 100%;
   display: flex;
-  justify-content: center;
   gap: 8px;
 `;
 
@@ -181,4 +188,14 @@ const Picker = styled.div<{ background: string }>`
   border-radius: 50%;
   background: ${({ background }) => background};
   cursor: pointer;
+`;
+
+const StatusText = styled.div`
+  font-size: 1rem;
+  color: #666;
+`;
+
+const ErrorText = styled.div`
+  font-size: 1rem;
+  color: red;
 `;

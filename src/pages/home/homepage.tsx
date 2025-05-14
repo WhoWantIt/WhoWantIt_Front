@@ -1,7 +1,5 @@
-// src/pages/home/homepage.tsx
 import React from 'react';
 import styled from 'styled-components';
-// 슬라이더 테마용 CSS (한 번만 전역에 불러옵니다)
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 

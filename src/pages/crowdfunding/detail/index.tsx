@@ -1,14 +1,14 @@
+import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 import Navigation from "../../../components/Navigation";
 import Footer from "../../../components/Footer";
 import BookmarkIcon from "../../../assets/bookmark.svg";
 import BookMarkColor from "../../../assets/volunteer/bookmark_color.svg";
 import ShareIcon from "../../../assets/share.svg";
-import { useEffect, useState } from "react";
-import api from "../../../utils/api";
-import { useParams } from "react-router-dom";
-import { useSearchParams } from "react-router-dom";
-import { useNavigate } from "react-router-dom";
+import api from "../../../utils/api";  // utils/api로 정확한 경로 수정
+import { useParams, useSearchParams, useNavigate } from "react-router-dom";
+import { AxiosResponse } from "axios";
+
 interface FundingType {
   funding: number;
   title: string;
@@ -23,35 +23,39 @@ interface FundingType {
   beneficiaryName: string;
   beneficiaryNickname: string;
 }
-const CrowdfundingDetail = () => {
+
+const CrowdfundingDetail: React.FC = () => {
   const { fundingId } = useParams<{ fundingId: string }>();
-  const [fundings, setFundings] = useState<FundingType>();
-  const [isSrcaped, setIsSrcaped] = useState<boolean>();
-  //const [paymentAmount, setPaymentAmount] = useState<number>(100000);
+  const [fundings, setFundings] = useState<FundingType | null>(null);
+  const [isScraped, setIsScraped] = useState<boolean>(false);
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+
   useEffect(() => {
     api
-      .get(`/fundings/${fundingId}`)
-      .then((res) => setFundings(res.data.result))
-      .catch((err) => console.error("Error fetching funding detail: ", err));
+      .get<AxiosResponse<{ result: FundingType }>>(`/fundings/${fundingId}`)
+      .then((res: any) => {
+        setFundings(res.data.result);
+      })
+      .catch((err: any) => console.error("Error fetching funding detail:", err));
   }, [fundingId]);
+
   const handleMark = () => {
-    setIsSrcaped(true);
-    api
-      .post(`/fundings/scraps/${fundingId}`)
-      .catch((err) => console.error("Error fetching scrap: ", err));
+    setIsScraped(true);
+    api.post(`/fundings/scraps/${fundingId}`)
+      .catch((err: any) => console.error("Error posting scrap:", err));
   };
+
   const handleDeleteMark = () => {
-    setIsSrcaped(false);
-    api
-      .post(`/fundings/scraps/${fundingId}`)
-      .catch((err) => console.error("Eror fetching delete scrap: ", err));
+    setIsScraped(false);
+    api.post(`/fundings/scraps/${fundingId}`)
+      .catch((err: any) => console.error("Error deleting scrap:", err));
   };
+
   const handleKakaoPay = () => {
     api
-      .post(`/fundings/pays/${fundingId}?paymentAmount=100000`)
-      .then((res) => {
+      .post<AxiosResponse<any>>(`/fundings/pays/${fundingId}?paymentAmount=100000`)
+      .then((res: any) => {
         if (res.data.isSuccess) {
           const redirectUrl = res.data.result.next_redirect_pc_url;
           if (redirectUrl) {
@@ -60,29 +64,38 @@ const CrowdfundingDetail = () => {
             console.error("결제 요청 응답에서 url이 존재하지 않습니다.");
           }
         } else {
-          //카카오페이 결재 진행 중 취소
-          api.get("/funding/cancel").then((res) => alert(res.data.result));
+          api.get<AxiosResponse<any>>("/fundings/cancel")
+            .then((res: any) => alert(res.data.result));
         }
       })
-      .catch((err) => console.error("Error fetching KakaoPay: ", err));
+      .catch((err: any) => console.error("Error fetching KakaoPay:", err));
   };
+
   useEffect(() => {
     const pg_token = searchParams.get("pg_token");
     if (!pg_token) return;
-    const handleKakaoPaySuccess = () => {
-      api
-        .post(`/fundings/success/`)
-        .then((res) => {
-          if (res.data.isSuccess) {
-            navigate(`/crowdfunding/detail/${fundingId}`);
-          } else {
-            alert("카카오 페이 승인 실패");
-          }
-        })
-        .catch((err) => console.error("Error fetching kakaoPay Success", err));
-    };
-    handleKakaoPaySuccess();
+    api.post<AxiosResponse<any>>(`/fundings/success/${fundingId}`)
+      .then((res: any) => {
+        if (res.data.isSuccess) {
+          navigate(`/crowdfunding/detail/${fundingId}`);
+        } else {
+          alert("카카오 페이 승인 실패");
+        }
+      })
+      .catch((err: any) => console.error("Error handling kakaoPay success:", err));
   }, [searchParams, navigate, fundingId]);
+
+  // 로딩 전 또는 데이터 없을 때 표시
+  if (!fundings) {
+    return (
+      <PageContainer>
+        <Navigation />
+        <LoadingText>로딩 중...</LoadingText>
+        <Footer />
+      </PageContainer>
+    );
+  }
+
   return (
     <PageContainer>
       <Navigation />
@@ -91,20 +104,20 @@ const CrowdfundingDetail = () => {
           <PlaceholderImage />
         </ImageSection>
         <InfoSection>
-          <Achievement>{fundings?.attainmentPercent} 달성</Achievement>
-          <TotalAmount>{fundings?.currentAmount}원 달성</TotalAmount>
+          <Achievement>{fundings.attainmentPercent} 달성</Achievement>
+          <TotalAmount>{fundings.currentAmount.toLocaleString()}원 달성</TotalAmount>
           <Actions>
-            <IconButton onClick={!isSrcaped ? handleMark : handleDeleteMark}>
-              {!isSrcaped ? (
-                <img src={BookmarkIcon} />
+            <IconButton onClick={!isScraped ? handleMark : handleDeleteMark}>
+              {!isScraped ? (
+                <img src={BookmarkIcon} alt="스크랩" />
               ) : (
-                <img src={BookMarkColor} />
+                <img src={BookMarkColor} alt="스크랩 취소" />
               )}
             </IconButton>
             <IconButton>
               <img src={ShareIcon} alt="공유" />
             </IconButton>
-            <FundButton onClick={() => handleKakaoPay()}>펀딩하기</FundButton>
+            <FundButton onClick={handleKakaoPay}>펀딩하기</FundButton>
           </Actions>
         </InfoSection>
       </ContentWrapper>
@@ -118,6 +131,7 @@ const CrowdfundingDetail = () => {
 
 export default CrowdfundingDetail;
 
+/** Styled Components **/
 const PageContainer = styled.div`
   display: flex;
   flex-direction: column;
@@ -125,15 +139,32 @@ const PageContainer = styled.div`
   padding: 20px;
 `;
 
+const LoadingText = styled.p`
+  text-align: center;
+  padding: 40px;
+  font-size: 1.2rem;
+`;
+
 const ContentWrapper = styled.div`
   display: flex;
   justify-content: space-between;
   width: 80%;
   margin-top: 30px;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    width: 100%;
+    padding: 0 16px;
+  }
 `;
 
 const ImageSection = styled.div`
   flex: 1;
+
+  @media (max-width: 768px) {
+    width: 100%;
+    margin-bottom: 16px;
+  }
 `;
 
 const PlaceholderImage = styled.div`
@@ -149,24 +180,42 @@ const InfoSection = styled.div`
   flex-direction: column;
   justify-content: center;
   padding: 20px;
+
+  @media (max-width: 768px) {
+    width: 100%;
+    padding: 12px 0;
+  }
 `;
 
 const Achievement = styled.div`
   font-size: 24px;
   font-weight: bold;
   color: #3e5879;
+
+  @media (max-width: 480px) {
+    font-size: 20px;
+  }
 `;
 
 const TotalAmount = styled.div`
   font-size: 28px;
   font-weight: bold;
   margin-top: 10px;
+
+  @media (max-width: 480px) {
+    font-size: 24px;
+  }
 `;
 
 const Actions = styled.div`
   display: flex;
   gap: 10px;
   margin-top: 20px;
+
+  @media (max-width: 480px) {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
 `;
 
 const IconButton = styled.button`
@@ -178,6 +227,13 @@ const IconButton = styled.button`
     width: 48px;
     height: 48px;
   }
+
+  @media (max-width: 480px) {
+    img {
+      width: 36px;
+      height: 36px;
+    }
+  }
 `;
 
 const FundButton = styled.button`
@@ -188,6 +244,11 @@ const FundButton = styled.button`
   border-radius: 5px;
   font-size: 16px;
   cursor: pointer;
+
+  @media (max-width: 480px) {
+    padding: 8px 32px;
+    font-size: 14px;
+  }
 `;
 
 const DetailsSection = styled.div`
@@ -196,6 +257,12 @@ const DetailsSection = styled.div`
   background-color: #f0f0f0;
   margin-top: 40px;
   border-radius: 8px;
+
+  @media (max-width: 768px) {
+    width: 100%;
+    padding: 0 16px;
+    margin-top: 24px;
+  }
 `;
 
 const PlaceholderDetails = styled.div`
