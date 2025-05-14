@@ -157,8 +157,20 @@ const TabItem = styled(NavLink)`
   text-align: center;
   padding-bottom: 10px;
   color: #e6d9d2;
-  font-size: clamp(16px, 2vw, 30px);
+  font-size: 30px;
   border-bottom: 1px solid #e6d9d2;
+
+  @media (max-width: 1500px) {
+    font-size: 26px;
+  }
+
+  @media (max-width: 1200px) {
+    font-size: 22px;
+  }
+
+  @media (max-width: 800px) {
+    font-size: 18px;
+  }
 `;
 
 const SelectedTabItem = styled(NavLink)`
@@ -168,10 +180,22 @@ const SelectedTabItem = styled(NavLink)`
   text-align: center;
   padding-bottom: 10px;
   color: #3e5879;
-  font-size: clamp(16px, 2vw, 30px);
+  font-size: 30px;
   font-family: Pretendard, sans-serif;
   font-weight: bold;
   border-bottom: 3px solid #3e5879;
+
+  @media (max-width: 1500px) {
+    font-size: 26px;
+  }
+
+  @media (max-width: 1200px) {
+    font-size: 22px;
+  }
+
+  @media (max-width: 800px) {
+    font-size: 18px;
+  }
 `;
 
 const SearchArea = styled.form`
@@ -210,25 +234,35 @@ const SearchButton = styled.button`
 const PostGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  grid-gap: 20px;
-  padding: 0px 150px;
+  grid-gap: 30px;
+  padding: 0px 300px;
   box-sizing: border-box;
 
-  @media (max-width: 1024px) {
-    grid-template-columns: repeat(3, 1fr);
-    padding: 0 100px;
+  @media (max-width: 1500px) {
+    grid-gap: 20px;
+    padding: 0px 150px;
   }
 
-  @media (max-width: 768px) {
+  @media (max-width: 1200px) {
+    grid-template-columns: repeat(3, 1fr);
+    padding: 0px 80px;
+  }
+
+  @media (max-width: 800px) {
     grid-template-columns: repeat(2, 1fr);
-    padding: 0 50px;
+    padding: 0px 140px;
+  }
+
+  @media (max-width: 530px) {
+    grid-template-columns: repeat(2, 1fr);
+    padding: 0px 90px;
   }
 `;
 
 const PostCard = styled(NavLink)<{ isVerified: boolean }>`
-  width: clamp(140px, 18vw, 200px);
-  height: clamp(80px, 12vw, 120px);
-  padding: clamp(10px, 2vw, 20px);
+  width: 250px;
+  height: 150px;
+  padding: 20px;
   border-radius: 10px;
   background-color: ${(props) => (props.isVerified ? "#3e5879" : "#c0c7d6")};
   color: ${(props) => (props.isVerified ? "#ffffff" : "#000000")};
@@ -242,16 +276,58 @@ const PostCard = styled(NavLink)<{ isVerified: boolean }>`
   &:hover {
     background-color: ${(props) => (props.isVerified ? "#2d3e56" : "#a6b0c3")};
   }
+
+  @media (max-width: 1500px) {
+    width: 200px;
+    height: 120px;
+    padding: 20px;
+  }
+
+  @media (max-width: 1200px) {
+    width: 150px;
+    height: 90px;
+    padding: 16px;
+  }
+
+  @media (max-width: 800px) {
+    width: 145px;
+    height: 87px;
+    padding: 13px;
+  }
 `;
 
 const PostTitle = styled.div`
-  font-size: clamp(14px, 1.5vw, 20px);
+  font-size: 22px;
   font-weight: bold;
+
+  @media (max-width: 1500px) {
+    font-size: 20px;
+  }
+
+  @media (max-width: 1200px) {
+    font-size: 15px;
+  }
+
+  @media (max-width: 800px) {
+    font-size: 13px;
+  }
 `;
 
 const PostInstitution = styled.div`
-  font-size: clamp(12px, 1.2vw, 16px);
+  font-size: 18px;
   margin-top: 5px;
+
+  @media (max-width: 1500px) {
+    font-size: 16px;
+  }
+
+  @media (max-width: 1200px) {
+    font-size: 12px;
+  }
+
+  @media (max-width: 800px) {
+    font-size: 11px;
+  }
 `;
 
 const PostStatus = styled.div`
@@ -259,6 +335,18 @@ const PostStatus = styled.div`
   text-align: right;
   margin-top: auto;
   align-self: flex-end;
+
+  @media (max-width: 1500px) {
+    font-size: 16px;
+  }
+
+  @media (max-width: 1200px) {
+    font-size: 12px;
+  }
+
+  @media (max-width: 800px) {
+    font-size: 11px;
+  }
 `;
 
 const PaginationContainer = styled.div`
