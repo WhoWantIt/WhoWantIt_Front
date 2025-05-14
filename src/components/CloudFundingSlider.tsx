@@ -1,15 +1,12 @@
 // src/components/CloudFundingSlider.tsx
-import React, { useState, useEffect } from 'react';
-import Slider from 'react-slick';
+import React, { useState, useEffect, useCallback } from 'react';
 import styled from 'styled-components';
 import axios from 'axios';
 
-// 슬릭 슬라이더 CSS (한 번만 불러오기)
-import 'slick-carousel/slick/slick.css';
-import 'slick-carousel/slick/slick-theme.css';
-
+// 환경변수에서 API URL을 가져옵니다.
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
+// API 응답 타입 정의
 interface Funding {
   fundingId: number;
   title: string;
@@ -21,16 +18,19 @@ interface Funding {
 }
 
 const CloudFundingSlider: React.FC = () => {
+  // 펀딩 목록 및 로딩 상태
   const [fundings, setFundings] = useState<Funding[]>([]);
   const [loading, setLoading] = useState(true);
+  // 현재 선택된 이미지 인덱스
+  const [pickIndex, setPickIndex] = useState(0);
   const token = localStorage.getItem('accessToken') || '';
 
+  // 데이터 페치: 컴포넌트 마운트 시 실행
   useEffect(() => {
     setLoading(true);
+    const base = API_BASE_URL?.endsWith('/') ? API_BASE_URL : `${API_BASE_URL}/`;
     axios
-      .get(`${API_BASE_URL}/fundings/lists`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
+      .get(`${base}fundings/lists`, { headers: { Authorization: `Bearer ${token}` } })
       .then(res => {
         if (res.data.isSuccess && Array.isArray(res.data.result)) {
           setFundings(res.data.result);
@@ -38,146 +38,100 @@ const CloudFundingSlider: React.FC = () => {
       })
       .catch(err => console.error('펀딩 목록 조회 실패:', err))
       .finally(() => setLoading(false));
-  }, []);
+  }, [token]);
 
-  if (loading) return <LoadingText>로딩 중...</LoadingText>;
-  if (fundings.length === 0) return <LoadingText>펀딩 내역이 없습니다.</LoadingText>;
+  // 로딩이 끝나고 데이터가 없으면 컴포넌트 숨김
+  if (!loading && fundings.length === 0) {
+    return null;
+  }
 
-  const settings = {
-    infinite: true,
-    speed: 400,
-    slidesToShow: 1,
-    slidesToScroll: 1,
-    arrows: true,
-    dots: false,
-  };
+  // 이전 이미지로 이동
+  const handlePrevClick = useCallback(() => {
+    setPickIndex(prev => (prev === 0 ? fundings.length - 1 : prev - 1));
+  }, [fundings.length]);
+
+  // 다음 이미지로 이동
+  const handleNextClick = useCallback(() => {
+    setPickIndex(prev => (prev === fundings.length - 1 ? 0 : prev + 1));
+  }, [fundings.length]);
 
   return (
-    <SliderContainer {...settings}>
-      {fundings.map(item => {
-        const percent = item.targetAmount
-          ? Math.min(100, Math.round((item.fundingAmount / item.targetAmount) * 100))
-          : Math.min(100, item.fundingAmount);
-
-        return (
-          <Slide key={item.fundingId}>
-            <ImageWrapper>
-              <Image src={item.attachedImage} alt={item.title} />
-            </ImageWrapper>
-            <Content>
-              <Title>{item.title}</Title>
-              <SubTitle>
-                {item.beneficiaryName} · {item.dday}일 남음
-              </SubTitle>
-              <ProgressContainer>
-                <ProgressText>{percent}% 달성</ProgressText>
-                <Bar>
-                  <Fill percent={percent} />
-                </Bar>
-              </ProgressContainer>
-              <DetailButton onClick={() => (window.location.href = `/crowdfunding/detail/${item.fundingId}`)}>
-                더 자세히 보기
-              </DetailButton>
-            </Content>
-          </Slide>
-        );
-      })}
-    </SliderContainer>
+    // 로딩 중이거나 데이터 있든 항상 컨테이너 표시
+    <Container>
+      {/* 로딩이 끝나고 데이터 있을 때만 슬라이드 내용 표시 */}
+      {!loading && fundings.length > 0 && (
+        <>
+          <FillImage
+            src={fundings[pickIndex].attachedImage}
+            alt={fundings[pickIndex].title}
+          />
+          <Arrow isLeft onClick={handlePrevClick}>{'<'}</Arrow>
+          <Arrow onClick={handleNextClick}>{'>'}</Arrow>
+          <PickerWrapper>
+            {fundings.map((_, idx) => (
+              <Picker
+                key={idx}
+                onClick={() => idx !== pickIndex && setPickIndex(idx)}
+                background={pickIndex === idx ? 'orange' : 'white'}
+              />
+            ))}
+          </PickerWrapper>
+        </>
+      )}
+    </Container>
   );
 };
 
 export default CloudFundingSlider;
 
 /** Styled Components **/
-const LoadingText = styled.p`
-  text-align: center;
-  padding: 40px;
-  font-size: 1.2rem;
-`;
 
-const SliderContainer = styled(Slider)`
-  .slick-slide {
-    display: flex !important;
-    justify-content: center;
-  }
-  .slick-arrow {
-    z-index: 2;
-  }
-`;
-
-const Slide = styled.div`
-  display: flex !important;
-  align-items: center;
-  background: #fff;
-  padding: 20px;
-  box-sizing: border-box;
-  max-width: 900px;
-  margin: 0 auto;
-`;
-
-const ImageWrapper = styled.div`
-  flex: 1;
-  margin-right: 20px;
-`;
-
-const Image = styled.img`
+// 슬라이더 전체 컨테이너
+const Container = styled.div`
+  position: relative;
   width: 100%;
-  height: 180px;
-  object-fit: cover;
-  border-radius: 6px;
-`;
-
-const Content = styled.div`
-  flex: 1;
-`;
-
-const Title = styled.h3`
-  margin: 0 0 8px;
-  font-size: 1.4rem;
-  font-weight: bold;
-  color: #333;
-`;
-
-const SubTitle = styled.p`
-  margin: 0 0 12px;
-  font-size: 1rem;
-  color: #666;
-`;
-
-const ProgressContainer = styled.div`
-  margin-bottom: 12px;
-`;
-
-const ProgressText = styled.div`
-  font-size: 1.1rem;
-  font-weight: bold;
-  margin-bottom: 6px;
-`;
-
-const Bar = styled.div`
-  width: 100%;
-  height: 8px;
-  background: #e0e0e0;
-  border-radius: 4px;
+  height: 280px;
   overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 `;
 
-const Fill = styled.div<{ percent: number }>`
-  width: ${p => p.percent}%;
+// 이미지 채우기
+const FillImage = styled.img`
+  width: 100%;
   height: 100%;
-  background: #3e5879;
-  transition: width 0.5s ease;
+  object-fit: cover;
 `;
 
-const DetailButton = styled.button`
-  padding: 6px 14px;
-  background: #3e5879;
-  color: #fff;
-  font-size: 0.9rem;
-  border: none;
-  border-radius: 4px;
+// 좌우 화살표 버튼
+const Arrow = styled.div<{ isLeft?: boolean }>`
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  left: ${({ isLeft }) => (isLeft ? '10px' : 'auto')};
+  right: ${({ isLeft }) => (isLeft ? 'auto' : '10px')};
   cursor: pointer;
-  &:hover {
-    opacity: 0.85;
-  }
+  font-size: 1.8rem;
+  z-index: 1;
+  user-select: none;
+`;
+
+// 하단 dot 네비게이션 래퍼
+const PickerWrapper = styled.div`
+  position: absolute;
+  bottom: 12px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+`;
+
+// 개별 dot
+const Picker = styled.div<{ background: string }>`
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: ${({ background }) => background};
+  cursor: pointer;
 `;
