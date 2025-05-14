@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import styled from 'styled-components';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom'; // 네비게이션용 훅
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -15,14 +16,15 @@ interface Funding {
 }
 
 const CloudFundingSlider: React.FC = () => {
-  // state 및 hook은 컴포넌트 최상단에서 일관되게 호출
+  const navigate = useNavigate(); // 상세 페이지 이동
+
   const [fundings, setFundings] = useState<Funding[]>([]);
   const [loading, setLoading] = useState(true);
   const [pickIndex, setPickIndex] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const token = localStorage.getItem('accessToken') || '';
 
-  // 데이터 페치
+  // 펀딩 데이터 로드
   useEffect(() => {
     setLoading(true);
     setError(null);
@@ -40,25 +42,40 @@ const CloudFundingSlider: React.FC = () => {
       .finally(() => setLoading(false));
   }, [token]);
 
-  // 인덱스 변경
+  // 이전/다음 버튼 핸들러
   const onPrev = useCallback(() => {
     setPickIndex(prev => (fundings.length ? (prev === 0 ? fundings.length - 1 : prev - 1) : 0));
-  }, [fundings]);
+  }, [fundings.length]);
+
   const onNext = useCallback(() => {
     setPickIndex(prev => (fundings.length ? (prev === fundings.length - 1 ? 0 : prev + 1) : 0));
-  }, [fundings]);
+  }, [fundings.length]);
+
+  // 클릭 시 상세 페이지로 이동
+  const handleClick = () => {
+    const id = fundings[pickIndex]?.fundingId;
+    if (id) navigate(`/crowdfunding/detail/${id}`);
+  };
 
   return (
     <Container>
-      {/* 로딩 중, 에러, 빈 데이터, 정상 데이터 순으로 조건부 렌더링 */}
+      {/* 로딩 상태 */}
       {loading && <LoadingText>로딩 중...</LoadingText>}
+      {/* 에러 상태 */}
       {error && <ErrorText>{error}</ErrorText>}
+      {/* 데이터 없음 */}
       {!loading && !error && fundings.length === 0 && (
         <LoadingText>펀딩 내역이 없습니다.</LoadingText>
       )}
+      {/* 슬라이더 렌더 */}
       {!loading && !error && fundings.length > 0 && (
         <>
-          <FillImage src={fundings[pickIndex].attachedImage} alt={fundings[pickIndex].title} />
+          {/* 이미지 클릭 시 상세 이동 */}
+          <FillImage
+            src={fundings[pickIndex].attachedImage}
+            alt={fundings[pickIndex].title}
+            onClick={handleClick}
+          />
           <Arrow isLeft onClick={onPrev}>&lt;</Arrow>
           <Arrow onClick={onNext}>&gt;</Arrow>
           <PickerWrapper>
@@ -88,11 +105,14 @@ const Container = styled.div`
   align-items: center;
   justify-content: center;
 `;
+
 const FillImage = styled.img`
   width: 100%;
   height: 100%;
   object-fit: cover;
+  cursor: pointer; /* 클릭 가능 표시 */
 `;
+
 const Arrow = styled.div<{ isLeft?: boolean }>`
   position: absolute;
   top: 50%;
@@ -105,12 +125,14 @@ const Arrow = styled.div<{ isLeft?: boolean }>`
   padding: 4px;
   border-radius: 4px;
 `;
+
 const PickerWrapper = styled.div`
   position: absolute;
   bottom: 12px;
   display: flex;
   gap: 8px;
 `;
+
 const Picker = styled.div<{ background: string }>`
   width: 12px;
   height: 12px;
@@ -118,10 +140,12 @@ const Picker = styled.div<{ background: string }>`
   background: ${({ background }) => background};
   cursor: pointer;
 `;
+
 const LoadingText = styled.div`
   font-size: 1.2rem;
   color: #666;
 `;
+
 const ErrorText = styled.div`
   font-size: 1rem;
   color: red;
