@@ -30,6 +30,7 @@ import PersonalPage from "../pages/mypage/sponser/mypage";
 import SponserVolunteerPage from "../pages/mypage/sponser/volunteer";
 import FundingScrapPage from "../pages/mypage/sponser/fundingScrap";
 import VolunteerScrapPage from "../pages/mypage/sponser/volunteerScrap";
+import KakaoPaySuccess from "../pages/crowdfunding/detail/kakaopay-success";
 const RoutesConfig = () => {
   return (
     <Routes>
@@ -78,6 +79,8 @@ const RoutesConfig = () => {
       <Route path="/sponser/mypage" element={<PersonalPage />} />
       <Route path="/sponser/scrap/funding" element={<FundingScrapPage />} />
       <Route path="/sponser/scrap/volunteer" element={<VolunteerScrapPage />} />
+      {/* 결제 성공 페이지 라우팅 */}
+      <Route path="/fundings/success" element={<KakaoPaySuccess />} />
     </Routes>
   );
 };
