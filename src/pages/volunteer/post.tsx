@@ -4,6 +4,8 @@ import BookMarkSVG from "../../assets/volunteer/bookmark.svg";
 import BookMarkColorSVG from "../../assets/volunteer/bookmark_color.svg";
 import api from "../../utils/api";
 import { useParams } from "react-router-dom";
+import Navigation from "../../components/Navigation";
+import Footer from "../../components/Footer";
 interface VolunteerType {
   volunteerId: number;
   beneficiaryId: string;
@@ -47,7 +49,19 @@ const PostPage = () => {
   useEffect(() => {
     api
       .get(`/volunteers/${volunteerId}`)
-      .then((res) => setVolunteer(res.data.result))
+      .then((res) => {
+        const processedData = res.data.result.map((vol : VolunteerType)=> {
+          const deadlineDate = new Date(vol.deadline);
+          const today = new Date();
+          const time = deadlineDate.getTime() - today.getTime();
+          const dDay = Math.ceil(time/ (1000 * 60 * 60 * 24));
+          return {
+            ...vol,
+            deadline: dDay >= 0 ? `D-${dDay}` : `D-${-dDay}(마감)`,
+          };
+        });
+        setVolunteer(processedData);
+      })
       .catch((err) => {
         console.error("Error fetching post:", err);
       });
@@ -125,6 +139,8 @@ const PostPage = () => {
     }
   };
   return (
+    <>
+    <Navigation/>
     <Container>
       <ContentWrapper>
         <TitleWrapper>{volunteer?.title}</TitleWrapper>
@@ -146,7 +162,7 @@ const PostPage = () => {
       </ContentWrapper>
       <MapWrapper>
         <MapSection>
-          <div id="map" style={{ width: "130%", height: "400px" }}></div>
+          <div id="map" style={{ width: "100%", height: "400px" }}></div>
         </MapSection>
         <DetailsWrapper>
           <Details>
@@ -170,6 +186,8 @@ const PostPage = () => {
         </DetailsWrapper>
       </MapWrapper>
     </Container>
+    <Footer/>
+    </>
   );
 };
 
@@ -180,21 +198,21 @@ const Container = styled.div`
   align-items: flex-start;
   padding: 40px;
   background-color: #f8f7f7;
-  height: 100vh;
+  width: 100%;
   font-family: Pretendard, sans-serif;
+  height: 100vh;
 `;
 
 const ContentWrapper = styled.div`
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  width: 900px;
-  margin-right: 40px;
+  margin-right: 10px;
 `;
 
 const TitleWrapper = styled.div`
-  width: 892px;
-  height: 141px;
+  width: 750px;
+  height: 100px;
   background-color: #ffffff;
   display: flex;
   align-items: center;
@@ -204,11 +222,15 @@ const TitleWrapper = styled.div`
   font-size: 30px;
   font-weight: bold;
   margin-bottom: 20px;
+  @media(max-width: 768px) {
+    width: 340px;
+    height: 60px;
+  }
 `;
 
 const DescriptWrapper = styled.div`
-  width: 892px;
-  height: 497px;
+  width: 750px;
+  height: 430px;
   background-color: #ffffff;
   display: flex;
   align-items: flex-start;
@@ -218,6 +240,10 @@ const DescriptWrapper = styled.div`
   font-size: 20px;
   font-weight: bold;
   color: black;
+  @media(max-width: 768px){
+    width: 340px;
+    height: 500px;
+  }
 `;
 
 const MapWrapper = styled.div`
@@ -226,12 +252,18 @@ const MapWrapper = styled.div`
   align-items: flex-start;
   width: 450px;
   margin-left: 80px;
+  @media(max-width: 768px){
+    margin-left: 20px;
+  }
 `;
 
 const MapSection = styled.div`
-  width: 130%;
+  width: 100%;
   height: 400px;
-  margin-bottom: 20px;
+  margin-bottom: 10px;
+  @media(max-width:768px){
+    margin-bottom: 25px;
+  }
 `;
 
 const ButtonContainer = styled.div`
@@ -239,9 +271,13 @@ const ButtonContainer = styled.div`
   align-items: center;
   justify-content: center;
   gap: 15px;
-  margin-top: 20px;
+  margin-top: 40px;
   width: 100%;
-  margin-left: 50%;
+  margin-left: 40%;
+  @media(max-width: 768px){
+    margin-left: 23%;
+    margin-top: 30px;
+  }
 `;
 
 const BookmarkButton = styled.button`
@@ -251,6 +287,10 @@ const BookmarkButton = styled.button`
   border: 1px solid black;
   cursor: pointer;
   border-radius: 5px;
+  @media(max-width: 768px){
+    width: 60px;
+    height: 50px;
+  }
 `;
 
 const ApplyButton = styled.button`
@@ -265,18 +305,24 @@ const ApplyButton = styled.button`
   &:hover {
     background-color: rgb(140, 159, 180);
   }
+  @media(max-width:768px) {
+    width: 250px;
+    height: 55px;
+    font-size: 22px;
+  }
 `;
 const DetailsWrapper = styled.div`
   display: flex;
   flex-direction: column;
   align-items: flex-start;
+
 `;
 const Details = styled.div`
   display: flex;
   flex-direction: row;
   align-items: center;
-  margin-bottom: -30px;
-  gap: 10px; /* 간격 추가 */
+  margin-bottom: -20px;
+  gap: 15px; /* 간격 추가 */
 `;
 const Title = styled.h6`
   color: #c2c6cc;

@@ -26,7 +26,7 @@ const SponserFundingPage = () => {
           setFundingData(response.data.result.fundingList);
           const totalAmount = response.data.result.fundingList.reduce(
             (sum, funding) => sum + funding.fundingAmount,
-            0,
+            0
           );
           setTotalFundingAmount(totalAmount);
         }
@@ -57,7 +57,7 @@ const SponserFundingPage = () => {
     <>
       <Navigation />
       <Container>
-      <Sidebar>
+        <Sidebar>
           <ButtonWrapper>마이페이지</ButtonWrapper>
           <DocumentList>
             {documents.map((doc, index) => (
