@@ -1,195 +1,278 @@
-// src/pages/crowdfunding/all.tsx
-
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 import Navigation from "../../../components/Navigation";
 import Footer from "../../../components/Footer";
-import image from "../../../assets/just2_image.svg";
+import BookmarkIcon from "../../../assets/bookmark.svg";
+import BookMarkColor from "../../../assets/volunteer/bookmark_color.svg";
+import ShareIcon from "../../../assets/share.svg";
 import api from "../../../utils/api";
-import { useNavigate } from "react-router-dom";
+import { useParams, useSearchParams, useNavigate } from "react-router-dom";
 
-interface Funding {
+interface FundingType {
   fundingId: number;
   title: string;
+  content: string;
+  status: string;
+  productName: string;
+  currentAmount: number;
   attachedImage: string;
-  fundingAmount: number;
+  approvalStatus: string;
+  attainmentPercent: number;
   beneficiaryId: number;
   beneficiaryName: string;
   beneficiaryNickname: string;
-  dday: string;
 }
 
-const AllPosts: React.FC = () => {
-  const navigate = useNavigate();
-  const [fundings, setFundings] = useState<Funding[]>([]);
-  const [currentPageType, setCurrentPageType] = useState<
-    "all" | "ongoing" | "completed"
-  >("all");
+const CrowdfundingDetail: React.FC = () => {
+  const { fundingId } = useParams<{ fundingId: string }>();
+  const [funding, setFunding] = useState<FundingType | null>(null);
+  const [isScraped, setIsScraped] = useState(false);
   const [loading, setLoading] = useState(true);
-  const accessToken = localStorage.getItem("accessToken") || "";
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const token = localStorage.getItem("accessToken") || "";
 
+  // 1) 상세 데이터 불러오기
   useEffect(() => {
     setLoading(true);
-    let url = `/fundings/lists`;
-    if (currentPageType === "ongoing") {
-      url = `/fundings/filters?status=IN_PROGRESS`;
-    } else if (currentPageType === "completed") {
-      url = `/fundings/filters?status=AFTER_PROGRESS`;
-    }
-
     api
-      .get(url, {
-        headers: { Authorization: `Bearer ${accessToken}` },
+      .get(`/fundings/${fundingId}`, {
+        headers: { Authorization: `Bearer ${token}` },
       })
-      .then((res) => {
+      .then(res => {
         if (res.data.isSuccess) {
-          setFundings(res.data.result);
+          setFunding(res.data.result);
+        } else {
+          console.error("Error fetching funding detail:", res.data.message);
         }
       })
-      .catch((err) => console.error("Error fetching fundings:", err))
+      .catch(err => console.error("Error fetching funding detail:", err))
       .finally(() => setLoading(false));
-  }, [currentPageType, accessToken]);
+  }, [fundingId, token]);
 
-  const handleDetail = (fundingId: number) => {
-    navigate(`/crowdfunding/detail/${fundingId}`);
+  // 2) 스크랩 추가/삭제
+  const handleMark = () => {
+    setIsScraped(true);
+    api
+      .post(`/fundings/scraps/${fundingId}`, null, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .catch(err => console.error("Error posting scrap:", err));
+  };
+  const handleDeleteMark = () => {
+    setIsScraped(false);
+    api
+      .post(`/fundings/scraps/${fundingId}`, null, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .catch(err => console.error("Error deleting scrap:", err));
   };
 
+  // 3) 카카오페이 요청
+  const handleKakaoPay = () => {
+    api
+      .post(
+        `/fundings/pays/${fundingId}?paymentAmount=100000`,
+        null,
+        { headers: { Authorization: `Bearer ${token}` } }
+      )
+      .then(res => {
+        if (res.data.isSuccess) {
+          const url = res.data.result.next_redirect_pc_url;
+          url
+            ? (window.location.href = url)
+            : console.error("redirect url 없음");
+        }
+      })
+      .catch(err => console.error("Error requesting KakaoPay:", err));
+  };
+
+  // 4) 카카오페이 승인 콜백
+  useEffect(() => {
+    const pg_token = searchParams.get("pg_token");
+    if (!pg_token) return;
+    api
+      .post(
+        `/fundings/success/${fundingId}`,
+        null,
+        { headers: { Authorization: `Bearer ${token}` } }
+      )
+      .then(res => {
+        if (res.data.isSuccess) {
+          navigate(`/crowdfunding/detail/${fundingId}`);
+        } else {
+          alert("카카오 페이 승인 실패");
+        }
+      })
+      .catch(err => console.error("Error on KakaoPay success:", err));
+  }, [searchParams, navigate, fundingId, token]);
+
+  // 5) 로딩 중 또는 데이터 없음 처리
+  if (loading) {
+    return (
+      <PageContainer>
+        <Navigation />
+        <Loading>로딩 중...</Loading>
+        <Footer />
+      </PageContainer>
+    );
+  }
+  if (!funding) {
+    return (
+      <PageContainer>
+        <Navigation />
+        <Loading>펀딩 정보를 불러올 수 없습니다.</Loading>
+        <Footer />
+      </PageContainer>
+    );
+  }
+
+  // 6) 실제 렌더링
   return (
-    <StyledPageContainer>
+    <PageContainer>
       <Navigation />
-      <StyledHeroImage src={image} />
 
-      <TabMenu>
-        <TabItem
-          $active={currentPageType === "all"}
-          onClick={() => setCurrentPageType("all")}
-        >
-          #전체
-        </TabItem>
-        <TabItem
-          $active={currentPageType === "ongoing"}
-          onClick={() => setCurrentPageType("ongoing")}
-        >
-          #진행 중인 펀딩
-        </TabItem>
-        <TabItem
-          $active={currentPageType === "completed"}
-          onClick={() => setCurrentPageType("completed")}
-        >
-          #완료된 펀딩
-        </TabItem>
-      </TabMenu>
+      <ContentWrapper>
+        <ImageSection>
+          <Image src={funding.attachedImage} alt={funding.title} />
+        </ImageSection>
 
-      {loading ? (
-        <p>Loading...</p>
-      ) : fundings.length > 0 ? (
-        <StyledPostGrid>
-          {fundings.map((f) => (
-            <StyledPostCard
-              key={f.fundingId}
-              onClick={() => handleDetail(f.fundingId)}
-            >
-              <StyledImage src={f.attachedImage} alt={f.title} />
-              <StyledAchievement>
-                {f.fundingAmount.toLocaleString()}원 모금
-              </StyledAchievement>
-              <StyledCardTitle>{f.title}</StyledCardTitle>
-              <StyledPostDetails>
-                <StyledPostInstitution>
-                  {f.beneficiaryName}
-                </StyledPostInstitution>
-                <StyledPostDaysLeft>{f.dday}일 남음</StyledPostDaysLeft>
-              </StyledPostDetails>
-            </StyledPostCard>
-          ))}
-        </StyledPostGrid>
-      ) : (
-        <p>현재 {currentPageType === "completed" ? "완료된" : currentPageType === "ongoing" ? "진행 중인" : "전체"} 펀딩이 없습니다.</p>
-      )}
+        <InfoSection>
+          <Achievement>{funding.attainmentPercent}% 달성</Achievement>
+          <TotalAmount>
+            {funding.currentAmount.toLocaleString()}원 달성
+          </TotalAmount>
+
+          <TitleText>{funding.title}</TitleText>
+          <BodyText>{funding.content}</BodyText>
+
+          <Actions>
+            <IconButton onClick={!isScraped ? handleMark : handleDeleteMark}>
+              <img
+                src={!isScraped ? BookmarkIcon : BookMarkColor}
+                alt="스크랩"
+              />
+            </IconButton>
+
+            <IconButton>
+              <img src={ShareIcon} alt="공유" />
+            </IconButton>
+
+            <FundButton onClick={handleKakaoPay}>
+              펀딩하기
+            </FundButton>
+          </Actions>
+        </InfoSection>
+      </ContentWrapper>
+
+      <DetailsSection>
+        <PlaceholderDetails />
+      </DetailsSection>
 
       <Footer />
-    </StyledPageContainer>
+    </PageContainer>
   );
 };
 
-export default AllPosts;
+export default CrowdfundingDetail;
 
 
 /** Styled Components **/
-const StyledPageContainer = styled.div`
+const PageContainer = styled.div`
   display: flex;
   flex-direction: column;
+  align-items: center;
+  padding: 20px;
 `;
 
-const StyledHeroImage = styled.img`
-  width: 100%;
-  height: auto;
+const Loading = styled.div`
+  padding: 40px;
+  font-size: 1.2rem;
 `;
 
-const TabMenu = styled.div`
+const ContentWrapper = styled.div`
   display: flex;
-  justify-content: center;
-  margin: 100px 0 70px;
+  justify-content: space-between;
+  width: 80%;
+  margin-top: 30px;
 `;
 
-const TabItem = styled.div<{ $active?: boolean }>`
-  width: 300px;
-  text-align: center;
-  font-size: clamp(16px, 2vw, 30px);
-  font-weight: bold;
-  padding-bottom: 10px;
-  color: ${(props) => (props.$active ? "#3e5879" : "#e6d9d2")};
-  border-bottom: ${(props) =>
-    props.$active ? "3px solid #3e5879" : "1px solid #e6d9d2"};
-  cursor: pointer;
+const ImageSection = styled.div`
+  flex: 1;
 `;
 
-const StyledPostGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  grid-gap: 24px;
-  padding: 30px 80px;
-`;
-
-const StyledPostCard = styled.div`
-  background-color: white;
-  padding: 16px;
-  border-radius: 12px;
-  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
-  cursor: pointer;
-`;
-
-const StyledImage = styled.img`
+const Image = styled.img`
   width: 100%;
-  height: 150px;
+  height: 300px;
   object-fit: cover;
   border-radius: 8px;
 `;
 
-const StyledAchievement = styled.div`
-  font-size: 16px;
-  font-weight: bold;
-  margin-top: 8px;
-`;
-
-const StyledCardTitle = styled.div`
-  font-size: 14px;
-  font-weight: 600;
-  margin-bottom: 4px;
-`;
-
-const StyledPostDetails = styled.div`
+const InfoSection = styled.div`
+  flex: 1;
   display: flex;
-  justify-content: space-between;
-  font-size: 12px;
-  color: #6c6c6c;
+  flex-direction: column;
+  padding: 20px;
+  gap: 12px;
 `;
 
-const StyledPostInstitution = styled.div`
-  font-weight: 500;
-`;
-
-const StyledPostDaysLeft = styled.div`
+const Achievement = styled.div`
+  font-size: 24px;
   font-weight: bold;
   color: #3e5879;
+`;
+
+const TotalAmount = styled.div`
+  font-size: 28px;
+  font-weight: bold;
+  color: #333;
+`;
+
+const TitleText = styled.h2`
+  margin: 8px 0;
+  font-size: 22px;
+  color: #222;
+`;
+
+const BodyText = styled.p`
+  font-size: 16px;
+  line-height: 1.5;
+  color: #555;
+`;
+
+const Actions = styled.div`
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+`;
+
+const IconButton = styled.button`
+  background: none;
+  border: none;
+  cursor: pointer;
+  img {
+    width: 48px;
+    height: 48px;
+  }
+`;
+
+const FundButton = styled.button`
+  padding: 8px 20px;
+  background-color: #3e5879;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+`;
+
+const DetailsSection = styled.div`
+  width: 80%;
+  margin: 40px 0;
+`;
+
+const PlaceholderDetails = styled.div`
+  width: 100%;
+  height: 200px;
+  background: #f0f0f0;
+  border-radius: 8px;
 `;
