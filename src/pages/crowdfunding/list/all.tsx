@@ -1,11 +1,12 @@
+// src/pages/crowdfunding/all.tsx
+
+import React, { useState, useEffect } from "react";
 import styled from "styled-components";
-import { useState, useEffect } from "react";
 import Navigation from "../../../components/Navigation";
 import Footer from "../../../components/Footer";
 import image from "../../../assets/just2_image.svg";
-import axios from "axios";
+import api from "../../../utils/api";
 import { useNavigate } from "react-router-dom";
-const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 interface Funding {
   fundingId: number;
@@ -18,39 +19,41 @@ interface Funding {
   dday: string;
 }
 
-const CrowdFunding = () => {
+const AllPosts: React.FC = () => {
   const navigate = useNavigate();
   const [fundings, setFundings] = useState<Funding[]>([]);
   const [currentPageType, setCurrentPageType] = useState<
     "all" | "ongoing" | "completed"
   >("all");
   const [loading, setLoading] = useState(true);
-  const accessToken = localStorage.getItem("accessToken");
+  const accessToken = localStorage.getItem("accessToken") || "";
+
   useEffect(() => {
     setLoading(true);
-    let apiUrl = `${API_BASE_URL}fundings/lists`;
-    if (currentPageType === "ongoing")
-      apiUrl = `${API_BASE_URL}fundings/filters?status=IN_PROGRESS`;
-    if (currentPageType === "completed")
-      apiUrl = `${API_BASE_URL}fundings/filters?status=AFTER_PROGRESS`;
+    let url = `/fundings/lists`;
+    if (currentPageType === "ongoing") {
+      url = `/fundings/filters?status=IN_PROGRESS`;
+    } else if (currentPageType === "completed") {
+      url = `/fundings/filters?status=AFTER_PROGRESS`;
+    }
 
-    axios
-      .get(apiUrl, {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
+    api
+      .get(url, {
+        headers: { Authorization: `Bearer ${accessToken}` },
       })
-      .then((response) => {
-        if (response.data.isSuccess) {
-          setFundings(response.data.result);
+      .then((res) => {
+        if (res.data.isSuccess) {
+          setFundings(res.data.result);
         }
       })
-      .catch((error) => console.error("Error fetching fundings:", error))
+      .catch((err) => console.error("Error fetching fundings:", err))
       .finally(() => setLoading(false));
-  }, [currentPageType]);
+  }, [currentPageType, accessToken]);
+
   const handleDetail = (fundingId: number) => {
     navigate(`/crowdfunding/detail/${fundingId}`);
   };
+
   return (
     <StyledPageContainer>
       <Navigation />
@@ -79,31 +82,29 @@ const CrowdFunding = () => {
 
       {loading ? (
         <p>Loading...</p>
-      ) : (
+      ) : fundings.length > 0 ? (
         <StyledPostGrid>
-          {fundings.length > 0 ? (
-            fundings.map((funding) => (
-              <StyledPostCard
-                key={funding.fundingId}
-                onClick={() => handleDetail(funding.fundingId)}
-              >
-                <StyledImage src={funding.attachedImage} alt={funding.title} />
-                <StyledAchievement>
-                  {funding.fundingAmount}원 모금
-                </StyledAchievement>
-                <StyledCardTitle>{funding.title}</StyledCardTitle>
-                <StyledPostDetails>
-                  <StyledPostInstitution>
-                    {funding.beneficiaryName}
-                  </StyledPostInstitution>
-                  <StyledPostDaysLeft>{funding.dday}일 남음</StyledPostDaysLeft>
-                </StyledPostDetails>
-              </StyledPostCard>
-            ))
-          ) : (
-            <p>현재 진행 중인 펀딩이 없습니다.</p>
-          )}
+          {fundings.map((f) => (
+            <StyledPostCard
+              key={f.fundingId}
+              onClick={() => handleDetail(f.fundingId)}
+            >
+              <StyledImage src={f.attachedImage} alt={f.title} />
+              <StyledAchievement>
+                {f.fundingAmount.toLocaleString()}원 모금
+              </StyledAchievement>
+              <StyledCardTitle>{f.title}</StyledCardTitle>
+              <StyledPostDetails>
+                <StyledPostInstitution>
+                  {f.beneficiaryName}
+                </StyledPostInstitution>
+                <StyledPostDaysLeft>{f.dday}일 남음</StyledPostDaysLeft>
+              </StyledPostDetails>
+            </StyledPostCard>
+          ))}
         </StyledPostGrid>
+      ) : (
+        <p>현재 {currentPageType === "completed" ? "완료된" : currentPageType === "ongoing" ? "진행 중인" : "전체"} 펀딩이 없습니다.</p>
       )}
 
       <Footer />
@@ -111,9 +112,10 @@ const CrowdFunding = () => {
   );
 };
 
-export default CrowdFunding;
+export default AllPosts;
 
-// Styled Components
+
+/** Styled Components **/
 const StyledPageContainer = styled.div`
   display: flex;
   flex-direction: column;
@@ -154,6 +156,7 @@ const StyledPostCard = styled.div`
   padding: 16px;
   border-radius: 12px;
   box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
 `;
 
 const StyledImage = styled.img`

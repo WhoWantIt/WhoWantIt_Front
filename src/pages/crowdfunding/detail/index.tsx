@@ -1,213 +1,195 @@
-import React, { useEffect, useState } from "react";
+// src/pages/crowdfunding/all.tsx
+
+import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import Navigation from "../../../components/Navigation";
 import Footer from "../../../components/Footer";
-import BookmarkIcon from "../../../assets/bookmark.svg";
-import BookMarkColor from "../../../assets/volunteer/bookmark_color.svg";
-import ShareIcon from "../../../assets/share.svg";
-import axios from "axios";
-import { useParams, useSearchParams, useNavigate } from "react-router-dom";
+import image from "../../../assets/just2_image.svg";
+import api from "../../../utils/api";
+import { useNavigate } from "react-router-dom";
 
-// API 주소를 환경변수로부터 가져옵니다
-const Api = import.meta.env.VITE_API_URL;
-
-interface FundingType {
+interface Funding {
   fundingId: number;
   title: string;
-  content: string;
-  status: string;
-  productName: string;
-  currentAmount: number;
   attachedImage: string;
-  approvalStatus: string;
-  attainmentPercent: number;
+  fundingAmount: number;
   beneficiaryId: number;
   beneficiaryName: string;
   beneficiaryNickname: string;
+  dday: string;
 }
 
-const CrowdfundingDetail: React.FC = () => {
-  const { fundingId } = useParams<{ fundingId: string }>();
-  const [funding, setFunding] = useState<FundingType | null>(null);
-  const [isScraped, setIsScraped] = useState(false);
-  const [searchParams] = useSearchParams();
+const AllPosts: React.FC = () => {
   const navigate = useNavigate();
-  const token = localStorage.getItem("accessToken") || "";
+  const [fundings, setFundings] = useState<Funding[]>([]);
+  const [currentPageType, setCurrentPageType] = useState<
+    "all" | "ongoing" | "completed"
+  >("all");
+  const [loading, setLoading] = useState(true);
+  const accessToken = localStorage.getItem("accessToken") || "";
 
-  // 펀딩 상세 데이터 가져오기
   useEffect(() => {
-    axios
-      .get(`${Api}fundings/${fundingId}`, { headers: { Authorization: `Bearer ${token}` } })
-      .then(res => setFunding(res.data.result))
-      .catch(err => console.error("Error fetching funding detail:", err));
-  }, [fundingId, token]);
+    setLoading(true);
+    let url = `/fundings/lists`;
+    if (currentPageType === "ongoing") {
+      url = `/fundings/filters?status=IN_PROGRESS`;
+    } else if (currentPageType === "completed") {
+      url = `/fundings/filters?status=AFTER_PROGRESS`;
+    }
 
-  // 스크랩 처리
-  const handleMark = () => {
-    setIsScraped(true);
-    axios
-      .post(`${Api}fundings/scraps/${fundingId}`, null, { headers: { Authorization: `Bearer ${token}` } })
-      .catch(err => console.error("Error posting scrap:", err));
-  };
-
-  const handleDeleteMark = () => {
-    setIsScraped(false);
-    axios
-      .delete(`${Api}fundings/scraps/${fundingId}`, { headers: { Authorization: `Bearer ${token}` } })
-      .catch(err => console.error("Error deleting scrap:", err));
-  };
-
-  // 카카오페이 요청
-  const handleKakaoPay = () => {
-    axios
-      .post(`${Api}fundings/pays/${fundingId}?paymentAmount=100000`, null, { headers: { Authorization: `Bearer ${token}` } })
-      .then(res => {
+    api
+      .get(url, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      })
+      .then((res) => {
         if (res.data.isSuccess) {
-          const url = res.data.result.next_redirect_pc_url;
-          if (url) window.location.href = url;
+          setFundings(res.data.result);
         }
       })
-      .catch(err => console.error("Error fetching KakaoPay:", err));
+      .catch((err) => console.error("Error fetching fundings:", err))
+      .finally(() => setLoading(false));
+  }, [currentPageType, accessToken]);
+
+  const handleDetail = (fundingId: number) => {
+    navigate(`/crowdfunding/detail/${fundingId}`);
   };
 
-  // 카카오페이 승인 콜백
-  useEffect(() => {
-    const pg_token = searchParams.get("pg_token");
-    if (!pg_token) return;
-    axios
-      .post(`${Api}fundings/success/${fundingId}`, null, { headers: { Authorization: `Bearer ${token}` } })
-      .then(res => {
-        if (res.data.isSuccess) navigate(`/crowdfunding/detail/${fundingId}`);
-        else alert("카카오 페이 승인 실패");
-      })
-      .catch(err => console.error("Error handling kakaoPay success:", err));
-  }, [searchParams, navigate, fundingId, token]);
-
-  if (!funding) {
-    return (
-      <PageContainer>
-        <Navigation />
-        <Loading>로딩 중...</Loading>
-        <Footer />
-      </PageContainer>
-    );
-  }
-
   return (
-    <PageContainer>
+    <StyledPageContainer>
       <Navigation />
-      <ContentWrapper>
-        <ImageSection>
-          <Image src={funding.attachedImage} alt={funding.title} />
-        </ImageSection>
-        <InfoSection>
-          <Achievement>{funding.attainmentPercent}% 달성</Achievement>
-          <TotalAmount>{funding.currentAmount.toLocaleString()}원</TotalAmount>
-          <TitleText>{funding.title}</TitleText>
-          <BodyText>{funding.content}</BodyText>
-          <Actions>
-            <IconButton onClick={!isScraped ? handleMark : handleDeleteMark}>
-              <img
-                src={!isScraped ? BookmarkIcon : BookMarkColor}
-                alt="스크랩"
-              />
-            </IconButton>
-            <IconButton>
-              <img src={ShareIcon} alt="공유" />
-            </IconButton>
-            <FundButton onClick={handleKakaoPay}>펀딩하기</FundButton>
-          </Actions>
-        </InfoSection>
-      </ContentWrapper>
-      <DetailsSection>
-        <PlaceholderDetails />
-      </DetailsSection>
+      <StyledHeroImage src={image} />
+
+      <TabMenu>
+        <TabItem
+          $active={currentPageType === "all"}
+          onClick={() => setCurrentPageType("all")}
+        >
+          #전체
+        </TabItem>
+        <TabItem
+          $active={currentPageType === "ongoing"}
+          onClick={() => setCurrentPageType("ongoing")}
+        >
+          #진행 중인 펀딩
+        </TabItem>
+        <TabItem
+          $active={currentPageType === "completed"}
+          onClick={() => setCurrentPageType("completed")}
+        >
+          #완료된 펀딩
+        </TabItem>
+      </TabMenu>
+
+      {loading ? (
+        <p>Loading...</p>
+      ) : fundings.length > 0 ? (
+        <StyledPostGrid>
+          {fundings.map((f) => (
+            <StyledPostCard
+              key={f.fundingId}
+              onClick={() => handleDetail(f.fundingId)}
+            >
+              <StyledImage src={f.attachedImage} alt={f.title} />
+              <StyledAchievement>
+                {f.fundingAmount.toLocaleString()}원 모금
+              </StyledAchievement>
+              <StyledCardTitle>{f.title}</StyledCardTitle>
+              <StyledPostDetails>
+                <StyledPostInstitution>
+                  {f.beneficiaryName}
+                </StyledPostInstitution>
+                <StyledPostDaysLeft>{f.dday}일 남음</StyledPostDaysLeft>
+              </StyledPostDetails>
+            </StyledPostCard>
+          ))}
+        </StyledPostGrid>
+      ) : (
+        <p>현재 {currentPageType === "completed" ? "완료된" : currentPageType === "ongoing" ? "진행 중인" : "전체"} 펀딩이 없습니다.</p>
+      )}
+
       <Footer />
-    </PageContainer>
+    </StyledPageContainer>
   );
 };
 
-export default CrowdfundingDetail;
+export default AllPosts;
+
 
 /** Styled Components **/
-const PageContainer = styled.div`
+const StyledPageContainer = styled.div`
   display: flex;
   flex-direction: column;
-  align-items: center;
-  padding: 20px;
 `;
-const Loading = styled.div`
-  padding: 40px;
-  font-size: 1.2rem;
-`;
-const ContentWrapper = styled.div`
-  display: flex;
-  justify-content: space-between;
-  width: 80%;
-  margin-top: 30px;
-`;
-const ImageSection = styled.div`
-  flex: 1;
-`;
-const Image = styled.img`
+
+const StyledHeroImage = styled.img`
   width: 100%;
-  height: 300px;
+  height: auto;
+`;
+
+const TabMenu = styled.div`
+  display: flex;
+  justify-content: center;
+  margin: 100px 0 70px;
+`;
+
+const TabItem = styled.div<{ $active?: boolean }>`
+  width: 300px;
+  text-align: center;
+  font-size: clamp(16px, 2vw, 30px);
+  font-weight: bold;
+  padding-bottom: 10px;
+  color: ${(props) => (props.$active ? "#3e5879" : "#e6d9d2")};
+  border-bottom: ${(props) =>
+    props.$active ? "3px solid #3e5879" : "1px solid #e6d9d2"};
+  cursor: pointer;
+`;
+
+const StyledPostGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-gap: 24px;
+  padding: 30px 80px;
+`;
+
+const StyledPostCard = styled.div`
+  background-color: white;
+  padding: 16px;
+  border-radius: 12px;
+  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+`;
+
+const StyledImage = styled.img`
+  width: 100%;
+  height: 150px;
   object-fit: cover;
   border-radius: 8px;
 `;
-const InfoSection = styled.div`
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  padding: 20px;
-  gap: 12px;
+
+const StyledAchievement = styled.div`
+  font-size: 16px;
+  font-weight: bold;
+  margin-top: 8px;
 `;
-const Achievement = styled.div`
-  font-size: 24px;
+
+const StyledCardTitle = styled.div`
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 4px;
+`;
+
+const StyledPostDetails = styled.div`
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #6c6c6c;
+`;
+
+const StyledPostInstitution = styled.div`
+  font-weight: 500;
+`;
+
+const StyledPostDaysLeft = styled.div`
   font-weight: bold;
   color: #3e5879;
-`;
-const TotalAmount = styled.div`
-  font-size: 28px;
-  font-weight: bold;
-  color: #333;
-`;
-const TitleText = styled.h2`
-  margin: 8px 0;
-  font-size: 22px;
-  color: #222;
-`;
-const BodyText = styled.p`
-  font-size: 16px;
-  line-height: 1.5;
-  color: #555;
-`;
-const Actions = styled.div`
-  display: flex;
-  gap: 10px;
-  margin-top: 20px;
-`;
-const IconButton = styled.button`
-  background: none;
-  border: none;
-  cursor: pointer;
-  img { width: 48px; height: 48px; }
-`;
-const FundButton = styled.button`
-  padding: 8px 20px;
-  background-color: #3e5879;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-`;
-const DetailsSection = styled.div`
-  width: 80%;
-  margin: 40px 0;
-`;
-const PlaceholderDetails = styled.div`
-  width: 100%;
-  height: 200px;
-  background: #f0f0f0;
-  border-radius: 8px;
 `;
