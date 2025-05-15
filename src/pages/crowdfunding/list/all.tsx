@@ -13,49 +13,62 @@ interface Funding {
   title: string;
   attachedImage: string;
   currentAmount: number;
-  beneficiaryId: number;
   beneficiaryName: string;
-  beneficiaryNickname: string;
   dday: string;
 }
+
+type PageType = "all" | "ongoing" | "completed";
 
 const AllPosts: React.FC = () => {
   const navigate = useNavigate();
   const [fundings, setFundings] = useState<Funding[]>([]);
-  const [currentPageType, setCurrentPageType] = useState<"all" | "ongoing" | "completed">("all");
+  const [currentPageType, setCurrentPageType] = useState<PageType>("all");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const token = localStorage.getItem("accessToken") || "";
 
   useEffect(() => {
-    setLoading(true);
-    setError(null);
+  setLoading(true);
+  setError(null);
 
-    let url = "/fundings/lists";
-    if (currentPageType === "ongoing") {
-      url = "/fundings/filters?status=IN_PROGRESS";
-    } else if (currentPageType === "completed") {
-      url = "/fundings/filters?status=AFTER_PROGRESS";
-    }
+  let url = "/fundings/lists";
+  if (currentPageType === "ongoing") {
+    url = "/fundings/filters?status=IN_PROGRESS";
+  } else if (currentPageType === "completed") {
+    url = "/fundings/filters?status=AFTER_PROGRESS";
+  }
 
-    api.get(url, {
-      headers: { Authorization: `Bearer ${token}` },
+  api
+    .get(url, { headers: { Authorization: `Bearer ${token}` } })
+    .then(res => {
+      // API 결과가 배열인지, content 안에 있는지 확인
+      const rawList: any[] = Array.isArray(res.data.result)
+        ? res.data.result
+        : res.data.result.content;
+
+      // currentAmount를 attainmentPercent와 targetAmount로 계산
+      const normalized: Funding[] = rawList.map(item => ({
+        fundingId: item.fundingId,
+        title: item.title,
+        attachedImage: item.attachedImage,
+        currentAmount: Math.floor((item.attainmentPercent / 100) * item.targetAmount),
+        beneficiaryId: item.beneficiaryId,
+        beneficiaryName: item.beneficiaryName,
+        beneficiaryNickname: item.beneficiaryNickname,
+        dday: item.dday,
+      }));
+
+      setFundings(normalized);
     })
-      .then(res => {
-        if (res.data.isSuccess) {
-          setFundings(res.data.result);
-        } else {
-          setError(res.data.message || "펀딩 목록을 불러올 수 없습니다.");
-        }
-      })
-      .catch(err => {
-        console.error(err);
-        setError("서버 연결에 실패했습니다.");
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  }, [currentPageType, token]);
+    .catch(err => {
+      console.error(err);
+      setError("서버 연결에 실패했습니다.");
+    })
+    .finally(() => {
+      setLoading(false);
+    });
+}, [currentPageType, token]);
+
 
   const handleDetail = (fundingId: number) => {
     navigate(`/crowdfunding/detail/${fundingId}`);
@@ -68,37 +81,49 @@ const AllPosts: React.FC = () => {
       <HeroImage src={image} alt="크라우드 펀딩 배너" />
 
       <TabMenu>
-        {(["all", "ongoing", "completed"] as const).map(type => (
-          <TabItem
-            key={type}
-            $active={currentPageType === type}
-            onClick={() => setCurrentPageType(type)}
-          >
-            {type === "all" ? "#전체" : type === "ongoing" ? "#진행 중인 펀딩" : "#완료된 펀딩"}
-          </TabItem>
-        ))}
+        <TabItem
+          $active={currentPageType === "all"}
+          onClick={() => setCurrentPageType("all")}
+        >
+          #전체
+        </TabItem>
+        <TabItem
+          $active={currentPageType === "ongoing"}
+          onClick={() => setCurrentPageType("ongoing")}
+        >
+          #진행 중인 펀딩
+        </TabItem>
+        <TabItem
+          $active={currentPageType === "completed"}
+          onClick={() => setCurrentPageType("completed")}
+        >
+          #완료된 펀딩
+        </TabItem>
       </TabMenu>
 
       {loading ? (
-        <Message>Loading...</Message>
+        <Message>로딩 중...</Message>
       ) : error ? (
         <Message>{error}</Message>
       ) : fundings.length === 0 ? (
-        <Message>현재 {currentPageType === "all"
-          ? "펀딩이 없습니다."
-          : currentPageType === "ongoing"
-          ? "진행 중인 펀딩이 없습니다."
-          : "완료된 펀딩이 없습니다."}</Message>
+        <Message>
+          현재{" "}
+          {currentPageType === "all"
+            ? "펀딩이 없습니다."
+            : currentPageType === "ongoing"
+            ? "진행 중인 펀딩이 없습니다."
+            : "완료된 펀딩이 없습니다."}
+        </Message>
       ) : (
         <PostGrid>
           {fundings.map(f => (
-            <PostCard key={f.fundingId} onClick={() => handleDetail(f.fundingId)}>
+            <PostCard
+              key={f.fundingId}
+              onClick={() => handleDetail(f.fundingId)}
+            >
               <PostImage src={f.attachedImage} alt={f.title} />
               <Achievement>
-                {typeof f.currentAmount === "number"
-                  ? f.currentAmount.toLocaleString()
-                  : "0"}
-                원 모금
+                {f.currentAmount.toLocaleString()}원 모금
               </Achievement>
               <CardTitle>{f.title}</CardTitle>
               <PostDetails>
@@ -116,7 +141,6 @@ const AllPosts: React.FC = () => {
 };
 
 export default AllPosts;
-
 
 /** Styled Components **/
 const PageContainer = styled.div`
@@ -136,13 +160,26 @@ const TabMenu = styled.div`
 `;
 
 const TabItem = styled.div<{ $active?: boolean }>`
-  margin: 0 16px;
-  padding-bottom: 8px;
-  font-size: clamp(16px, 2vw, 28px);
-  font-weight: bold;
-  color: ${p => (p.$active ? "#3e5879" : "#e6d9d2")};
-  border-bottom: ${p => (p.$active ? "3px solid #3e5879" : "1px solid #e6d9d2")};
+  width: 300px;
   cursor: pointer;
+  text-align: center;
+  padding-bottom: 10px;
+  font-size: clamp(16px, 2vw, 28px);
+  font-family: Pretendard, sans-serif;
+  font-weight: bold;
+  color: ${({ $active }) => ($active ? "#3e5879" : "#e6d9d2")};
+  border-bottom: ${({ $active }) =>
+    $active ? "3px solid #3e5879" : "1px solid #e6d9d2"};
+
+  @media (max-width: 1500px) {
+    font-size: 26px;
+  }
+  @media (max-width: 1200px) {
+    font-size: 22px;
+  }
+  @media (max-width: 800px) {
+    font-size: 18px;
+  }
 `;
 
 const Message = styled.p`
