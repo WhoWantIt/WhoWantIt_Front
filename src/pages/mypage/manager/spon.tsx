@@ -126,6 +126,9 @@ const Sidebar = styled.div`
   display: flex;
   flex-direction: column;
   height: 100vh;
+  @media (max-width: 768px) {
+    width: 200px;
+  }
 `;
 
 const SidebarTitle = styled.h3`
@@ -134,6 +137,9 @@ const SidebarTitle = styled.h3`
   font-size: 25px;
   font-weight: bold;
   margin-bottom: 25px;
+  @media(max-width: 768px){
+    font-size: 20px;
+  }
 `;
 
 const DocumentList = styled.ul`
@@ -163,6 +169,9 @@ const DocumentItem = styled.li.withConfig({
   align-items: center;
   justify-content: center;
   font-size: 18px;
+  @media(max-width) {
+    font-size: 15px;
+  }
 `;
 
 /* 메인 콘텐츠 */
@@ -175,6 +184,9 @@ const Title = styled.h2`
   font-size: 24px;
   font-weight: bold;
   text-align: center;
+  @media (max-width: 768px) {
+    font-size: 21px;
+  }
 `;
 
 const TotalCount = styled.p`
@@ -186,6 +198,9 @@ const TotalCount = styled.p`
   strong {
     font-size: 24px;
     font-weight: bold;
+  }
+  @media(max-width: 768px) {
+    font-size: 15px;
   }
 `;
 

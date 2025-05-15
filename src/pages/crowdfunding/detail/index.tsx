@@ -16,7 +16,7 @@ interface FundingType {
   status: string;
   productName: string;
   currentAmount: number;
-  
+
   attachedImage: string;
   approvalStatus: string;
   attainmentPercent: number;
@@ -33,6 +33,7 @@ const CrowdfundingDetail = () => {
   const navigate = useNavigate();
   useEffect(() => {
     api
+      // 클라우드 펀딩 상세 조회
       .get(`/fundings/${fundingId}`)
       .then((res) => setFundings(res.data.result))
       .catch((err) => console.error("Error fetching funding detail: ", err));
@@ -49,9 +50,13 @@ const CrowdfundingDetail = () => {
       .post(`/fundings/scraps/${fundingId}`)
       .catch((err) => console.error("Eror fetching delete scrap: ", err));
   };
+  // paymentAmount 값 파라미터
+  // 카카오페이 
   const handleKakaoPay = () => {
     api
-      .post(`/fundings/pays/${fundingId}?paymentAmount=100000`)
+      .post(`/fundings/pays/${fundingId}`, null, {
+        params: { paymentAmount: 5000 },
+      })
       .then((res) => {
         if (res.data.isSuccess) {
           const redirectUrl = res.data.result.next_redirect_pc_url;
@@ -59,23 +64,30 @@ const CrowdfundingDetail = () => {
             window.location.href = redirectUrl;
           } else {
             console.error("결제 요청 응답에서 url이 존재하지 않습니다.");
+            api.get("/funding/cancel").then((res) => alert(res.data.result));
           }
         } else {
-          //카카오페이 결재 진행 중 취소
-          api.get("/funding/cancel").then((res) => alert(res.data.result));
+          api.get("/funding/fail").then((res) => alert(res.data.result));
         }
       })
-      .catch((err) => console.error("Error fetching KakaoPay: ", err));
+      .catch((err) => {
+        console.error("Error fetching KakaoPay: ", err);
+      });
   };
+
+  // 카카오페이 결제 성공
+  //pg_token 파라미터로
   useEffect(() => {
     const pg_token = searchParams.get("pg_token");
     if (!pg_token) return;
     const handleKakaoPaySuccess = () => {
       api
-        .post(`/fundings/success/`)
+        .post(`/fundings/success/`, null, {
+          params: { pg_token },
+        })
         .then((res) => {
           if (res.data.isSuccess) {
-            navigate(`/crowdfunding/detail/${fundingId}`);
+            navigate("/funding/success")
           } else {
             alert("카카오 페이 승인 실패");
           }
@@ -85,36 +97,36 @@ const CrowdfundingDetail = () => {
     handleKakaoPaySuccess();
   }, [searchParams, navigate, fundingId]);
   return (
-  <>
-    <Navigation />
-    <PageContainer>
-s      <ContentWrapper>
-        <ImageSection>
-          <PlaceholderImage />
-        </ImageSection>
-        <InfoSection>
-          <Achievement>{fundings?.attainmentPercent} 달성</Achievement>
-          <TotalAmount>{fundings?.currentAmount}원 달성</TotalAmount>
-          <Actions>
-            <IconButton onClick={!isSrcaped ? handleMark : handleDeleteMark}>
-              {!isSrcaped ? (
-                <img src={BookmarkIcon} />
-              ) : (
-                <img src={BookMarkColor} />
-              )}
-            </IconButton>
-            <IconButton>
-              <img src={ShareIcon} alt="공유" />
-            </IconButton>
-            <FundButton onClick={() => handleKakaoPay()}>펀딩하기</FundButton>
-          </Actions>
-        </InfoSection>
-      </ContentWrapper>
-      <DetailsSection>
-        <PlaceholderDetails />
-      </DetailsSection>
-      <Footer />
-    </PageContainer>
+    <>
+      <Navigation />
+      <PageContainer>
+        <ContentWrapper>
+          <ImageSection>
+            <PlaceholderImage />
+          </ImageSection>
+          <InfoSection>
+            <Achievement>{fundings?.attainmentPercent} 달성</Achievement>
+            <TotalAmount>{fundings?.currentAmount}원 달성</TotalAmount>
+            <Actions>
+              <IconButton onClick={!isSrcaped ? handleMark : handleDeleteMark}>
+                {!isSrcaped ? (
+                  <img src={BookmarkIcon} />
+                ) : (
+                  <img src={BookMarkColor} />
+                )}
+              </IconButton>
+              <IconButton>
+                <img src={ShareIcon} alt="공유" />
+              </IconButton>
+              <FundButton onClick={() => handleKakaoPay()}>펀딩하기</FundButton>
+            </Actions>
+          </InfoSection>
+        </ContentWrapper>
+        <DetailsSection>
+          <PlaceholderDetails />
+        </DetailsSection>
+        <Footer />
+      </PageContainer>
     </>
   );
 };

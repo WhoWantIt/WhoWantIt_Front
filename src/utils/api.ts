@@ -1,6 +1,5 @@
 import axios from "axios";
 import { isTokenExpired } from "./jwt";
-
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 const ACCESS_TOKEN_KEY = "accessToken";
 const REFRESH_TOKEN_KEY = "refreshToken";
