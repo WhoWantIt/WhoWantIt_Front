@@ -17,13 +17,13 @@ interface SponType {
   name: string;
 }
 const SponPage = () => {
+  const navigate = useNavigate();
   const [documents] = useState<string[]>([
     "등록된 기관",
     "후원자 정보",
     "게시글 요청",
     "펀딩 요청",
   ]);
-  const navigate = useNavigate();
   const [activeDoc, setActiveDoc] = useState<string | null>(null);
   const [cards, setCards] = useState<SponType[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -55,6 +55,7 @@ const SponPage = () => {
     <>
       <Navigation />
       <Container>
+        <Wrapper>
         {/* 왼쪽 사이드바 */}
         <Sidebar>
           <SidebarTitle>마이페이지</SidebarTitle>
@@ -104,6 +105,7 @@ const SponPage = () => {
             )}
           </Pagination>
         </MainContent>
+        </Wrapper>
       </Container>
       <Footer />
     </>
@@ -118,12 +120,16 @@ const Container = styled.div`
   width: 100%;
   font-family: Pretendard, sans-serif;
 `;
-
+const Wrapper = styled.div`
+  display: flex;
+  flex-direction : row;
+  width: 100%;
+`;
 const Sidebar = styled.div`
+  display: flex;
   width: 250px;
   background-color: #3e5879;
   color: white;
-  display: flex;
   flex-direction: column;
   height: 100vh;
   @media (max-width: 768px) {
@@ -157,15 +163,15 @@ interface DocumentItemProps {
 const DocumentItem = styled.li.withConfig({
   shouldForwardProp: (prop) => prop !== "active",
 })<DocumentItemProps>`
-  display: flex;
   padding: 15px 20px;
   cursor: pointer;
   background-color: ${({ active }) => (active ? "#adacc2" : "#3d5879")};
-  border-top: 1px solid #ffffff;
 
   &:hover {
     background-color: #adacc2;
   }
+  border-top: 1px solid #ffffff;
+  display: flex;
   align-items: center;
   justify-content: center;
   font-size: 18px;
@@ -178,6 +184,7 @@ const DocumentItem = styled.li.withConfig({
 const MainContent = styled.div`
   flex: 1;
   padding: 40px;
+  min-width: 0;
 `;
 
 const Title = styled.h2`

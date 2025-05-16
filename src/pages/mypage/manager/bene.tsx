@@ -11,6 +11,7 @@ import { useNavigate } from "react-router-dom";
 // 기관 카드 데이터 예제
 const ITEMS_PER_PAGE = 10;
 interface BeneType {
+  beneficiaryId: number;
   attachedImage: string;
   nickname: string;
   name: string;
@@ -76,7 +77,7 @@ const BenePage = () => {
         <MainContent>
           <Title>등록된 기관</Title>
           <TotalCount>
-            <strong>100</strong> 개의 기관
+            <strong>{cards.length}</strong> 개의 기관
           </TotalCount>
           <Divider />
 
@@ -125,18 +126,17 @@ const Container = styled.div`
 `;
 const Wrapper = styled.div`
   display: flex;
-  flex-direction:row;
-  justify-center: flex-end;
+  flex-direction : row;
   width: 100%;
 `;
 const Sidebar = styled.div`
   display: flex;
-  width: 250px;
   background-color: #3e5879;
+  width: 250px;
+  heightL: 100vh;
   color: white;
   flex-direction: column;
   align-items: center;
-  height: 100vh;
   @media(max-width: 768px) {
     width: 200px;
   }
@@ -189,6 +189,7 @@ const DocumentItem = styled.li.withConfig({
 const MainContent = styled.div`
   flex: 1;
   padding: 40px;
+  min-width: 0;
 `;
 
 const Title = styled.h2`
@@ -224,39 +225,43 @@ const Divider = styled.hr`
 
 /* 카드 목록 */
 const CardList = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-around;
-  gap: 20px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  padding: 20px;
+  width: 100%;
   margin-top: 20px;
+  @media (max-width: 768px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
 `;
 
 const Card = styled.div`
-  display: fix;
   width: 200px;
-  height: 180px;
+  height: 200px; {/*240*/}
   background: #ffffff;
   border-radius: 8px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding-top: 20px;
+  padding-top: 20px; {/*12*/}
   cursor: pointer;
-
+  box-sizing: border-box;
   &:hover {
     background: #ffffff;
   }
   img {
-    width: 200px;
-    height: 150px;
+    width: 100%;
+    height: 140px;
+    object-fit: cover;
     background-color: #c0c7d6;
     border-radius: 8px;
   }
 `;
 
-const CardTitle = styled.p`
+
+const CardTitle = styled.div`
   margin-top: 10px;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: bold;
   margin-right: 90px;
 `;
