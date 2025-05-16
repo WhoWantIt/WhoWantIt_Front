@@ -11,6 +11,7 @@ import { useNavigate } from "react-router-dom";
 // 기관 카드 데이터 예제
 const ITEMS_PER_PAGE = 10;
 interface BeneType {
+  beneficiaryId: number;
   attachedImage: string;
   nickname: string;
   name: string;
@@ -76,7 +77,7 @@ const BenePage = () => {
         <MainContent>
           <Title>등록된 기관</Title>
           <TotalCount>
-            <strong>100</strong> 개의 기관
+            <strong>{cards.length}</strong> 개의 기관
           </TotalCount>
           <Divider />
 
