@@ -43,7 +43,7 @@ const FundingScrapPage = () => {
   };
 
   const goToFundingDetail = (fundingId: number) => {
-    navigate(`/crowdfunding/${fundingId}`);
+    navigate(`/crowdfunding/detail/${fundingId}`);
   };
 
   const goToVolunteerPage = () => {

@@ -39,14 +39,14 @@ const CrowdfundingDetail: React.FC = () => {
       .get(`/fundings/${fundingId}`, {
         headers: { Authorization: `Bearer ${token}` },
       })
-      .then(res => {
+      .then((res) => {
         if (res.data.isSuccess) {
           setFunding(res.data.result);
         } else {
           console.error("Error fetching funding detail:", res.data.message);
         }
       })
-      .catch(err => console.error("Error fetching funding detail:", err))
+      .catch((err) => console.error("Error fetching funding detail:", err))
       .finally(() => setLoading(false));
   }, [fundingId, token]);
 
@@ -57,7 +57,7 @@ const CrowdfundingDetail: React.FC = () => {
       .post(`/fundings/scraps/${fundingId}`, null, {
         headers: { Authorization: `Bearer ${token}` },
       })
-      .catch(err => console.error("Error posting scrap:", err));
+      .catch((err) => console.error("Error posting scrap:", err));
   };
   const handleDeleteMark = () => {
     setIsScraped(false);
@@ -65,18 +65,16 @@ const CrowdfundingDetail: React.FC = () => {
       .post(`/fundings/scraps/${fundingId}`, null, {
         headers: { Authorization: `Bearer ${token}` },
       })
-      .catch(err => console.error("Error deleting scrap:", err));
+      .catch((err) => console.error("Error deleting scrap:", err));
   };
 
   // 3) 카카오페이 요청
   const handleKakaoPay = () => {
     api
-      .post(
-        `/fundings/pays/${fundingId}?paymentAmount=100000`,
-        null,
-        { headers: { Authorization: `Bearer ${token}` } }
-      )
-      .then(res => {
+      .post(`/fundings/pays/${fundingId}?paymentAmount=100000`, null, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((res) => {
         if (res.data.isSuccess) {
           const url = res.data.result.next_redirect_pc_url;
           url
@@ -84,7 +82,7 @@ const CrowdfundingDetail: React.FC = () => {
             : console.error("redirect url 없음");
         }
       })
-      .catch(err => console.error("Error requesting KakaoPay:", err));
+      .catch((err) => console.error("Error requesting KakaoPay:", err));
   };
 
   // 4) 카카오페이 승인 콜백
@@ -92,90 +90,89 @@ const CrowdfundingDetail: React.FC = () => {
     const pg_token = searchParams.get("pg_token");
     if (!pg_token) return;
     api
-      .post(
-        `/fundings/success/${fundingId}`,
-        null,
-        { headers: { Authorization: `Bearer ${token}` } }
-      )
-      .then(res => {
+      .post(`/fundings/success/${fundingId}`, null, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((res) => {
         if (res.data.isSuccess) {
           navigate(`/crowdfunding/detail/${fundingId}`);
         } else {
           alert("카카오 페이 승인 실패");
         }
       })
-      .catch(err => console.error("Error on KakaoPay success:", err));
+      .catch((err) => console.error("Error on KakaoPay success:", err));
   }, [searchParams, navigate, fundingId, token]);
 
   // 5) 로딩 중 또는 데이터 없음 처리
   if (loading) {
     return (
-      <PageContainer>
+      <>
         <Navigation />
-        <Loading>로딩 중...</Loading>
+        <PageContainer>
+          <Loading>로딩 중...</Loading>
+        </PageContainer>
         <Footer />
-      </PageContainer>
+      </>
     );
   }
   if (!funding) {
     return (
-      <PageContainer>
+      <>
         <Navigation />
-        <Loading>펀딩 정보를 불러올 수 없습니다.</Loading>
+        <PageContainer>
+          <Loading>펀딩 정보를 불러올 수 없습니다.</Loading>
+        </PageContainer>
         <Footer />
-      </PageContainer>
+      </>
     );
   }
 
   // 6) 실제 렌더링
   return (
-    <PageContainer>
+    <>
       <Navigation />
+      <PageContainer>
+        <ContentWrapper>
+          <ImageSection>
+            <Image src={funding.attachedImage} alt={funding.title} />
+          </ImageSection>
 
-      <ContentWrapper>
-        <ImageSection>
-          <Image src={funding.attachedImage} alt={funding.title} />
-        </ImageSection>
+          <InfoSection>
+            <Achievement>{funding.attainmentPercent}% 달성</Achievement>
+            <TotalAmount>
+              {funding.currentAmount.toLocaleString()}원 달성
+            </TotalAmount>
 
-        <InfoSection>
-          <Achievement>{funding.attainmentPercent}% 달성</Achievement>
-          <TotalAmount>
-            {funding.currentAmount.toLocaleString()}원 달성
-          </TotalAmount>
+            <TitleText>{funding.title}</TitleText>
+            <BodyText>{funding.content}</BodyText>
 
-          <TitleText>{funding.title}</TitleText>
-          <BodyText>{funding.content}</BodyText>
+            <Actions>
+              <IconButton onClick={!isScraped ? handleMark : handleDeleteMark}>
+                <img
+                  src={!isScraped ? BookmarkIcon : BookMarkColor}
+                  alt="스크랩"
+                />
+              </IconButton>
 
-          <Actions>
-            <IconButton onClick={!isScraped ? handleMark : handleDeleteMark}>
-              <img
-                src={!isScraped ? BookmarkIcon : BookMarkColor}
-                alt="스크랩"
-              />
-            </IconButton>
+              <IconButton>
+                <img src={ShareIcon} alt="공유" />
+              </IconButton>
 
-            <IconButton>
-              <img src={ShareIcon} alt="공유" />
-            </IconButton>
+              <FundButton onClick={handleKakaoPay}>펀딩하기</FundButton>
+            </Actions>
+          </InfoSection>
+        </ContentWrapper>
 
-            <FundButton onClick={handleKakaoPay}>
-              펀딩하기
-            </FundButton>
-          </Actions>
-        </InfoSection>
-      </ContentWrapper>
-
-      <DetailsSection>
-        <PlaceholderDetails />
-      </DetailsSection>
-
+        <DetailsSection>
+          <PlaceholderDetails />
+        </DetailsSection>
+      </PageContainer>
       <Footer />
-    </PageContainer>
+    </>
   );
 };
 
 export default CrowdfundingDetail;
-
 
 /** Styled Components **/
 const PageContainer = styled.div`
