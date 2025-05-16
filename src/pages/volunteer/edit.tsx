@@ -54,15 +54,23 @@ const EditPage = () => {
       window.location.href = "/login"; // 로그인 페이지로 리디렉션
       return;
     }
+    //유효성 체크
+    if (!title || !selectedTags || !startDate || !deadLineDate || !participant) {
+    alert("모든 필드를 입력해주세요.");
+    return;
+  }
+  const content = editorRef.current?.getInstance().getHTML() || "";
+  const formatDate = (date: Date): string =>
+    date.toISOString().split("T")[0] + "T00:00:00";
     //json 형식
     const volunteerRequestDto = {
       nickname: "string",
-      title: "string",
-      field: "LIVING_SUPPORT",
-      content: "string",
-      startTime: "2016-10-27T00:00:00",
-      deadline: "2016-10-27T00:00:00",
-      maxCapacity: 0,
+      title: title,
+      field: selectedTags,
+      content: content,
+      startTime: formatDate(startDate),
+      deadline: formatDate(deadLineDate),
+      maxCapacity: Number(participant),
     };
     console.log("volunteerRequestDto:", volunteerRequestDto);
     const formData = new FormData();
@@ -76,6 +84,7 @@ const EditPage = () => {
     const imageInput = document.getElementById(
       "imageInput",
     ) as HTMLInputElement;
+    
     if (imageInput?.files && imageInput.files.length > 0) {
       Array.from(imageInput.files).forEach((file, index) => {
         formData.append(
