@@ -52,23 +52,8 @@ const PostRequestDetail = () => {
     setApprovalOptions(!ArrprovalOPtions);
   };
   if (!post) return <p>게시글을 불러오는 중...</p>;
-  const handleVerifyReject = (postId: number) => {
-    api.put(`/posts/${postId}/verify-reject`).then((res) => {
-      alert(res.data.message);
-    });
-  };
   const handleVerifyApprove = (postId: number) => {
     api.put(`/post/${postId}/verify-approve`).then((res) => {
-      alert(res.data.message);
-    });
-  };
-  const handleReject = (postId: number) => {
-    api.put(`/posts/${postId}/reject`).then((res) => {
-      alert(res.data.message);
-    });
-  };
-  const handleAccept = (postId: number) => {
-    api.put(`/posts/${postId}/accept`).then((res) => {
       alert(res.data.message);
     });
   };
@@ -124,17 +109,8 @@ const PostRequestDetail = () => {
         {ApprovalOption && (<ApprovalButton onClick={handleApprovalClick}>검증하기</ApprovalButton>)}
         {ArrprovalOPtions && (
           <ApprovalOption>
-            <OptionButton onClick={() => handleVerifyReject(post?.postId)}>
-              검증 거절
-            </OptionButton>
             <OptionButton onClick={() => handleVerifyApprove(post?.postId)}>
               검증 승인
-            </OptionButton>
-            <OptionButton onClick={() => handleReject(post?.postId)}>
-              게시 거부
-            </OptionButton>
-            <OptionButton onClick={() => handleAccept(post?.postId)}>
-              게시 승인
             </OptionButton>
           </ApprovalOption>
         )}
@@ -244,13 +220,14 @@ const ApprovalButton = styled.button`
   color: white;
   font-family: "Pretandard", sans-serif;
   font-size: 18px;
-  margin-left: auto; /* 왼쪽 여백을 자동으로 설정하여 오른쪽으로 이동 */
+  margin-left: 15px;
   margin-bottom: 20px;
+  margin-right: 15px;
 `;
 const ApprovalOption = styled.div`
   display: flex;
   gap: 10px;
-  margin-top: 10px;
+  margin-top: 5px;
 `;
 
 const OptionButton = styled.button`
