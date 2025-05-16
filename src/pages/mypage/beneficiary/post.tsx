@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
-import axios from 'axios';
+import api from '../../../utils/api'; // ✅ axios 대신 api 사용
 
 interface Post {
   status: string;
@@ -11,23 +11,21 @@ interface Post {
 const PostHistory = () => {
   const [posts, setPosts] = useState<Post[]>([]);
   const [totalCount, setTotalCount] = useState<number>(0);
-  const beneficiaryId = localStorage.getItem('beneficiaryId'); // 사용자 ID 가져오기
+  const beneficiaryId = localStorage.getItem('beneficiaryId');
 
   useEffect(() => {
     if (!beneficiaryId) return;
 
     const fetchPosts = async () => {
       try {
-        const response = await axios.get(
-          `https://your-api.com/beneficiaries/posts/${beneficiaryId}`
-        );
+        const response = await api.get(`/beneficiaries/posts/${beneficiaryId}`);
 
         if (response.data.isSuccess) {
           setPosts(response.data.result.postList as Post[]);
           setTotalCount(response.data.result.totalCount);
         }
       } catch (error) {
-        console.error('Error fetching posts:', error);
+        console.error('게시글 목록 가져오기 실패:', error);
       }
     };
 
@@ -68,6 +66,7 @@ const PostHistory = () => {
 };
 
 export default PostHistory;
+
 
 const Container = styled.div`
   padding: 40px;
