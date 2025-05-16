@@ -55,9 +55,12 @@ const PostPage = () => {
       const today = new Date();
       const time = deadlineDate.getTime() - today.getTime();
       const dDay = Math.ceil(time / (1000 * 60 * 60 * 24));
+
+      const formatDate = (dataString: string) => dataString.split("T")[0];
       const processedVolunteer = {
         ...vol,
         deadline: dDay >= 0 ? `D-${dDay}` : `D-${-dDay}(마감)`,
+        startTime: formatDate(vol.startTime),
       };
       setVolunteer(processedVolunteer);
     })
@@ -137,6 +140,7 @@ const PostPage = () => {
       console.error("REQUEST FAILED: ", error);
       alert("서버와의 연결에 문제가 발생했습니다.");
     }
+
   };
   return (
     <>
@@ -271,7 +275,7 @@ const ButtonContainer = styled.div`
   align-items: center;
   justify-content: center;
   gap: 15px;
-  margin-top: 40px;
+  margin-top: 50px;
   width: 100%;
   margin-left: 40%;
   @media(max-width: 768px){
@@ -321,7 +325,7 @@ const Details = styled.div`
   display: flex;
   flex-direction: row;
   align-items: center;
-  margin-bottom: -20px;
+  margin-bottom: -40px;
   gap: 15px; /* 간격 추가 */
 `;
 const Title = styled.h6`
