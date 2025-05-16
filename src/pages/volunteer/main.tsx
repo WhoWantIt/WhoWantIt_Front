@@ -1,4 +1,3 @@
-//const api = import.meta.env.VITE_API_URL;
 import styled from "styled-components";
 import Navigation from "../../components/Navigation";
 import image from "../../assets/just_image.svg";
@@ -8,6 +7,7 @@ import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import api from "../../utils/api";
 import type { ButtonHTMLAttributes } from "react";
+import { getUserRole } from "../../utils/jwt";
 const ITEMS_PER_PAGE = 10;
 const tags = [
   { name: "LIVING_SUPPORT", text: "생활편의지원" },
@@ -37,6 +37,8 @@ const SeoulDistrict = [
   "도봉구",
   "노원구",
   "강북구",
+  "강남구",
+  "서초구",
   "성북구",
   "중랑구",
   "동대무구",
@@ -75,6 +77,7 @@ interface CardType {
 }
 
 const VolunteerPage = () => {
+  const role = getUserRole();
   const navigate = useNavigate();
   const [selectedTab, setSelectedTab] = useState<"city" | "field">("city");
   //const [selectedCity, setSelectedCity] = useState<string | null>(null);
@@ -92,13 +95,22 @@ const VolunteerPage = () => {
   const handlePageClick = (pageNumber: number) => {
     setCurrentPage(pageNumber);
   };
+  // 주소 전처리
+  const simplifyAddress = (address: string): string => {
+    const match = address.match(/^([^\s]+시|특별시|광역시|도)?\s?([^\s]+구|군)/);
+    if (match) {
+      return `${match[1]} ${match[2]}`;
+    }
+    return address;
+  }
+
+
   useEffect(() => {
     api
       .get("/volunteers")
       .then((res) => {
         const processedData = res.data.result.content.map((card: CardType) => {
-          const porcessedAaddress =
-            card.address.match(/^서울시\s\S+/)?.[0] || card.address;
+          const porcessedAaddress = simplifyAddress(card.address);
           const deadlineDate = new Date(card.deadline);
           const today = new Date();
           const time = deadlineDate.getTime() - today.getTime();
@@ -106,7 +118,7 @@ const VolunteerPage = () => {
           return {
             ...card,
             address: porcessedAaddress,
-            deadline: dDay >= 0 ? `D-${dDay}` : `D+${-dDay}(마감)`,
+            deadline: dDay >= 0 ? `D-${dDay}` : `D+${-dDay}`,
           };
         });
         setCards(processedData);
@@ -125,8 +137,7 @@ const VolunteerPage = () => {
         .then((res) => {
           const processedData = res.data.result.content.map(
             (card: CardType) => {
-              const porcessedAaddress =
-                card.address.match(/^서울시\s\S+/)?.[0] || card.address;
+              const porcessedAaddress = simplifyAddress(card.address);
               const deadlineDate = new Date(card.deadline);
               const today = new Date();
               const time = deadlineDate.getTime() - today.getTime();
@@ -134,7 +145,7 @@ const VolunteerPage = () => {
               return {
                 ...card,
                 address: porcessedAaddress,
-                deadline: dDay >= 0 ? `D-${dDay}` : `D+${-dDay}(마감)`,
+                deadline: dDay >= 0 ? `D-${dDay}` : `D+${-dDay}`,
               };
             },
           );
@@ -151,8 +162,7 @@ const VolunteerPage = () => {
         .then((res) => {
           const processedData = res.data.result.content.map(
             (card: CardType) => {
-              const porcessedAaddress =
-                card.address.match(/^서울시\s\S+/)?.[0] || card.address;
+              const porcessedAaddress = simplifyAddress(card.address);
               const deadlineDate = new Date(card.deadline);
               const today = new Date();
               const time = deadlineDate.getTime() - today.getTime();
@@ -160,7 +170,7 @@ const VolunteerPage = () => {
               return {
                 ...card,
                 address: porcessedAaddress,
-                deadline: dDay >= 0 ? `D-${dDay}` : `D+${-dDay}(마감)`,
+                deadline: dDay >= 0 ? `D-${dDay}` : `D+${-dDay}`,
               };
             },
           );
@@ -185,7 +195,12 @@ const VolunteerPage = () => {
     navigate(`/volunteer/post/${volunteerId}`);
   };
   const handleEdit = () => {
-    navigate('/volunteer/edit')
+    if(role === "BENEFICIARY") {
+      navigate('/volunteer/edit')
+    }
+    else {
+      alert("자원봉사단체가 아닙니다.");
+    }
   }
   // 해당 post의 volunteerId를 통해 해당 Id의 상세 내용을 post.tsx에서 볼 수 있게 해줘
   //const handleParticalPost =
@@ -314,17 +329,17 @@ const Image = styled.img`
 const EditButtonWrapper = styled.div`
   display: flex;
   width: 300px;
-  margin-top: 30px;
+  margin-top: 25px;
   margin-left: 70px;
 `
 const EditButton = styled.div`
   font-size: 18px;
   font-weight: bold;
-  color:  "#3E5879";
+  color:  #ffffff;
   padding: 8px 16px;
   border: none;
-  border-bottom: 2px solid "#3E5879";
-  background: transparent;
+  background: #3E5879;
+  border-radius: 10px;
   cursor: pointer;
   position: relative;
   @media(max-width: 768px) {
@@ -334,6 +349,7 @@ const EditButton = styled.div`
 const ButtonWrapper = styled.div`
   display: flex;
   width: 300px;
+  margin-top: 10px;
   margin-left: 45px;
 `;
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -420,7 +436,7 @@ const FieldList = styled.div`
 const FieldItem = styled.div.withConfig({
   shouldForwardProp: (prop) => prop !== "active",
 })<{ active?: boolean }>`
-  font-size: 18px;
+  font-size: 15px;
   font-weight: ${({ active }) => (active ? "bold" : "normal")};
   padding: 15px 50px;
   white-space: nowrap;

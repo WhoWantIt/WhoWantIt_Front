@@ -48,6 +48,7 @@ const EditPage = () => {
     maxCapacity: number;
   }
   const handleIssue = async () => {
+    const nickname = localStorage.getItem("nickname");
     const accessToken = localStorage.getItem("accessToken");
     if (!accessToken) {
       alert("로그인이 필요합니다.");
@@ -64,7 +65,7 @@ const EditPage = () => {
     date.toISOString().split("T")[0] + "T00:00:00";
     //json 형식
     const volunteerRequestDto = {
-      nickname: "string",
+      nickname: nickname,
       title: title,
       field: selectedTags,
       content: content,

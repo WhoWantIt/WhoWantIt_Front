@@ -54,7 +54,6 @@ const LoginForm = () => {
         localStorage.setItem("id", userInfo.result.id);
         localStorage.setItem("name", userInfo.result.name);
         localStorage.setItem("role", userInfo.result.role);
-        localStorage.setItem("role", userInfo.result.role);
         localStorage.setItem("nickname", userInfo.result.nickname);
         localStorage.setItem("passward", userInfo.result.passward);
         localStorage.setItem("email", userInfo.result.email);
