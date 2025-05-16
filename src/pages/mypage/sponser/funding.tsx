@@ -50,7 +50,7 @@ const SponserFundingPage = () => {
   };
 
   const goToFundingDetail = (fundingId: number) => {
-    navigate(`/crowdfunding/${fundingId}`);
+    navigate(`/crowdfunding/detail/${fundingId}`);
   };
 
   return (
