@@ -47,25 +47,25 @@ const PostPage = () => {
     initMap();
   }, []);
   useEffect(() => {
-    api
-      .get(`/volunteers/${volunteerId}`)
-      .then((res) => {
-        const processedData = res.data.result.map((vol : VolunteerType)=> {
-          const deadlineDate = new Date(vol.deadline);
-          const today = new Date();
-          const time = deadlineDate.getTime() - today.getTime();
-          const dDay = Math.ceil(time/ (1000 * 60 * 60 * 24));
-          return {
-            ...vol,
-            deadline: dDay >= 0 ? `D-${dDay}` : `D-${-dDay}(마감)`,
-          };
-        });
-        setVolunteer(processedData);
-      })
-      .catch((err) => {
-        console.error("Error fetching post:", err);
-      });
-  }, [volunteerId]);
+  api
+    .get(`/volunteers/${volunteerId}`)
+    .then((res) => {
+      const vol: VolunteerType = res.data.result;
+      const deadlineDate = new Date(vol.deadline);
+      const today = new Date();
+      const time = deadlineDate.getTime() - today.getTime();
+      const dDay = Math.ceil(time / (1000 * 60 * 60 * 24));
+      const processedVolunteer = {
+        ...vol,
+        deadline: dDay >= 0 ? `D-${dDay}` : `D-${-dDay}(마감)`,
+      };
+      setVolunteer(processedVolunteer);
+    })
+    .catch((err) => {
+      console.error("Error fetching post:", err);
+    });
+}, [volunteerId]);
+
   const handleApply = async () => {
     try {
       const client = await fetch(`${Api}volunteers/${volunteerId}`, {

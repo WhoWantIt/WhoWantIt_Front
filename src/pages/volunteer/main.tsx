@@ -7,6 +7,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import api from "../../utils/api";
+import type { ButtonHTMLAttributes } from "react";
 const ITEMS_PER_PAGE = 10;
 const tags = [
   { name: "LIVING_SUPPORT", text: "생활편의지원" },
@@ -139,14 +140,14 @@ const VolunteerPage = () => {
           );
           setCards(processedData);
         })
-        .catch((err) => console.error("Error fetching cards:", err));
+        .catch((err) => console.error("#1Error fetching cards:", err));
     }
   }, [city, subCity]); // 의존성 배열 추가
 
   useEffect(() => {
     if (field) {
       api
-        .get(`${api}volunteers/fields?field=${field}`)
+        .get(`volunteers/fields?field=${field}`)
         .then((res) => {
           const processedData = res.data.result.content.map(
             (card: CardType) => {
@@ -165,7 +166,7 @@ const VolunteerPage = () => {
           );
           setCards(processedData);
         })
-        .catch((err) => console.error("Error fetching cards:", err));
+        .catch((err) => console.error("#2Error fetching cards:", err));
     }
   }, [field]); // 의존성 배열 추가
   const handleCityClick = (selected: string) => {
@@ -183,6 +184,9 @@ const VolunteerPage = () => {
   const handleDetailCard = (volunteerId: number) => {
     navigate(`/volunteer/post/${volunteerId}`);
   };
+  const handleEdit = () => {
+    navigate('/volunteer/edit')
+  }
   // 해당 post의 volunteerId를 통해 해당 Id의 상세 내용을 post.tsx에서 볼 수 있게 해줘
   //const handleParticalPost =
   return (
@@ -190,6 +194,12 @@ const VolunteerPage = () => {
       <Container>
         <Navigation />
         <Image src={image} />
+        <EditButtonWrapper>
+          <EditButton
+          onClick={()=> handleEdit()}>
+            #자원봉사등록하기
+          </EditButton>
+        </EditButtonWrapper>
         <ButtonWrapper>
           <Button
             active={selectedTab === "city"}
@@ -301,17 +311,36 @@ const Image = styled.img`
   width: 100%;
   height: auto;
 `;
-
+const EditButtonWrapper = styled.div`
+  display: flex;
+  width: 300px;
+  margin-top: 30px;
+  margin-left: 70px;
+`
+const EditButton = styled.div`
+  font-size: 18px;
+  font-weight: bold;
+  color:  "#3E5879";
+  padding: 8px 16px;
+  border: none;
+  border-bottom: 2px solid "#3E5879";
+  background: transparent;
+  cursor: pointer;
+  position: relative;
+  @media(max-width: 768px) {
+    font-size: 13px;
+  }
+`
 const ButtonWrapper = styled.div`
   display: flex;
   width: 300px;
-  margin-top: 50px;
   margin-left: 45px;
 `;
-interface ButtonProps {
+interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   active: boolean;
 }
-const Button = styled.button<ButtonProps>`
+const Button = styled.button.withConfig({shouldForwardProp: (prop) => prop !== "active",
+})<ButtonProps>`
   font-size: 18px;
   font-weight: bold;
   color: ${({ active }) => (active ? "#3E5879" : "#E6D9D2")};
