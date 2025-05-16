@@ -92,11 +92,12 @@ const ContentWrapper = styled.div`
 
 const ImageSection = styled.div`
   flex: 1;
+  display: flex;
 `;
 
 const PlaceholderImage = styled.div`
-  width: 100%;
-  height: 300px;
+  width: 250px;
+  height: 250px;
   background-color: #3e5879;
   border-radius: 8px;
 `;
@@ -145,6 +146,8 @@ const FundButton = styled.button`
   border-radius: 5px;
   font-size: 16px;
   cursor: pointer;
+  width: 50px;
+  heigth: 10px;
 `;
 
 const DetailsSection = styled.div`

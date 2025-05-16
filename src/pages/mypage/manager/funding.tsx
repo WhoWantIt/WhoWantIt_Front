@@ -7,6 +7,7 @@ import Navigation from "../../../components/Navigation";
 import { useEffect } from "react";
 import api from "../../../utils/api";
 import { useNavigate } from "react-router-dom";
+import Footer from "../../../components/Footer";
 interface FundingType {
   fundingId: number;
   title: string;
@@ -73,6 +74,7 @@ const FundingPage = () => {
     <>
       <Navigation />
       <Container>
+        <Wrapper>
         {/* 왼쪽 사이드바 */}
         <Sidebar>
           <SidebarTitle>마이페이지</SidebarTitle>
@@ -132,7 +134,9 @@ const FundingPage = () => {
             )}
           </Pagination>
         </MainContent>
+        </Wrapper>
       </Container>
+      <Footer />
     </>
   );
 };
@@ -144,6 +148,11 @@ const Container = styled.div`
   width: 100%;
   font-family: Pretendard, sans-serif;
 `;
+const Wrapper = styled.div`
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+`
 const Sidebar = styled.div`
   width: 250px;
   background-color: #3e5879;
@@ -151,7 +160,7 @@ const Sidebar = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  height: 100vh;
+  height: 100%;
   @media(max-width: 768px) {
     width: 200px;
   }
@@ -199,6 +208,7 @@ const DocumentItem = styled.li.withConfig({
 const MainContent = styled.div`
   flex: 1;
   padding: 40px;
+  min-width: 0;
 `;
 
 const Title = styled.h2`
@@ -233,9 +243,13 @@ const Divider = styled.hr`
 `;
 const StyledPostGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  grid-gap: 24px;
-  padding: 30px 80px;
+  grid-template-columns: repeat(3, 1fr);
+  padding: 20px;
+  width: 100%;
+  margin-top: 20px;
+  @media(max-width: 768px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
 `;
 
 const StyledPostCard = styled.div`

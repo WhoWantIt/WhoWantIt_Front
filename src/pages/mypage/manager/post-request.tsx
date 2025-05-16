@@ -63,6 +63,7 @@ const PostRequestPage = () => {
       <Navigation />
       <Container>
         {/* 왼쪽 사이드바 */}
+        <Wrapper>
         <Sidebar>
           <SidebarTitle>마이페이지</SidebarTitle>
           <DocumentList>
@@ -118,6 +119,7 @@ const PostRequestPage = () => {
             )}
           </Pagination>
         </MainContent>
+        </Wrapper>
       </Container>
       <Footer />
     </>
@@ -132,12 +134,16 @@ const Container = styled.div`
   width: 100%;
   font-family: Pretendard, sans-serif;
 `;
-
+const Wrapper = styled.div`
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+`;
 const Sidebar = styled.div`
+  display: flex;
   width: 250px;
   background-color: #3e5879;
   color: white;
-  display: flex;
   flex-direction: column;
   align-items: center;
   height: 100vh;
@@ -193,6 +199,7 @@ const DocumentItem = styled.li.withConfig({
 const MainContent = styled.div`
   flex: 1;
   padding: 40px;
+  min-width: 0;
 `;
 
 const Title = styled.h2`
@@ -228,11 +235,14 @@ const Divider = styled.hr`
 
 /* 카드 목록 */
 const CardList = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-around;
-  gap: 20px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  padding: 20px;
+  width: 100%;
   margin-top: 20px;
+  @media (max-width: 768px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
 `;
 
 const Card = styled.div<{ isVerified: boolean }>`

@@ -10,6 +10,7 @@ import * as XLSX from "xlsx";
 import { PostType } from "../../../types/PostType";
 
 const PostRequestDetail = () => {
+
   const { postId } = useParams<{ postId: string }>();
   const [post, setPost] = useState<PostType | null>(null);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -120,7 +121,7 @@ const PostRequestDetail = () => {
             </>
           )}
         </PostContainer>
-        <ApprovalButton onClick={handleApprovalClick}>검증하기</ApprovalButton>
+        {ApprovalOption && (<ApprovalButton onClick={handleApprovalClick}>검증하기</ApprovalButton>)}
         {ArrprovalOPtions && (
           <ApprovalOption>
             <OptionButton onClick={() => handleVerifyReject(post?.postId)}>
@@ -260,7 +261,8 @@ const OptionButton = styled.button`
   font-size: 14px;
   cursor: pointer;
   border-radius: 5px;
-
+  height : 45px;
+  width: 60px;
   &:hover {
     background-color: #e9ecef;
   }
