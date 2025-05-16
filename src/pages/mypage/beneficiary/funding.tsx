@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
-import axios from 'axios';
+import api from '../../../utils/api';
 
 interface Funding {
   fundingId: number;
@@ -13,61 +13,103 @@ interface Funding {
   dday: string;
 }
 
-const FundingHistory = () => {
+const ITEMS_PER_PAGE = 9;
+
+const FundingHistory: React.FC = () => {
   const [fundings, setFundings] = useState<Funding[]>([]);
+  const [totalCount, setTotalCount] = useState<number>(0);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
   const beneficiaryId = localStorage.getItem('beneficiaryId');
 
   useEffect(() => {
     if (!beneficiaryId) return;
 
     const fetchFundings = async () => {
+      setLoading(true);
+      setError(null);
       try {
-        const response = await axios.get(
-          `https://your-api.com/beneficiaries/fundings/${beneficiaryId}`
+        const response = await api.get(
+          `/beneficiaries/fundings/${beneficiaryId}`,
+          { params: { page: currentPage, size: ITEMS_PER_PAGE } }
         );
 
         if (response.data.isSuccess) {
-          setFundings(response.data.result.fundingList);
+          const list = response.data.result.fundingList as Funding[];
+          setFundings(list);
+          setTotalCount(response.data.result.totalCount as number);
+        } else {
+          setError('펀딩 데이터를 불러오지 못했습니다.');
         }
-      } catch (error) {
-        console.error('펀딩 목록 가져오기 실패:', error);
+      } catch (err) {
+        console.error('Error fetching fundings:', err);
+        setError('서버 오류가 발생했습니다.');
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchFundings();
-  }, [beneficiaryId]);
+  }, [beneficiaryId, currentPage]);
+
+  if (!beneficiaryId) {
+    return <Container><Message>유효한 사용자가 아닙니다.</Message></Container>;
+  }
+
+  const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
 
   return (
     <Container>
       <Header>
         <Title>펀딩 내역</Title>
-        <TotalCount>
-          <CountNumber>{fundings.length}</CountNumber>개의 펀딩
-        </TotalCount>
+        <TotalCount>총 <CountNumber>{totalCount}</CountNumber>개 펀딩</TotalCount>
       </Header>
       <Divider />
-      {fundings.length > 0 ? (
-        <FundingGrid>
-          {fundings.map((funding) => (
-            <FundingCard key={funding.fundingId}>
-              <Image src={funding.attachedImage || "https://via.placeholder.com/140"} alt="펀딩 이미지" />
-              <Achievement>{funding.fundingAmount}원 모금됨</Achievement>
-              <FundingTitle>{funding.title}</FundingTitle>
-              <FundingDetails>
-                <Institution>{funding.beneficiaryName}</Institution>
-                <DaysLeft>{funding.dday}일 남음</DaysLeft>
-              </FundingDetails>
-            </FundingCard>
-          ))}
-        </FundingGrid>
+
+      {loading ? (
+        <Message>로딩 중...</Message>
+      ) : error ? (
+        <ErrorMessage>{error}</ErrorMessage>
       ) : (
-        <NoFundingMessage>등록된 펀딩이 없습니다.</NoFundingMessage>
+        fundings.length > 0 ? (
+          <Grid>
+            {fundings.map(item => (
+              <Card key={item.fundingId}>
+                <Image src={item.attachedImage || 'https://via.placeholder.com/140'} alt="펀딩 이미지" />
+                <Achievement>{item.fundingAmount.toLocaleString()}원 모금됨</Achievement>
+                <FundingTitle>{item.title}</FundingTitle>
+                <Details>
+                  <Institution>{item.beneficiaryName}</Institution>
+                  <DaysLeft>{item.dday}일 남음</DaysLeft>
+                </Details>
+              </Card>
+            ))}
+          </Grid>
+        ) : (
+          <Message>등록된 펀딩이 없습니다.</Message>
+        )
       )}
-      <Pagination>
-        {[...Array(10)].map((_, index) => (
-          <PageNumber key={index}>{index + 1}</PageNumber>
-        ))}
-      </Pagination>
+
+      {totalPages > 1 && (
+        <Pagination>
+          <PageButton disabled={currentPage === 1} onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}>
+            이전
+          </PageButton>
+          {Array.from({ length: totalPages }, (_, i) => (
+            <PageNumber
+              key={i}
+              active={currentPage === i + 1}
+              onClick={() => setCurrentPage(i + 1)}
+            >
+              {i + 1}
+            </PageNumber>
+          ))}
+          <PageButton disabled={currentPage === totalPages} onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}>
+            다음
+          </PageButton>
+        </Pagination>
+      )}
     </Container>
   );
 };
@@ -81,21 +123,18 @@ const Container = styled.div`
 
 const Header = styled.div`
   display: flex;
-  justify-content: center;
-  position: relative;
+  justify-content: space-between;
+  align-items: flex-end;
 `;
 
 const Title = styled.h2`
   font-size: 36px;
-  font-weight: Semibold;
+  font-weight: 600;
   color: #3e5879;
   margin: 0;
 `;
 
 const TotalCount = styled.div`
-  position: absolute;
-  right: 0;
-  bottom: 0;
   font-size: 16px;
   color: #3e5879;
 `;
@@ -110,16 +149,26 @@ const Divider = styled.div`
   width: 100%;
   height: 1px;
   background-color: #d9d9d9;
-  margin: 20px 0 30px 0;
+  margin: 20px 0 30px;
 `;
 
-const FundingGrid = styled.div`
+const Message = styled.div`
+  text-align: center;
+  color: #555;
+  margin: 20px 0;
+`;
+
+const ErrorMessage = styled(Message)`
+  color: #e74c3c;
+`;
+
+const Grid = styled.div`
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 30px;
 `;
 
-const FundingCard = styled.div`
+const Card = styled.div`
   background-color: #f8f9fa;
   border-radius: 12px;
   padding: 20px;
@@ -144,7 +193,7 @@ const FundingTitle = styled.div`
   margin-bottom: 10px;
 `;
 
-const FundingDetails = styled.div`
+const Details = styled.div`
   display: flex;
   justify-content: space-between;
   font-size: 12px;
@@ -155,13 +204,6 @@ const Institution = styled.div``;
 
 const DaysLeft = styled.div``;
 
-const NoFundingMessage = styled.div`
-  text-align: center;
-  font-size: 16px;
-  color: #3e5879;
-  margin: 20px 0;
-`;
-
 const Pagination = styled.div`
   margin-top: 30px;
   display: flex;
@@ -169,13 +211,26 @@ const Pagination = styled.div`
   gap: 5px;
 `;
 
-const PageNumber = styled.div`
-  cursor: pointer;
+const PageButton = styled.button`
   padding: 5px 10px;
-  color: #3e5879;
-  font-weight: bold;
+  background-color: #3e5879;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+`;
 
-  &:hover {
-    text-decoration: underline;
+const PageNumber = styled(PageButton)<{active: boolean}>`
+  background-color: ${({active}) => (active ? '#3e5879' : 'transparent')};
+  color: ${({active}) => (active ? 'white' : '#3e5879')};
+  border: 1px solid #3e5879;
+
+  &:hover:enabled {
+    background-color: #3e5879;
+    color: white;
   }
 `;
