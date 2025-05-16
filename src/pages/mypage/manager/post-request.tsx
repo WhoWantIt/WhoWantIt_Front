@@ -83,7 +83,7 @@ const PostRequestPage = () => {
         <MainContent>
           <Title>게시글 요청</Title>
           <TotalCount>
-            <strong>100</strong> 개의 기관
+            <strong>{cards.length}</strong> 개의 기관
           </TotalCount>
           <Divider />
 
@@ -238,6 +238,7 @@ const CardList = styled.div`
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   padding: 20px;
+  gap: 20px;
   width: 100%;
   margin-top: 20px;
   @media (max-width: 768px) {
